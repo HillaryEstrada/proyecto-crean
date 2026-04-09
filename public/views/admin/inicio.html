@@ -1,0 +1,147 @@
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-12 text-center mb-4">
+            <h1 class="display-4"> Bienvenido al Sistema</h1>
+            <p class="lead" id="mensajeBienvenida">Cargando...</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Card de información del usuario -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"> Información de Usuario</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-borderless">
+                        <tr>
+                            <th>Usuario:</th>
+                            <td id="infoUsername">-</td>
+                        </tr>
+                        <tr>
+                            <th>Email:</th>
+                            <td id="infoEmail">-</td>
+                        </tr>
+                        <tr>
+                            <th>Nombre:</th>
+                            <td id="infoNombre">-</td>
+                        </tr>
+                        <tr>
+                            <th>Rol:</th>
+                            <td><span id="infoRol" class="badge bg-info">-</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Card de accesos rápidos -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"> Accesos Rápidos</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary" onclick="cargarVista('productos')">
+                             Ver Productos
+                        </button>
+                        
+                        <!-- Opciones solo para Administradores -->
+                        <div id="accionesAdmin" class="d-none">
+                            <button class="btn btn-outline-secondary" onclick="cargarVista('categorias')">
+                                Gestionar Categorías
+                            </button>
+                            <button class="btn btn-outline-info" onclick="cargarVista('clientes')">
+                                 Gestionar Clientes
+                            </button>
+                            <button class="btn btn-outline-warning" onclick="cargarVista('pedidos')">
+                                 Ver Pedidos
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="cargarVista('users')">
+                                 Administrar Usuarios
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas o información adicional -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0"> Información del Sistema</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3 class="text-primary"></h3>
+                                <h6>Autenticación</h6>
+                                <p class="text-muted small">Sistema seguro con JWT</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3 class="text-success"></h3>
+                                <h6>Encriptación</h6>
+                                <p class="text-muted small">Contraseñas con bcrypt</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3 class="text-warning"></h3>
+                                <h6>Control de Roles</h6>
+                                <p class="text-muted small">Admin y Cliente</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <h3 class="text-info"></h3>
+                                <h6>Base de Datos</h6>
+                                <p class="text-muted small">PostgreSQL segura</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para cargar información del usuario -->
+<script>
+    (function() {
+        const user = getCurrentUser();
+        
+        if (!user) {
+            window.location.href = '/views/auth/login.html';
+            return;
+        }
+
+        // Mostrar mensaje de bienvenida personalizado
+        document.getElementById('mensajeBienvenida').textContent = 
+            `¡Hola ${user.nombre}! Has iniciado sesión como ${user.rol}`;
+
+        // Llenar información del usuario
+        document.getElementById('infoUsername').textContent = user.username;
+        document.getElementById('infoEmail').textContent = user.email;
+        document.getElementById('infoNombre').textContent = user.nombre;
+        
+        const badgeRol = document.getElementById('infoRol');
+        badgeRol.textContent = user.rol;
+        badgeRol.className = user.rol === 'Administrador' 
+            ? 'badge bg-danger' 
+            : 'badge bg-info';
+
+        // Mostrar acciones de administrador si aplica
+        if (user.rol === 'Administrador') {
+            document.getElementById('accionesAdmin').classList.remove('d-none');
+        }
+    })();
+</script>

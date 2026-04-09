@@ -1,0 +1,53 @@
+
+<div class="alert alert-primary mt-4 container text-center">
+    <h2>Gestión de computadora pro Alo</h2>
+</div>
+
+<!-- Botones de acción -->
+<div class="container mb-3 text-end">
+    <button class="btn btn-success" onclick="mostrarFormulario()">Crear Computadora</button>
+    <button class="btn btn-secondary d-none" id="btnCancelar" onclick="mostrarTabla()">Cancelar</button>
+</div>
+
+<!-- FORMULARIO para crear/editar computadora -->
+<div class="container d-none" id="contenedorFormulario">
+    <form id="formComputadora">
+        <!-- Campo oculto para el ID al editar -->
+        <input type="hidden" id="id">
+
+        <div class="mb-3">
+            <label class="form-label">Nombre Completo</label>
+            <input type="text" id="nombre" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Marca</label>
+            <input type="text" id="marca" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Precio</label>
+            <textarea id="precio" class="form-control" rows="2"></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Guardar Compu</button>
+    </form>
+</div>
+
+<!-- TABLA para listar computadora -->
+<div class="container mt-4" id="contenedorTabla">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Marca</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablacomputadora"></tbody>
+    </table>
+    <!-- Contenedor para la paginación -->
+    <div id="footer-paginacion"></div>
+</div>

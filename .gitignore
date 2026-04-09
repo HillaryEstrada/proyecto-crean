@@ -1,0 +1,26 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Base de datos (si tienes dumps o archivos pesados)
+*.sql
+*.sqlite
+*.db
+
+# Archivos temporales
+tmp/
+temp/
+
+# Carpeta de uploads si llegas a tener
+uploads/

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Monolítico JS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+</head>
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-64 bg-gray-800 text-white transition-all duration-300 flex flex-col">
+            <!-- Header del Sidebar -->
+            <div class="p-4 flex justify-between items-center border-b border-gray-700">
+                <div class="flex items-center">
+                    <svg class="h-8 w-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    </svg>
+                    <span class="ml-2 text-xl font-semibold sidebar-text">Sistema JS</span>
+                </div>
+                <button id="collapse-btn" class="p-1 rounded-md hover:bg-gray-700 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Navegación -->
+            <nav class="mt-5 px-2 flex-1 overflow-y-auto">
+
+    <!-- OPERACIÓN -->
+    <p class="text-xs text-gray-400 px-2 mb-2">OPERACIÓN</p>
+
+    <a href="#" onclick="cargarVista('maquinaria/maquinaria')"
+        class="flex items-center px-2 py-2 text-sm rounded-md bg-blue-600 text-white">
+        <i class="fas fa-tractor mr-2"></i>
+        <span class="sidebar-text">Maquinaria</span>
+    </a>
+
+    <a href="#" onclick="cargarVista('vehiculos/vehiculos')"
+        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
+        <i class="fas fa-truck mr-2"></i>
+        <span class="sidebar-text">Vehículos</span>
+    </a>
+
+    <a href="#" onclick="cargarVista('mantenimiento/mantenimiento')"
+        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
+        <i class="fas fa-wrench mr-2"></i>
+        <span class="sidebar-text">Mantenimiento</span>
+    </a>
+
+    <!-- ADMIN -->
+    <p class="text-xs text-gray-400 px-2 mt-4 mb-2">ADMINISTRACIÓN</p>
+
+    <a href="#" onclick="cargarVista('admin/gestion')"
+        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
+        <i class="fas fa-folder mr-2"></i>
+        <span class="sidebar-text">Gestión</span>
+    </a>
+
+    <a href="#" onclick="cargarVista('admin/empleados')"
+        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
+        <i class="fas fa-user mr-2"></i>
+        <span class="sidebar-text">Empleados</span>
+    </a>
+
+    <a href="#" onclick="cargarVista('admin/users')"
+        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
+        <i class="fas fa-users mr-2"></i>
+        <span class="sidebar-text">Usuarios</span>
+    </a>
+
+</nav>
+
+            <!-- Usuario en el footer -->
+            <div class="mt-auto p-4 border-t border-gray-700">
+                <div class="flex items-center">
+                    <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg">
+                        <span id="userInitials">U</span>
+                    </div>
+                    <div class="ml-3 sidebar-text-container">
+                        <p class="text-sm font-medium text-white sidebar-text" id="displayUsername">Usuario</p>
+                        <p class="text-xs font-medium text-gray-400 sidebar-text" id="displayRole">Rol</p>
+                    </div>
+                    <button onclick="cerrarSesion()" class="ml-auto p-2 rounded-md hover:bg-gray-700 focus:outline-none sidebar-text-container" title="Cerrar sesión">
+                        <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <!-- Header superior con info del usuario (móvil) -->
+            <div class="bg-white shadow-sm p-4 md:hidden">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-xl font-semibold text-gray-900">Sistema Monolítico JS</h1>
+                    <button id="mobile-menu-btn" class="p-2 rounded-md text-gray-600 hover:bg-gray-100">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Contenido principal -->
+            <div id="contenido" class="p-6">
+                <!-- Aquí se cargará el contenido dinámico -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Bienvenido al Sistema</h2>
+                    <p class="text-gray-600">Selecciona una opción del menú para comenzar.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Scripts originales del sistema -->
+    <script src="/js/core/auth.js"></script>
+    <script src="/js/core/menu.js"></script>
+    <script src="/js/components/paginacion.js"></script>
+    <script src="/js/components/forms.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+    
+
+    <script>
+        // Sidebar collapse functionality
+        const sidebar = document.getElementById('sidebar');
+        const collapseBtn = document.getElementById('collapse-btn');
+        const sidebarTexts = document.querySelectorAll('.sidebar-text');
+        const sidebarTextContainers = document.querySelectorAll('.sidebar-text-container');
+
+        collapseBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('w-64');
+            sidebar.classList.toggle('w-16');
+            collapseBtn.querySelector('svg').classList.toggle('rotate-180');
+            
+            // Ocultar/mostrar textos
+            sidebarTexts.forEach(text => {
+                text.classList.toggle('hidden');
+            });
+            
+            // Ocultar/mostrar contenedores de texto
+            sidebarTextContainers.forEach(container => {
+                container.classList.toggle('hidden');
+            });
+        });
+
+        // Dropdown functionality
+        const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+        
+        dropdownBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const dropdownContent = btn.nextElementSibling;
+                const arrow = btn.querySelector('svg:last-child');
+                
+                dropdownContent.classList.toggle('hidden');
+                arrow.classList.toggle('rotate-180');
+            });
+        });
+
+        // Verificar autenticación y cargar info del usuario
+        (function() {
+            const user = getCurrentUser();
+            
+            if (!user) {
+                window.top.location.href = '/views/auth/login.html';
+                return;
+            }
+
+            // Mostrar información del usuario
+            document.getElementById('displayUsername').textContent = user.username;
+            document.getElementById('displayRole').textContent = user.rol;
+            
+            // Mostrar iniciales del usuario
+            const initials = user.username.substring(0, 2).toUpperCase();
+            document.getElementById('userInitials').textContent = initials;
+
+            // Mostrar opciones según el rol
+            if (user.rol === 'Administrador') {
+                document.querySelectorAll('.admin-only').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+            }
+        })();
+
+        // Función para cerrar sesión
+        function cerrarSesion() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: '¿Estás seguro que deseas cerrar sesión?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, salir',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    logout();
+                }
+            });
+        }
+
+        // Prevenir navegación predeterminada en enlaces
+        document.querySelectorAll('a[href="#"]').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+            });
+        });
+
+        // Menú móvil (opcional)
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        if (mobileMenuBtn) {
+            mobileMenuBtn.addEventListener('click', () => {
+                sidebar.classList.toggle('-translate-x-full');
+            });
+        }
+    </script>
+</body>
+</html>

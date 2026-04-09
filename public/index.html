@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Monolítico JS</title>
+    <link rel="stylesheet" href="/css/global.css">
+
+</head>
+<body>
+    <!-- Script de verificación de autenticación -->
+    <script>
+        // Verificar si el usuario está autenticado antes de cargar el sistema
+        (function() {
+            const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+            
+            if (!token) {
+                // No hay token, redirigir al login
+                window.location.replace('/views/auth/login.html');
+            } else {
+                // Verificar que el token sea válido
+                fetch('/auth/verificar', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                })
+                .then(res => {
+                    if (!res.ok) {
+                        throw new Error('Token inválido');
+                    }
+                    return res.json();
+                })
+                .catch(() => {
+                    // Token inválido, limpiar y redirigir
+                    localStorage.removeItem('token');
+                    sessionStorage.removeItem('token');
+                    localStorage.removeItem('user');
+                    localStorage.removeItem('vista');
+                    window.location.replace('/views/auth/login.html');
+                });
+            }
+        })();
+    </script>
+
+    <!-- Cargar el layout solo si está autenticado -->
+    <iframe id="mainFrame" src="/views/admin/layout.html" style="width:100%; height:100vh; border:none;"></iframe>
+</body>
+</html>

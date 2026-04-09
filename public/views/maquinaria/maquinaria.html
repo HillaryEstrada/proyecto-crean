@@ -1,0 +1,69 @@
+<!-- ============================================
+     VISTA: maquinaria.html
+     Descripción: Interfaz para gestionar maquinaria
+     ============================================ -->
+
+<div class="alert alert-primary mt-4 container text-center">
+    <h2>Gestión de Maquinaria</h2>
+</div>
+
+<!-- Botones -->
+<div class="container mb-3 text-end">
+    <button class="btn btn-success" onclick="mostrarFormulario()">Nueva Maquinaria</button>
+    <button class="btn btn-secondary d-none" id="btnCancelar" onclick="mostrarTabla()">Cancelar</button>
+</div>
+
+<!-- FORMULARIO -->
+<div class="container d-none" id="contenedorFormulario">
+    <form id="formMaquinaria">
+
+        <input type="hidden" id="pk_maquinaria">
+
+        <div class="mb-3">
+            <label>Número Económico</label>
+            <input type="text" id="numero_economico" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label>Marca</label>
+            <input type="text" id="marca" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label>Modelo</label>
+            <input type="text" id="modelo" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label>Año</label>
+            <input type="number" id="anio" class="form-control">
+        </div>
+
+        <div class="mb-3">
+            <label>Ubicación</label>
+            <input type="text" id="ubicacion" class="form-control">
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Guardar</button>
+    </form>
+</div>
+
+<!-- TABLA -->
+<div class="container mt-4" id="contenedorTabla">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>N° Económico</th>
+                <th>Marca</th>
+                <th>Modelo</th>
+                <th>Año</th>
+                <th>Ubicación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablaMaquinaria"></tbody>
+    </table>
+</div>
+
+<script src="/js/maquinaria.js"></script>

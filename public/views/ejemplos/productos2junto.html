@@ -1,0 +1,45 @@
+
+<div class="alert alert-primary mt-4 container text-center">
+    <h2>Productos</h2>
+</div>
+
+<div class="container mb-3 text-end">
+    <button class="btn btn-success" onclick="mostrarFormulario()">Crear Producto</button>
+    <button class="btn btn-secondary d-none" id="btnCancelar" onclick="mostrarTabla()">Cancelar</button>
+</div>
+
+<!-- FORMULARIO -->
+<div class="container d-none" id="contenedorFormulario">
+    <form id="formProducto">
+        <input type="hidden" id="id">
+
+        <div class="mb-3">
+            <label class="form-label">Nombre</label>
+            <input type="text" id="nombre" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Precio</label>
+            <input type="text" id="precio" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-success w-100">Guardar</button>
+    </form>
+</div>
+
+<!-- TABLA -->
+<div class="container mt-4" id="contenedorTabla">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody id="tablaProductos"></tbody>
+        
+    </table>
+    <div id="footer-paginacion"></div>
+</div>
