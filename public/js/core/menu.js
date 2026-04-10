@@ -10,13 +10,13 @@ window.onload = () => {
     cargarVista(vistaInicial);
 };
 
-// Mapa de vistas → archivos JS a cargar (RUTA COMPLETA desde /js/)
+// Mapa de vistas → archivos JS a cargar
 const modulos = {
     'admin/inicio': null,
     'admin/users': 'modules/auth/users',
 
     'maquinaria/maquinaria': 'modules/maquinaria/maquinaria',
-    'vehiculos/vehiculos': 'modules/vehiculos/vehiculos',
+    'vehiculo/vehiculo': 'modules/vehiculo/vehiculo',
     'mantenimiento/mantenimiento': 'modules/mantenimiento/mantenimiento',
 };
 

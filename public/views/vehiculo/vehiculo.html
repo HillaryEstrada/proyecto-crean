@@ -1,23 +1,23 @@
 <!-- ============================================
-     VISTA: maquinaria.html
-     Descripción: Interfaz para gestionar maquinaria
+     VISTA: vehiculo.html
+     Descripción: Interfaz para gestionar vehiculo
      ============================================ -->
 
 <div class="alert alert-primary mt-4 container text-center">
-    <h2>Gestión de Maquinaria</h2>
+    <h2>Gestión de Vehiculo</h2>
 </div>
 
 <!-- Botones de acción -->
 <div class="container mb-3 text-end">
-    <button class="btn btn-success" onclick="mostrarFormulario()">Crear Maquinaria</button>
+    <button class="btn btn-success" onclick="mostrarFormulario()">Crear Vehiculo</button>
     <button class="btn btn-secondary d-none" id="btnCancelar" onclick="mostrarTabla()">Cancelar</button>
 </div>
 
-<!-- FORMULARIO para crear/editar maquinaria -->
+<!-- FORMULARIO para crear/editar vehiculo -->
 <div class="container d-none" id="contenedorFormulario">
-    <form id="formMaquinaria">
+    <form id="formVehiculo">
         <!-- Campo oculto para el ID al editar -->
-        <input type="hidden" id="pk_maquinaria">
+        <input type="hidden" id="pk_vehiculo">
 
         <div class="mb-3">
             <label class="form-label">Número Económico</label>
@@ -25,8 +25,8 @@
         </div>
 
         <div class="mb-3">
-            <label class="form-label">Tipo de Equipo</label>
-            <input type="text" id="tipo_equipo" class="form-control" required>
+            <label class="form-label">Tipo de Vehiculo</label>
+            <input type="text" id="tipo_vehiculo" class="form-control" required>
         </div>
 
         <div class="mb-3">
@@ -49,11 +49,11 @@
             <input type="text" id="ubicacion" class="form-control" required>
         </div>
 
-        <button type="submit" class="btn btn-success w-100">Guardar Maquinaria</button>
+        <button type="submit" class="btn btn-success w-100">Guardar Vehiculo</button>
     </form>
 </div>
 
-<!-- TABLA para listar maquinaria -->
+<!-- TABLA para listar vehiculo -->
 <div class="container mt-4" id="contenedorTabla">
     <table class="table table-striped">
         <thead>
@@ -67,9 +67,8 @@
                 <th>Acciones</th>
             </tr>
         </thead>
-        <tbody id="tablaMaquinaria"></tbody>
+        <tbody id="tablaVehiculo"></tbody>
     </table>
-
     <!-- Contenedor para la paginación -->
     <div id="footer-paginacion"></div>
 </div>

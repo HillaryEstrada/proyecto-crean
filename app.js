@@ -41,6 +41,7 @@ app.use('/computadora', require('./routes/ejemplos/computadora.routes'));
 // --- MÓDULO CREAN ---
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));
 
+app.use('/vehiculo', require('./routes/vehiculo/vehiculo.routes'));
 
 // Rutas generales
 app.use('/', require('./routes/index.routes'));

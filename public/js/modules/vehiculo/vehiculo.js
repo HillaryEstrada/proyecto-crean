@@ -1,6 +1,6 @@
 // ============================================
-// JAVASCRIPT: maquinaria.js
-// Descripción: Maneja la lógica del frontend para maquinaria
+// JAVASCRIPT: vehiculo.js
+// Descripción: Maneja la lógica del frontend para vehiculo
 // ============================================
 
 setTimeout(() => {
@@ -19,10 +19,10 @@ setTimeout(() => {
     }
 
     // Obtener referencias a elementos del DOM
-    const form = document.getElementById('formMaquinaria');
-    const tabla = document.getElementById('tablaMaquinaria');
+    const form = document.getElementById('formVehiculo');
+    const tabla = document.getElementById('tablaVehiculo');
 
-    // Cargar la lista
+    // Cargar la lista de vehiculo al iniciar
     listar();
 
     // ========== SUBMIT DEL FORMULARIO ==========
@@ -30,17 +30,19 @@ setTimeout(() => {
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const id = document.getElementById('pk_maquinaria').value;
+            // Obtener valores del formulario
+            const id = document.getElementById('pk_vehiculo').value;
             const numero_economico = document.getElementById('numero_economico').value;
-            const tipo_equipo = document.getElementById('tipo_equipo').value;
+            const tipo_vehiculo = document.getElementById('tipo_vehiculo').value;
             const marca = document.getElementById('marca').value;
             const modelo = document.getElementById('modelo').value;
             const anio = document.getElementById('anio').value;
             const ubicacion = document.getElementById('ubicacion').value;
 
+            // Crear objeto
             const data = {
                 numero_economico,
-                tipo_equipo,
+                tipo_vehiculo,
                 marca,
                 modelo,
                 anio,
@@ -49,11 +51,11 @@ setTimeout(() => {
 
             try {
                 if (id) {
-                    await fetchWithAuth(`/maquinaria/${id}`, 'PUT', data);
-                    alert('Maquinaria actualizada exitosamente');
+                    await fetchWithAuth(`/vehiculo/${id}`, 'PUT', data);
+                    alert('Vehiculo actualizado exitosamente');
                 } else {
-                    await fetchWithAuth('/maquinaria', 'POST', data);
-                    alert('Maquinaria creada exitosamente');
+                    await fetchWithAuth('/vehiculo', 'POST', data);
+                    alert('Vehiculo creado exitosamente');
                 }
 
                 form.reset();
@@ -66,40 +68,40 @@ setTimeout(() => {
         });
     }
 
-    // ========== LISTAR ==========
+    // ========== LISTAR VEHICULO ==========
     async function listar() {
         if (!tabla) return;
 
         try {
-            const data = await fetchWithAuth('/maquinaria');
+            const data = await fetchWithAuth('/vehiculo');
 
             tabla.innerHTML = '';
 
             if (data.length === 0) {
                 tabla.innerHTML = `
                     <tr>
-                        <td colspan="7" class="text-center">No hay maquinaria registrada</td>
+                        <td colspan="7" class="text-center">No hay vehiculo registrado</td>
                     </tr>
                 `;
                 return;
             }
 
-            data.forEach(m => {
+            data.forEach(v => {
                 tabla.innerHTML += `
                     <tr>
-                        <td>${m.pk_maquinaria}</td>
-                        <td>${m.numero_economico}</td>
-                        <td>${m.tipo_equipo}</td>
-                        <td>${m.marca || 'N/A'}</td>
-                        <td>${m.modelo || 'N/A'}</td>
-                        <td>${m.ubicacion}</td>
+                        <td>${v.pk_vehiculo}</td>
+                        <td>${v.numero_economico}</td>
+                        <td>${v.tipo_vehiculo}</td>
+                        <td>${v.marca || 'N/A'}</td>
+                        <td>${v.modelo || 'N/A'}</td>
+                        <td>${v.ubicacion}</td>
                         <td>
                             <button class="btn btn-sm btn-warning"
-                                onclick="editar(${m.pk_maquinaria}, '${m.numero_economico}', '${m.tipo_equipo}', '${m.marca || ''}', '${m.modelo || ''}', '${m.anio || ''}', '${m.ubicacion}')">
+                                onclick="editar(${v.pk_vehiculo}, '${v.numero_economico}', '${v.tipo_vehiculo}', '${v.marca || ''}', '${v.modelo || ''}', '${v.anio || ''}', '${v.ubicacion}')">
                                  Editar
                             </button>
                             <button class="btn btn-sm btn-secondary"
-                                onclick="desactivar(${m.pk_maquinaria})">
+                                onclick="desactivar(${v.pk_vehiculo})">
                                  Dar de Baja
                             </button>
                         </td>
@@ -107,7 +109,7 @@ setTimeout(() => {
                 `;
             });
 
-            // Paginación
+            // Paginación (igual que cliente)
             const footer = document.getElementById('footer-paginacion');
             if (footer && typeof initPaginacion === 'function') {
                 const resFooter = await fetch('/views/partials/footer-table.html');
@@ -116,50 +118,50 @@ setTimeout(() => {
                 await new Promise(resolve => setTimeout(resolve, 10));
 
                 initPaginacion({
-                    tbodyId: 'tablaMaquinaria',
+                    tbodyId: 'tablaVehiculo',
                     filasPorPagina: 10
                 });
             }
 
         } catch (error) {
-            console.error('Error al listar maquinaria:', error);
-            alert('Error al cargar la maquinaria');
+            console.error('Error al listar vehiculo:', error);
+            alert('Error al cargar vehiculo');
         }
     }
 
-    // ========== EDITAR ==========
+    // ========== EDITAR VEHICULO ==========
     window.editar = (id, numero, tipo, marca, modelo, anio, ubicacion) => {
         mostrarFormulario();
 
-        document.getElementById('pk_maquinaria').value = id;
+        document.getElementById('pk_vehiculo').value = id;
         document.getElementById('numero_economico').value = numero;
-        document.getElementById('tipo_equipo').value = tipo;
+        document.getElementById('tipo_vehiculo').value = tipo;
         document.getElementById('marca').value = marca;
         document.getElementById('modelo').value = modelo;
         document.getElementById('anio').value = anio;
         document.getElementById('ubicacion').value = ubicacion;
     };
 
-    // ========== DESACTIVAR ==========
+    // ========== DESACTIVAR VEHICULO ==========
     window.desactivar = async (id) => {
-        if (!confirm('¿Desactivar esta maquinaria?')) return;
+        if (!confirm('¿Desactivar este vehiculo?')) return;
 
         try {
-            await fetchWithAuth(`/maquinaria/${id}/desactivar`, 'PATCH');
-            alert('Maquinaria desactivada exitosamente');
+            await fetchWithAuth(`/vehiculo/${id}/desactivar`, 'PATCH');
+            alert('Vehiculo desactivado exitosamente');
             listar();
         } catch (error) {
             alert('Error: ' + error.message);
         }
     };
 
-    // ========== ELIMINAR ==========
+    // ========== ELIMINAR VEHICULO ==========
     window.desaparecer = async (id) => {
-        if (!confirm('¿Eliminar permanentemente esta maquinaria?')) return;
+        if (!confirm('¿Eliminar permanentemente este vehiculo?')) return;
 
         try {
-            await fetchWithAuth(`/maquinaria/${id}`, 'DELETE');
-            alert('Maquinaria eliminada exitosamente');
+            await fetchWithAuth(`/vehiculo/${id}`, 'DELETE');
+            alert('Vehiculo eliminado exitosamente');
             listar();
         } catch (error) {
             alert('Error: ' + error.message);
@@ -182,11 +184,11 @@ window.mostrarFormulario = function () {
 };
 
 window.mostrarTabla = function () {
-    const form = document.getElementById('formMaquinaria');
+    const form = document.getElementById('formVehiculo');
     const f = document.getElementById('contenedorFormulario');
     const t = document.getElementById('contenedorTabla');
     const b = document.getElementById('btnCancelar');
-    const id = document.getElementById('pk_maquinaria');
+    const id = document.getElementById('pk_vehiculo');
 
     if (form) form.reset();
     if (id) id.value = '';
