@@ -13,7 +13,7 @@ window.onload = () => {
 // Mapa de vistas → archivos JS a cargar
 const modulos = {
     'admin/inicio': null,
-    'admin/users': 'modules/auth/users',
+    
 
     'maquinaria/maquinaria': 'modules/maquinaria/maquinaria',
     'vehiculo/vehiculo': 'modules/vehiculo/vehiculo',
@@ -22,7 +22,7 @@ const modulos = {
 
 // Mapa de vistas que requieren rol de Administrador
 const vistasAdmin = [
-    'admin/users'
+    
 ];
 
 // Función principal para cargar vistas
