@@ -3,134 +3,212 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login Barberia</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-
-
-    <link
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
-      rel="stylesheet"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
-    />
-    <style>
-      body {
-        font-family: "Inter", sans-serif;
-      }
-      .input-group-text {
-        cursor: pointer;
-      }
-    </style>
+    <title>CREAN · Iniciar Sesión</title>
+ 
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+ 
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
+ 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+ 
+    <!-- Estilos propios -->
+    <link rel="stylesheet" href="/css/login.css" />
   </head>
-  <body class="bg-[#1c1c24] min-h-screen flex items-center justify-center p-4">
-    <div
-      class="w-full max-w-[1200px] bg-[#13131a] rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
-    >
-      <!-- Left Section -->
-      <div class="w-full md:w-1/2 relative">
-        <a
-          href="#"
-          class="absolute top-6 left-6 text-white text-2xl font-bold z-10"
-          >SistemaBarberia</a
-        >
-        <a
-          href="https://business.google.com/v/karlitas-barberia/0326790342750954794/7bed/_?caid=21130697266&agid=158301383497&gclid=CjwKCAiAwNDMBhBfEiwAd7ti1GAzFl1qh7ICVx8AK5BA7uFbk0pZZDApPIVu_HSW_X2HbGtUeiouXRoC9FgQAvD_BwE&gad_source=1&gad_campaignid=21130697266"
-          class="absolute top-6 right-6 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm hover:bg-white/20 transition-colors z-10"
-          >Web Page →</a
-        >
-        <div class="relative h-full">
-          <img
-            id="imagen-fondo"
-            src="https://i.pinimg.com/1200x/29/96/3e/29963ee2b2298eefcba5308cddc57bdc.jpg"
-          />
-          <div class="absolute inset-0 bg-blue-900/30"></div>
-          <div class="absolute bottom-12 left-12 text-white"></div>
+ 
+  <body>
+    <div class="login-page">
+ 
+      <!-- ═══════════ PANEL IZQUIERDO ═══════════ -->
+      <div class="panel-left">
+        <div class="panel-left__content">
+ 
+          <div class="brand-badge">
+            <i class="bi bi-tree"></i>
+            <span>Gobierno del Estado · Nayarit</span>
+          </div>
+ 
+          <h1 class="panel-left__title">
+            Centro de Rendimiento<br>
+            <em>Excelencia Agrícola</em><br>
+            de Nayarit
+          </h1>
+ 
+          <p class="panel-left__desc">
+            Sistema institucional de gestión y seguimiento agrícola del estado de Nayarit.
+          </p>
+ 
+          <div class="panel-left__contact">
+            <span class="contact-item">
+              <i class="bi bi-telephone"></i> +52 311 000 0000
+            </span>
+            <span class="contact-item">
+              <i class="bi bi-envelope"></i> contacto@crean.gob.mx
+            </span>
+            <span class="contact-item">
+              <i class="bi bi-globe"></i> crean.nayarit.gob.mx
+            </span>
+            <span class="contact-item">
+              <i class="bi bi-geo-alt"></i> Tepic, Nayarit
+            </span>
+          </div>
+ 
         </div>
       </div>
-
-
-      <!-- Right Section (Login Form) -->
-      <div class="w-full md:w-1/2 p-6 md:p-12">
-        <div class="max-w-md mx-auto">
-          <div class="flex justify-center">
-            <h1 class="mb-5 text-white text-2xl md:text-4xl font-semibold mb-2">
-              Log in
-            </h1>
-          </div>
-          <form id="formLogin">
-            <!-- Usuario/Email -->
-            <div class="mb-3">
-              <label for="credencial" class="form-label text-white"
-                >Usuario o Email</label
-              >
-              <input
-                id="credencial"
-                type="text"
-                required
-                autocomplete="username"
-                placeholder="Ingresa tu usuario o email"
-                class="mb-5 w-full bg-[#1c1c24] text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-600"
-              />
+ 
+      <!-- ═══════════ PANEL DERECHO ═══════════ -->
+      <div class="panel-right">
+        <div class="form-wrap">
+ 
+          <h2>Iniciar Sesión</h2>
+          <p class="form-subtitle">Accede con tus credenciales institucionales para continuar.</p>
+ 
+          <form id="formLogin" novalidate>
+ 
+            <!-- Usuario -->
+            <div class="field-group">
+              <label for="credencial" class="field-label">Usuario</label>
+              <div class="input-wrap">
+                <i class="bi bi-person input-icon"></i>
+                <input
+                  id="credencial"
+                  type="text"
+                  required
+                  autocomplete="username"
+                  placeholder="Ej: usuario@crean.gob.mx"
+                  class="field-input"
+                />
+              </div>
             </div>
-
-
+ 
             <!-- Contraseña -->
-            
-            <div class="mb-4">
-              <label for="password" class="form-label text-white"
-                >Contraseña</label
-              >
-              <div class="input-group mb-3">
+            <div class="field-group">
+              <label for="password" class="field-label">Contraseña</label>
+              <div class="input-wrap">
+                <i class="bi bi-lock input-icon"></i>
                 <input
                   id="password"
                   type="password"
                   required
                   autocomplete="current-password"
-                  placeholder="Ingresa tu contraseña"
-                  class="mb-2 w-full bg-[#1c1c24] text-white rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  placeholder="••••••••"
+                  class="field-input"
                 />
+                <button type="button" class="toggle-pw" id="togglePw" aria-label="Mostrar contraseña">
+                  <i class="bi bi-eye" id="eyeIcon"></i>
+                </button>
               </div>
             </div>
-
-
-            <!-- Recordar sesión -->
-            <div class="mb-3 form-check">
-              <input type="checkbox" class="form-check-input" id="recordar" />
-              <label class="form-check-label text-white" for="recordar"
-                >Recordar mi sesión</label
-              >
+ 
+            <!-- Recordar sesión (requerido por login.js) -->
+            <div class="remember-row">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="recordar" />
+                <label class="form-check-label" for="recordar">Recordar mi sesión</label>
+              </div>
             </div>
-
-
-            <!-- Botón de login -->
-            <button
-              type="submit"
-              class="mb-4 btn btn-dark w-100 rounded p-3 btn-login"
-              id="btnLogin"
-            >
-              <span id="btnTexto">Iniciar Sesión</span>
-              <span
-                id="btnSpinner"
-                class="spinner-border spinner-border-sm d-none"
-                role="status"
-              >
+ 
+            <!-- Olvidé mi contraseña -->
+            <div class="forgot-row">
+              <a href="#" class="forgot-link" id="btnOlvide">¿Olvidaste tu contraseña?</a>
+            </div>
+ 
+            <!-- Botón submit -->
+            <button type="submit" class="btn-enter" id="btnLogin">
+              <i class="bi bi-box-arrow-in-right"></i>
+              <span id="btnTexto">Entrar</span>
+              <span id="btnSpinner" class="spinner-border spinner-border-sm d-none" role="status">
                 <span class="visually-hidden">Cargando...</span>
               </span>
             </button>
-
-
-            <!-- Mensaje de alerta -->
-            <div id="mensaje" class="alert d-none mt-3" role="alert"></div>
+ 
+            <!-- #mensaje oculto: login.js lo usa internamente; los Toasts lo interceptan -->
+            <div id="mensaje" class="alert d-none" role="alert" style="display:none!important;position:absolute;pointer-events:none;opacity:0;"></div>
+ 
           </form>
+ 
+          <p class="form-footer">© 2026 CREAN · Todos los derechos reservados</p>
+ 
         </div>
       </div>
+ 
     </div>
-
-
-    <!-- Tu script real de login -->
+ 
+    <!-- Bootstrap JS (necesario para Toasts) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+ 
+    <!-- Contenedor de Toasts — esquina superior derecha -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999;">
+ 
+      <!-- Toast de error -->
+      <div id="toastError" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
+        <div class="d-flex">
+          <div class="toast-body" id="toastErrorMsg">
+            <i class="bi bi-x-circle-fill me-2"></i> Credenciales inválidas.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+      </div>
+ 
+      <!-- Toast de aviso administrador -->
+      <div id="toastAdmin" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+        <div class="d-flex">
+          <div class="toast-body">
+            <i class="bi bi-shield-lock-fill me-2"></i> Contacte con un administrador del sistema.
+          </div>
+          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+      </div>
+ 
+    </div>
+ 
     <script src="/js/modules/auth/login.js" defer></script>
+ 
+    <script>
+      // Toggle contraseña
+      document.getElementById('togglePw').addEventListener('click', function () {
+        const pw  = document.getElementById('password');
+        const ico = document.getElementById('eyeIcon');
+        if (pw.type === 'password') {
+          pw.type = 'text';
+          ico.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+          pw.type = 'password';
+          ico.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+      });
+ 
+      // Olvidé contraseña → Toast de administrador
+      document.getElementById('btnOlvide').addEventListener('click', function (e) {
+        e.preventDefault();
+        new bootstrap.Toast(document.getElementById('toastAdmin'), { autohide: true, delay: 4000 }).show();
+      });
+ 
+      // MutationObserver: intercepta cambios en #mensaje y dispara Toasts
+      const msgEl = document.getElementById('mensaje');
+      const observer = new MutationObserver(function () {
+        const txt = msgEl.textContent.trim();
+        if (!txt) return;
+ 
+        // Solo disparar Toast en caso de ERROR — el éxito lo maneja login.js con redirección
+        if (msgEl.classList.contains('alert-danger')) {
+          const t = document.getElementById('toastError');
+          document.getElementById('toastErrorMsg').innerHTML =
+            '<i class="bi bi-x-circle-fill me-2"></i>' + txt;
+          new bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+        }
+ 
+        // Limpiar siempre para que el siguiente intento vuelva a disparar
+        setTimeout(function () {
+          msgEl.classList.add('d-none');
+          msgEl.classList.remove('alert-danger', 'alert-success');
+          msgEl.textContent = '';
+        }, 200);
+      });
+      observer.observe(msgEl, { attributes: true, childList: true, subtree: true, characterData: true });
+    </script>
+ 
   </body>
 </html>
