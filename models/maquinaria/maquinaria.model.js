@@ -64,5 +64,14 @@ module.exports = {
         `DELETE FROM maquinaria 
          WHERE pk_maquinaria=$1`,
         [id]
-    )
+    ),
+    
+    // Listar maquinaria dada de baja
+    listarBajas: () => Conexion.query(`
+    SELECT *
+    FROM maquinaria
+    WHERE estado_operativo = 'baja'
+    ORDER BY pk_maquinaria ASC
+`)
+
 };

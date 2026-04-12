@@ -7,6 +7,7 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../../controllers/maquinaria/maquinaria.controller');
 
+router.get('/bajas', controller.listarBajas);
 
 // GET /maquinaria - Listar toda la maquinaria
 router.get('/', controller.listar);

@@ -70,3 +70,14 @@ exports.desaparecer = async (req, res) => {
         res.status(500).json({ error: 'No se puede eliminar la maquinaria' });
     }
 };
+
+    exports.listarBajas = async (req, res) => {
+    try {
+        const data = await maquinaria.listarBajas();
+        res.json(data.rows);
+    } catch (error) {
+        console.error('Error en listarBajas:', error);
+        res.status(500).json({ error: error.message });
+    }
+    };
+
