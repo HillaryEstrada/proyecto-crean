@@ -1,0 +1,493 @@
+/* ── VARIABLES ──────────────────────────────────────────────── */
+:root {
+  --green-deep:   #1b4d2e;
+  --green-mid:    #2d7a4f;
+  --green-light:  #4aab70;
+  --green-glow:   #74c69d;
+  --green-pale:   #d4edda;
+  --white:        #ffffff;
+  --text-dark:    #0f2d1a;
+  --text-muted:   #52796f;
+  --input-bg:     #f4faf6;
+  --input-border: #cce3d3;
+  --shadow-btn:   0 8px 24px rgba(27, 77, 46, 0.38);
+}
+ 
+/* ── RESET ──────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+ 
+html, body {
+  height: 100%;
+  font-family: 'DM Sans', sans-serif;
+}
+ 
+/* ─────────────────────────────────────────────────────────────
+   LAYOUT
+───────────────────────────────────────────────────────────── */
+.login-page {
+  display: flex;
+  min-height: 100vh;
+}
+ 
+/* ─────────────────────────────────────────────────────────────
+   PANEL IZQUIERDO — verde sólido con círculo decorativo
+───────────────────────────────────────────────────────────── */
+.panel-left {
+  flex: 1 1 60%;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+ 
+  /* Degradado verde igual a la imagen de referencia */
+  background: linear-gradient(145deg, #2d7a4f 0%, #1b4d2e 55%, #0f2d1a 100%);
+}
+ 
+/* Círculo decorativo grande (esquina superior derecha) */
+.panel-left::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -120px;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+ 
+/* Brillo radial sutil abajo-izquierda */
+.panel-left::after {
+  content: '';
+  position: absolute;
+  bottom: -60px;
+  left: -60px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 171, 112, 0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+ 
+/* Contenido sobre el fondo */
+.panel-left__content {
+  position: relative;
+  z-index: 1;
+  padding: 52px;
+  width: 100%;
+}
+ 
+/* Badge "Gobierno del Estado · Nayarit" */
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.10);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 50px;
+  padding: 7px 18px;
+  margin-bottom: 36px;
+  width: fit-content;
+}
+ 
+.brand-badge i {
+  color: var(--green-glow);
+  font-size: 13px;
+}
+ 
+.brand-badge span {
+  color: #b7f0cc;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+ 
+/* Título principal */
+.panel-left__title {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3.5vw, 50px);
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1.13;
+  margin-bottom: 20px;
+}
+ 
+/* "Excelencia Agrícola" en verde claro */
+.panel-left__title em {
+  font-style: normal;
+  color: var(--green-glow);
+}
+ 
+/* Descripción */
+.panel-left__desc {
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 15px;
+  max-width: 380px;
+  line-height: 1.7;
+  margin-bottom: 44px;
+}
+ 
+/* Fila de datos de contacto */
+.panel-left__contact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 28px;
+}
+ 
+.contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 12px;
+}
+ 
+.contact-item i {
+  color: var(--green-glow);
+  font-size: 13px;
+}
+ 
+/* ─────────────────────────────────────────────────────────────
+   PANEL DERECHO — blanco, formulario
+───────────────────────────────────────────────────────────── */
+.panel-right {
+  flex: 0 0 420px;
+  background: var(--white);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 56px 48px;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+ 
+/* Círculo decorativo inferior-derecha */
+.panel-right::before {
+  content: '';
+  position: absolute;
+  bottom: -110px;
+  right: -90px;
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--green-pale) 0%, transparent 68%);
+  pointer-events: none;
+}
+ 
+/* Círculo decorativo superior-izquierda */
+.panel-right::after {
+  content: '';
+  position: absolute;
+  top: -70px;
+  left: -70px;
+  width: 230px;
+  height: 230px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #eaf7ee 0%, transparent 70%);
+  pointer-events: none;
+}
+ 
+/* ── FORM WRAP ──────────────────────────────────────────────── */
+.form-wrap {
+  width: 100%;
+  max-width: 320px;
+  position: relative;
+  z-index: 1;
+  animation: fadeUp .45s ease both;
+}
+ 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+ 
+/* ── TÍTULO Y SUBTÍTULO ─────────────────────────────────────── */
+.form-wrap h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 27px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+ 
+.form-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 32px;
+  line-height: 1.55;
+}
+ 
+/* ── CAMPOS ─────────────────────────────────────────────────── */
+.field-group {
+  margin-bottom: 20px;
+}
+ 
+.field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green-deep);
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+ 
+.input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+ 
+.input-icon {
+  position: absolute;
+  left: 14px;
+  color: #a8c5b4;
+  font-size: 15px;
+  pointer-events: none;
+  transition: color .2s;
+  z-index: 1;
+}
+ 
+.field-input {
+  width: 100%;
+  height: 48px;
+  border: 1.8px solid var(--input-border);
+  border-radius: 12px;
+  padding: 0 16px 0 42px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  color: var(--text-dark);
+  background: var(--input-bg);
+  outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+ 
+.field-input::placeholder {
+  color: #a8c5b4;
+}
+ 
+.field-input:focus {
+  border-color: var(--green-mid);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.12);
+}
+ 
+.input-wrap:focus-within .input-icon {
+  color: var(--green-mid);
+}
+ 
+/* ── TOGGLE CONTRASEÑA ──────────────────────────────────────── */
+.toggle-pw {
+  position: absolute;
+  right: 13px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #a8c5b4;
+  font-size: 15px;
+  padding: 0;
+  line-height: 1;
+  transition: color .2s;
+  z-index: 1;
+}
+ 
+.toggle-pw:hover {
+  color: var(--green-mid);
+}
+ 
+/* ── ¿OLVIDASTE TU CONTRASEÑA? ──────────────────────────────── */
+.forgot-row {
+  text-align: right;
+  margin-top: -8px;
+  margin-bottom: 26px;
+}
+ 
+.forgot-link {
+  font-size: 12px;
+  color: var(--green-mid);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color .2s;
+}
+ 
+.forgot-link:hover {
+  color: var(--green-deep);
+  text-decoration: underline;
+}
+ 
+/* ── BOTÓN ENTRAR ───────────────────────────────────────────── */
+.btn-enter {
+  width: 100%;
+  height: 50px;
+  background: linear-gradient(135deg, var(--green-light) 0%, var(--green-deep) 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  box-shadow: var(--shadow-btn);
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+ 
+.btn-enter:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(27, 77, 46, 0.44);
+}
+ 
+.btn-enter:active {
+  transform: translateY(0);
+  opacity: 0.92;
+}
+ 
+/* ── CHECKBOX RECORDAR SESIÓN ───────────────────────────────── */
+.remember-row {
+  margin-bottom: 4px;
+}
+ 
+.remember-row .form-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+}
+ 
+.remember-row .form-check-input {
+  width: 16px;
+  height: 16px;
+  border: 1.8px solid var(--input-border);
+  border-radius: 4px;
+  margin: 0;
+  accent-color: var(--green-mid);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+ 
+.remember-row .form-check-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin: 0;
+}
+ 
+/* ── ALERTA ─────────────────────────────────────────────────── */
+#mensaje.alert {
+  border-radius: 10px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 13px;
+  padding: 12px 16px;
+}
+ 
+#mensaje.alert-danger {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #991b1b;
+  margin-top: 20px !important;
+}
+ 
+/* Ocultar alerta de éxito — la redirección la maneja login.js */
+#mensaje.alert-success {
+  display: none !important;
+}
+ 
+/* ── BOOTSTRAP TOASTS ───────────────────────────────────────── */
+#toastError {
+  background: #c0392b;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  min-width: 280px;
+}
+ 
+#toastAdmin {
+  background: #1a3a5c;
+  color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  font-family: "DM Sans", sans-serif;
+  font-size: 14px;
+  min-width: 280px;
+}
+ 
+.toast .btn-close {
+  filter: invert(1);
+  opacity: 0.8;
+}
+ 
+/* ── FOOTER ─────────────────────────────────────────────────── */
+.form-footer {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 11px;
+  color: #a8c5b4;
+}
+ 
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .panel-right {
+    flex: 0 0 360px;
+    padding: 48px 36px;
+  }
+}
+ 
+@media (max-width: 768px) {
+  .login-page {
+    flex-direction: column;
+  }
+ 
+  .panel-left {
+    flex: none;
+    min-height: 250px;
+    align-items: flex-end;
+  }
+ 
+  .panel-left__content {
+    padding: 32px 28px;
+  }
+ 
+  .panel-left__title {
+    font-size: 26px;
+    margin-bottom: 10px;
+  }
+ 
+  .panel-left__desc,
+  .panel-left__contact {
+    display: none;
+  }
+ 
+  .brand-badge {
+    margin-bottom: 16px;
+  }
+ 
+  .panel-right {
+    flex: 1;
+    min-height: auto;
+    width: 100%;
+    padding: 44px 28px 52px;
+  }
+}
+ 
+@media (max-width: 420px) {
+  .panel-right {
+    padding: 36px 20px 44px;
+  }
+}
+ 
