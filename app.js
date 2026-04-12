@@ -32,12 +32,6 @@ app.use((req, res, next) => {
 app.use('/roles', require('./routes/auth/roles.routes'));
 app.use('/users', require('./routes/auth/users.routes'));
 
-// --- MÓDULO DE EJEMPLOS ---
-app.use('/productos', require('./routes/ejemplos/productos.routes'));
-app.use('/clientes', require('./routes/ejemplos/clientes.routes'));
-app.use('/pedidos', require('./routes/ejemplos/pedidos.routes'));
-app.use('/computadora', require('./routes/ejemplos/computadora.routes'));
-
 // --- MÓDULO CREAN ---
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));
 
