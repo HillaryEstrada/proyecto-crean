@@ -7,30 +7,37 @@ const Conexion = require('../../config/database');
 
 module.exports = {
 
-    // Listar todos los empleados con todos sus datos
+    // Listar todos los empleados activos con info de cuenta
     listar: () => Conexion.query(
-        `SELECT pk_empleado, numero_empleado, nombre, apellido_paterno, apellido_materno,
-                sexo, telefono, correo, direccion, estado, fecha_ingreso,
-                CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) as nombre_completo
-         FROM empleado
-         ORDER BY nombre ASC`
+        `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
+                e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
+                e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
+                u.pk_user, u.username
+        FROM empleado e
+        LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
+        WHERE (e.estado = 'activo' OR e.estado IS NULL)
+        ORDER BY e.nombre ASC`
     ),
 
-    // Obtener empleado por ID
+    // Obtener empleado por ID con info de cuenta
     obtenerPorId: (id) => Conexion.query(
-        `SELECT pk_empleado, numero_empleado, nombre, apellido_paterno, apellido_materno,
-                sexo, telefono, correo, direccion, estado, fecha_ingreso,
-                CONCAT(nombre, ' ', apellido_paterno, ' ', apellido_materno) as nombre_completo
-         FROM empleado
-         WHERE pk_empleado = $1`,
+        `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno,
+                e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion,
+                e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
+                u.pk_user, u.username
+         FROM empleado e
+         LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
+         WHERE e.pk_empleado = $1`,
         [id]
     ),
 
     // Crear empleado nuevo
     crear: (data) => Conexion.query(
         `INSERT INTO empleado(numero_empleado, nombre, apellido_paterno, apellido_materno,
-                              sexo, telefono, correo, direccion, estado, fecha_ingreso)
-         VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                              sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento)
+         VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
          RETURNING pk_empleado`,
         [
             data.numero_empleado,
@@ -42,7 +49,8 @@ module.exports = {
             data.correo,
             data.direccion,
             data.estado || 'activo',
-            data.fecha_ingreso
+            data.fecha_ingreso,
+            data.fecha_nacimiento
         ]
     ),
 
@@ -50,8 +58,9 @@ module.exports = {
     actualizar: (id, data) => Conexion.query(
         `UPDATE empleado
          SET numero_empleado=$1, nombre=$2, apellido_paterno=$3, apellido_materno=$4,
-             sexo=$5, telefono=$6, correo=$7, direccion=$8, estado=$9, fecha_ingreso=$10
-         WHERE pk_empleado=$11`,
+             sexo=$5, telefono=$6, correo=$7, direccion=$8, estado=$9, 
+             fecha_ingreso=$10, fecha_nacimiento=$11
+         WHERE pk_empleado=$12`,
         [
             data.numero_empleado,
             data.nombre,
@@ -63,8 +72,15 @@ module.exports = {
             data.direccion,
             data.estado,
             data.fecha_ingreso,
+            data.fecha_nacimiento,
             id
         ]
+    ),
+
+    // Actualizar solo la foto de perfil
+    actualizarFoto: (id, url) => Conexion.query(
+        'UPDATE empleado SET foto_perfil=$1 WHERE pk_empleado=$2',
+        [url, id]
     ),
 
     // Desactivar empleado (soft delete)
@@ -89,5 +105,11 @@ module.exports = {
             : 'SELECT pk_empleado FROM empleado WHERE correo=$1';
         const params = excludeId ? [correo, excludeId] : [correo];
         return Conexion.query(query, params);
-    }
+    },
+
+    listarBajas: () => Conexion.query(
+    `SELECT pk_empleado, numero_empleado, nombre, apellido_paterno,
+            apellido_materno, telefono, correo, estado
+     FROM empleado WHERE estado != 'activo' ORDER BY nombre ASC`
+    ),
 };

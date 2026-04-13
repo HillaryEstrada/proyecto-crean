@@ -14,6 +14,8 @@ router.use(verificarToken);
 // GET /empleados - Listar todos (cualquier usuario autenticado)
 router.get('/', controller.listar);
 
+router.get('/bajas', controller.listarBajas);
+
 // GET /empleados/:id - Obtener uno
 router.get('/:id', controller.obtenerPorId);
 
@@ -25,5 +27,7 @@ router.put('/:id', verificarModulo('admin/empleados'), controller.actualizar);
 
 // PATCH /empleados/:id/desactivar - Desactivar (quien tenga el módulo)
 router.patch('/:id/desactivar', verificarModulo('admin/empleados'), controller.desactivar);
+
+router.patch('/:id/foto', verificarModulo('admin/empleados'), controller.actualizarFoto);
 
 module.exports = router;
