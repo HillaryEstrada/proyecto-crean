@@ -31,6 +31,8 @@ app.use((req, res, next) => {
 // --- MÓDULO DE AUTENTICACIÓN ---
 app.use('/roles', require('./routes/auth/roles.routes'));
 app.use('/users', require('./routes/auth/users.routes'));
+app.use('/modulos', require('./routes/auth/modulos.routes'));
+app.use('/empleados', require('./routes/auth/empleado.routes'));
 
 // --- MÓDULO CREAN ---
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));

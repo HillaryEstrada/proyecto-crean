@@ -5,18 +5,6 @@
 
 setTimeout(() => {
 
-    // VERIFICAR AUTENTICACIÓN
-    if (!isAuthenticated()) {
-        window.location.href = '/views/auth/login.html';
-        return;
-    }
-
-    // VERIFICAR ROL (solo administradores)
-    if (!isAdmin()) {
-        alert('Solo los administradores pueden acceder a esta sección');
-        cargarVista('inicio');
-        return;
-    }
 
     // Obtener referencias a elementos del DOM
     const form = document.getElementById('formVehiculo');

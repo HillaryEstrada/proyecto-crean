@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    
 </head>
 <body class="bg-gray-100">
     <div class="flex h-screen">
@@ -28,52 +27,9 @@
                 </button>
             </div>
 
-            <!-- Navegación -->
-            <nav class="mt-5 px-2 flex-1 overflow-y-auto">
-
-    <!-- OPERACIÓN -->
-    <p class="text-xs text-gray-400 px-2 mb-2">OPERACIÓN</p>
-
-    <a href="#" onclick="cargarVista('maquinaria/maquinaria')"
-        class="flex items-center px-2 py-2 text-sm rounded-md bg-blue-600 text-white">
-        <i class="fas fa-tractor mr-2"></i>
-        <span class="sidebar-text">Maquinaria</span>
-    </a>
-
-    <a href="#" onclick="cargarVista('vehiculo/vehiculo')"
-        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-        <i class="fas fa-truck mr-2"></i>
-        <span class="sidebar-text">Vehículos</span>
-    </a>
-
-    <a href="#" onclick="cargarVista('mantenimiento/mantenimiento')"
-        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-        <i class="fas fa-wrench mr-2"></i>
-        <span class="sidebar-text">Mantenimiento</span>
-    </a>
-
-    <!-- ADMIN -->
-    <p class="text-xs text-gray-400 px-2 mt-4 mb-2">ADMINISTRACIÓN</p>
-
-    <a href="#" onclick="cargarVista('admin/gestion')"
-        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-        <i class="fas fa-folder mr-2"></i>
-        <span class="sidebar-text">Gestión</span>
-    </a>
-
-    <a href="#" onclick="cargarVista('admin/empleados')"
-        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-        <i class="fas fa-user mr-2"></i>
-        <span class="sidebar-text">Empleados</span>
-    </a>
-
-    <a href="#" onclick="cargarVista('admin/users')"
-        class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-        <i class="fas fa-users mr-2"></i>
-        <span class="sidebar-text">Usuarios</span>
-    </a>
-
-</nav>
+            <!-- ← ÚNICO CAMBIO: nav vacío, menu.js lo llena dinámicamente -->
+            <nav id="sidebar-nav" class="mt-5 px-2 flex-1 overflow-y-auto">
+            </nav>
 
             <!-- Usuario en el footer -->
             <div class="mt-auto p-4 border-t border-gray-700">
@@ -96,7 +52,6 @@
 
         <!-- Main Content -->
         <main class="flex-1 overflow-y-auto">
-            <!-- Header superior con info del usuario (móvil) -->
             <div class="bg-white shadow-sm p-4 md:hidden">
                 <div class="flex justify-between items-center">
                     <h1 class="text-xl font-semibold text-gray-900">Sistema Monolítico JS</h1>
@@ -108,9 +63,7 @@
                 </div>
             </div>
 
-            <!-- Contenido principal -->
             <div id="contenido" class="p-6">
-                <!-- Aquí se cargará el contenido dinámico -->
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-2xl font-semibold text-gray-900 mb-4">Bienvenido al Sistema</h2>
                     <p class="text-gray-600">Selecciona una opción del menú para comenzar.</p>
@@ -119,78 +72,40 @@
         </main>
     </div>
 
-    <!-- Scripts originales del sistema -->
     <script src="/js/core/auth.js"></script>
     <script src="/js/core/menu.js"></script>
     <script src="/js/components/paginacion.js"></script>
     <script src="/js/components/forms.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
 
     <script>
-        // Sidebar collapse functionality
+        // Sidebar collapse
         const sidebar = document.getElementById('sidebar');
         const collapseBtn = document.getElementById('collapse-btn');
-        const sidebarTexts = document.querySelectorAll('.sidebar-text');
-        const sidebarTextContainers = document.querySelectorAll('.sidebar-text-container');
 
         collapseBtn.addEventListener('click', () => {
             sidebar.classList.toggle('w-64');
             sidebar.classList.toggle('w-16');
             collapseBtn.querySelector('svg').classList.toggle('rotate-180');
-            
-            // Ocultar/mostrar textos
-            sidebarTexts.forEach(text => {
-                text.classList.toggle('hidden');
-            });
-            
-            // Ocultar/mostrar contenedores de texto
-            sidebarTextContainers.forEach(container => {
-                container.classList.toggle('hidden');
-            });
+
+            document.querySelectorAll('.sidebar-text').forEach(t => t.classList.toggle('hidden'));
+            document.querySelectorAll('.sidebar-text-container').forEach(c => c.classList.toggle('hidden'));
         });
 
-        // Dropdown functionality
-        const dropdownBtns = document.querySelectorAll('.dropdown-btn');
-        
-        dropdownBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const dropdownContent = btn.nextElementSibling;
-                const arrow = btn.querySelector('svg:last-child');
-                
-                dropdownContent.classList.toggle('hidden');
-                arrow.classList.toggle('rotate-180');
-            });
-        });
-
-        // Verificar autenticación y cargar info del usuario
+        // Info del usuario en footer
         (function() {
             const user = getCurrentUser();
-            
             if (!user) {
                 window.top.location.href = '/views/auth/login.html';
                 return;
             }
-
-            // Mostrar información del usuario
             document.getElementById('displayUsername').textContent = user.username;
             document.getElementById('displayRole').textContent = user.rol;
-            
-            // Mostrar iniciales del usuario
-            const initials = user.username.substring(0, 2).toUpperCase();
-            document.getElementById('userInitials').textContent = initials;
-
-            // Mostrar opciones según el rol
-            if (user.rol === 'Administrador') {
-                document.querySelectorAll('.admin-only').forEach(el => {
-                    el.classList.remove('hidden');
-                });
-            }
+            document.getElementById('userInitials').textContent = user.username.substring(0, 2).toUpperCase();
         })();
 
-        // Función para cerrar sesión
+        // Cerrar sesión con confirmación
         function cerrarSesion() {
             Swal.fire({
                 title: '¿Cerrar sesión?',
@@ -202,20 +117,11 @@
                 confirmButtonText: 'Sí, salir',
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    logout();
-                }
+                if (result.isConfirmed) logout();
             });
         }
 
-        // Prevenir navegación predeterminada en enlaces
-        document.querySelectorAll('a[href="#"]').forEach(link => {
-            link.addEventListener('click', (e) => {
-                e.preventDefault();
-            });
-        });
-
-        // Menú móvil (opcional)
+        // Menú móvil
         const mobileMenuBtn = document.getElementById('mobile-menu-btn');
         if (mobileMenuBtn) {
             mobileMenuBtn.addEventListener('click', () => {

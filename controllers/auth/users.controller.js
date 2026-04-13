@@ -4,29 +4,26 @@
 // ============================================
 
 const bcrypt = require('bcryptjs');
-const User = require('../../models/auth/users.model');
+const User   = require('../../models/auth/users.model');
 const config = require('../../config/auth.config');
 
 // CREAR - Nuevo usuario
 exports.crear = async (req, res) => {
     try {
-        const { username, email, password, nombre_completo, fk_rol } = req.body;
+        const { username, password, fk_rol, fk_empleado } = req.body;
 
-        // Validar campos requeridos
-        if (!username || !email || !password || !nombre_completo || !fk_rol) {
+        if (!username || !password || !fk_rol || !fk_empleado) {
             return res.status(400).json({ 
-                error: 'Todos los campos son requeridos' 
+                error: 'username, password, rol y empleado son requeridos' 
             });
         }
 
-        // Validar longitud de contraseña
         if (password.length < 6) {
             return res.status(400).json({ 
                 error: 'La contraseña debe tener al menos 6 caracteres' 
             });
         }
 
-        // Verificar si el username ya existe
         const usernameExiste = await User.existeUsername(username);
         if (usernameExiste.rows.length > 0) {
             return res.status(400).json({ 
@@ -34,24 +31,13 @@ exports.crear = async (req, res) => {
             });
         }
 
-        // Verificar si el email ya existe
-        const emailExiste = await User.existeEmail(email);
-        if (emailExiste.rows.length > 0) {
-            return res.status(400).json({ 
-                error: 'El email ya está registrado' 
-            });
-        }
-
-        // Encriptar contraseña con bcrypt
         const passwordHash = await bcrypt.hash(password, config.bcrypt.saltRounds);
 
-        // Crear el usuario
         const result = await User.crear({
             username,
-            email,
             password_hash: passwordHash,
-            nombre_completo,
-            fk_rol
+            fk_rol,
+            fk_empleado
         });
 
         res.json({ 
@@ -65,7 +51,7 @@ exports.crear = async (req, res) => {
     }
 };
 
-// LISTAR - Todos los usuarios
+// LISTAR - Todos los usuarios activos
 exports.listar = async (req, res) => {
     try {
         const data = await User.listar();
@@ -93,9 +79,14 @@ exports.obtenerPorId = async (req, res) => {
 // ACTUALIZAR - Usuario existente
 exports.actualizar = async (req, res) => {
     try {
-        const { username, email, nombre_completo, fk_rol, cambiar_password, nueva_password } = req.body;
+        const { username, fk_rol, fk_empleado, cambiar_password, nueva_password } = req.body;
 
-        // Verificar si el username ya existe (excluyendo el usuario actual)
+        if (!username || !fk_rol || !fk_empleado) {
+            return res.status(400).json({ 
+                error: 'username, rol y empleado son requeridos' 
+            });
+        }
+
         const usernameExiste = await User.existeUsername(username, req.params.id);
         if (usernameExiste.rows.length > 0) {
             return res.status(400).json({ 
@@ -103,23 +94,8 @@ exports.actualizar = async (req, res) => {
             });
         }
 
-        // Verificar si el email ya existe (excluyendo el usuario actual)
-        const emailExiste = await User.existeEmail(email, req.params.id);
-        if (emailExiste.rows.length > 0) {
-            return res.status(400).json({ 
-                error: 'El email ya está registrado por otro usuario' 
-            });
-        }
+        await User.actualizar(req.params.id, { username, fk_rol, fk_empleado });
 
-        // Actualizar datos básicos del usuario
-        await User.actualizar(req.params.id, {
-            username,
-            email,
-            nombre_completo,
-            fk_rol
-        });
-
-        // Si se solicita cambiar la contraseña
         if (cambiar_password && nueva_password) {
             if (nueva_password.length < 6) {
                 return res.status(400).json({ 
@@ -149,7 +125,7 @@ exports.desactivar = async (req, res) => {
     }
 };
 
-// ELIMINAR - Usuario permanentemente (hard delete)
+// ELIMINAR - Usuario permanentemente
 exports.desaparecer = async (req, res) => {
     try {
         await User.desaparecer(req.params.id);

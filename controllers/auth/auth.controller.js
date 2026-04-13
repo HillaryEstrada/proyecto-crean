@@ -6,6 +6,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Auth = require('../../models/auth/auth.model');
+const Modulos = require('../../models/auth/modulos.model');
 const config = require('../../config/auth.config');
 
 // LOGIN - Iniciar sesión
@@ -13,50 +14,61 @@ exports.login = async (req, res) => {
     try {
         const { credencial, password } = req.body;
 
-        // Validar que los campos no estén vacíos
         if (!credencial || !password) {
             return res.status(400).json({ 
                 error: 'Usuario/Email y contraseña son requeridos' 
             });
         }
 
-        // Buscar usuario por username o email
         const result = await Auth.buscarPorCredencial(credencial);
         
         if (result.rows.length === 0) {
-            return res.status(401).json({ 
-                error: 'Credenciales inválidas' 
-            });
+            return res.status(401).json({ error: 'Credenciales inválidas' });
         }
 
         const user = result.rows[0];
 
-        // Verificar la contraseña usando bcrypt
         const passwordValido = await bcrypt.compare(password, user.password_hash);
         
         if (!passwordValido) {
-            return res.status(401).json({ 
-                error: 'Credenciales inválidas' 
-            });
+            return res.status(401).json({ error: 'Credenciales inválidas' });
         }
+
+        // 1. Módulos base del rol
+        const modulosRolResult = await Modulos.obtenerClavesPorRol(user.fk_rol);
+        const modulosRol = modulosRolResult.rows.map(m => m.clave);
+
+        // 2. Excepciones individuales del usuario
+        const excepcionesResult = await Modulos.obtenerExcepcionesPorUser(user.pk_user);
+        const excepciones = excepcionesResult.rows;
+
+        // 3. Calcular módulos finales
+        const modulosAgregar = excepciones
+            .filter(e => e.tipo === 'agregar')
+            .map(e => e.clave);
+
+        const modulosQuitar = excepciones
+            .filter(e => e.tipo === 'quitar')
+            .map(e => e.clave);
+
+        const modulos = [
+            ...new Set([...modulosRol, ...modulosAgregar])
+        ].filter(m => !modulosQuitar.includes(m));
 
         // Generar token JWT
         const token = jwt.sign(
             {
                 id: user.pk_user,
                 username: user.username,
-                //correo: empleado.correo,
                 rol: user.rol_nombre,
-                //nombre: empleado.nombre
+                modulos
             },
             config.jwt.secret,
             { expiresIn: config.jwt.expiresIn }
         );
 
-        // Actualizar último acceso
         await Auth.actualizarUltimoAcceso(user.pk_user);
 
-        // Guardar sesión en la base de datos
         const expiracion = new Date(Date.now() + config.session.maxAge);
         await Auth.guardarSesion({
             userId: user.pk_user,
@@ -66,16 +78,14 @@ exports.login = async (req, res) => {
             expiracion
         });
 
-        // Responder con token y datos del usuario
         res.json({
             mensaje: 'Login exitoso',
             token,
             user: {
                 id: user.pk_user,
                 username: user.username,
-                //correo: empleado.correo,
-                //nombre: empleado.nombre,
-                rol: user.rol_nombre
+                rol: user.rol_nombre,
+                modulos
             }
         });
 
@@ -85,15 +95,11 @@ exports.login = async (req, res) => {
     }
 };
 
-// LOGOUT - Cerrar sesión
+// LOGOUT
 exports.logout = async (req, res) => {
     try {
         const token = req.headers['authorization']?.split(' ')[1];
-        
-        if (token) {
-            await Auth.cerrarSesion(token);
-        }
-
+        if (token) await Auth.cerrarSesion(token);
         res.json({ mensaje: 'Sesión cerrada exitosamente' });
     } catch (error) {
         console.error('Error en logout:', error);
@@ -101,7 +107,7 @@ exports.logout = async (req, res) => {
     }
 };
 
-// VERIFICAR - Verificar sesión actual
+// VERIFICAR SESIÓN
 exports.verificarSesion = async (req, res) => {
     try {
         const result = await Auth.buscarPorId(req.user.id);
@@ -117,9 +123,8 @@ exports.verificarSesion = async (req, res) => {
             user: {
                 id: user.pk_user,
                 username: user.username,
-                //correo: empleado.correo,
-                //nombre: empleado.nombre,
-                rol: user.rol_nombre
+                rol: user.rol_nombre,
+                modulos: req.user.modulos
             }
         });
     } catch (error) {
