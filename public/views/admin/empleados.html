@@ -1,8 +1,7 @@
 <!-- ============================================
      VISTA: empleados.html
-     Descripción: Gestión de empleados – diseño CREAN
+     Descripción: Gestión de empleados – wizard 2 pasos
      Compatible con: empleados.js
-     Nota: Partial view inyectada por cargarVista() en menu.js
      ============================================ -->
 
 <!-- ── CABECERA ── -->
@@ -18,103 +17,153 @@
     </button>
 </div>
 
-<!-- ── FORMULARIO (oculto por defecto) ── -->
+<!-- ── FORMULARIO WIZARD ── -->
 <div class="d-none mb-4" id="contenedorFormulario">
     <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+
         <div class="card-header fw-semibold text-white py-3 px-4" style="background:#1a3c5e;">
             <i class="fa-solid fa-user-plus me-2"></i>
-            <span id="tituloFormulario">Registrar Empleado</span>
+            <span id="tituloFormulario">Registrar empleado</span>
         </div>
+
         <div class="card-body p-4">
-            <form id="formEmpleado">
-                <input type="hidden" id="pk_empleado">
+
+            <!-- Indicador de pasos -->
+            <div class="d-flex align-items-center mb-4">
+                <div class="d-flex align-items-center gap-2" id="step-indicator-1">
+                    <div id="step-circle-1"
+                         style="width:28px;height:28px;border-radius:50%;background:#1a3c5e;
+                                color:#fff;display:flex;align-items:center;justify-content:center;
+                                font-size:12px;font-weight:500;flex-shrink:0;">1</div>
+                    <span style="font-size:12px;font-weight:500;color:#1a3c5e;">Datos personales</span>
+                </div>
+                <div style="flex:1;height:2px;background:#e2e8f0;margin:0 12px;" id="step-line"></div>
+                <div class="d-flex align-items-center gap-2" id="step-indicator-2">
+                    <div id="step-circle-2"
+                         style="width:28px;height:28px;border-radius:50%;background:#e2e8f0;
+                                color:#94a3b8;display:flex;align-items:center;justify-content:center;
+                                font-size:12px;font-weight:500;flex-shrink:0;">2</div>
+                    <span style="font-size:12px;font-weight:500;color:#94a3b8;" id="step-label-2">Cuenta de acceso</span>
+                </div>
+            </div>
+
+            <!-- ══ PASO 1 ══ -->
+            <div id="paso1">
+                <input type="hidden" id="pk_empleado"> 
+                <!-- Foto + numero + fecha ingreso -->
+                <div class="d-flex align-items-start gap-3 mb-3">
+                    <div>
+                        <div id="fotoPreview"
+                             style="width:80px;height:80px;border-radius:50%;background:#e8f0fe;
+                                    border:2px dashed #93c5fd;display:flex;align-items:center;
+                                    justify-content:center;flex-direction:column;gap:4px;
+                                    cursor:pointer;overflow:hidden;"
+                             onclick="document.getElementById('inputFoto').click()">
+                            <i class="fa-solid fa-camera" style="color:#3b82f6;font-size:18px;"></i>
+                            <span style="font-size:9px;color:#3b82f6;">Foto</span>
+                        </div>
+                        <input type="file" id="inputFoto" accept="image/*" style="display:none"
+                               onchange="previsualizarFoto(this)">
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                    Número de empleado <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" id="numero_empleado" class="form-control"
+                                    placeholder="Ej: EMP-010" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                    Fecha de ingreso
+                                </label>
+                                <input type="date" id="fecha_ingreso" class="form-control">
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="row g-3">
-
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Número de empleado <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="numero_empleado" class="form-control"
-                            placeholder="Ej: EMP-010" required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                             Nombre <span class="text-danger">*</span>
                         </label>
-                        <input type="text" id="nombre" class="form-control"
-                            placeholder="Ej: Juan" required>
+                        <input type="text" id="nombre" class="form-control" placeholder="Ej: Juan">
                     </div>
-
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                             Apellido paterno <span class="text-danger">*</span>
                         </label>
-                        <input type="text" id="apellido_paterno" class="form-control"
-                            placeholder="Ej: García" required>
+                        <input type="text" id="apellido_paterno" class="form-control" placeholder="Ej: García">
                     </div>
-
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                             Apellido materno
                         </label>
-                        <input type="text" id="apellido_materno" class="form-control"
-                            placeholder="Ej: López">
+                        <input type="text" id="apellido_materno" class="form-control" placeholder="Ej: López">
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Sexo
-                        </label>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Sexo</label>
                         <select id="sexo" class="form-select">
                             <option value="">Seleccionar…</option>
                             <option value="masculino">Masculino</option>
                             <option value="femenino">Femenino</option>
                         </select>
                     </div>
-
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Estado
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Fecha de nacimiento
                         </label>
-                        <select id="estado" class="form-select">
-                            <option value="activo">Activo</option>
-                            <option value="inactivo">Inactivo</option>
-                        </select>
+                        <input type="date" id="fecha_nacimiento" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Teléfono</label>
+                        <input type="text" id="telefono" class="form-control" placeholder="Ej: 3111234567">
                     </div>
 
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Teléfono
-                        </label>
-                        <input type="text" id="telefono" class="form-control"
-                            placeholder="Ej: 3111234567">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Correo
-                        </label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Correo</label>
                         <input type="email" id="correo" class="form-control"
                             placeholder="Ej: juan@crean.gob.mx">
                     </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Fecha de ingreso
-                        </label>
-                        <input type="date" id="fecha_ingreso" class="form-control">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Dirección
-                        </label>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Dirección</label>
                         <input type="text" id="direccion" class="form-control"
                             placeholder="Ej: Tepic, Nayarit">
                     </div>
+                </div>
 
+                <!-- Switch cuenta de acceso -->
+                <div id="switchContainer"
+                     class="d-flex align-items-center justify-content-between mt-4 p-3 rounded-3"
+                     style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                    <div>
+                        <div style="font-size:13px;font-weight:500;color:#0369a1;">
+                            ¿Desea crear cuenta de acceso para este empleado?
+                        </div>
+                        <div style="font-size:11px;color:#7dd3fc;" id="switchSubtexto">
+                            Activa para configurar usuario y contraseña
+                        </div>
+                    </div>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="switchCuenta"
+                               style="width:44px;height:24px;cursor:pointer;"
+                               onchange="toggleSwitch()">
+                    </div>
+                </div>
+
+                <!-- Aviso empleado ya tiene cuenta (edición) -->
+                <div id="avisoCuentaExistente" class="d-none mt-3 p-3 rounded-3"
+                     style="background:#f0fdf4;border:0.5px solid #86efac;">
+                    <div style="font-size:12px;color:#15803d;display:flex;align-items:center;gap:6px;">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>Este empleado ya tiene cuenta: <strong id="usernameCuenta"></strong></span>
+                    </div>
+                    <div style="font-size:11px;color:#4ade80;margin-top:2px;">
+                        Para modificarla ve a Gestión de usuarios
+                    </div>
                 </div>
 
                 <hr class="my-4">
@@ -123,12 +172,91 @@
                     <button type="button" class="btn btn-secondary px-4" onclick="mostrarTabla()">
                         <i class="fa-solid fa-xmark me-1"></i>Cancelar
                     </button>
-                    <button type="submit" class="btn btn-success px-4">
+                    <button type="button" id="btnGuardarPaso1" class="btn btn-success px-4"
+                            onclick="guardarPaso1()">
                         <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
+                    </button>
+                    <button type="button" id="btnSiguiente" class="btn px-4 text-white fw-semibold"
+                            style="background:#1a3c5e;" disabled onclick="irPaso2()">
+                        Siguiente <i class="fa-solid fa-arrow-right ms-1"></i>
                     </button>
                 </div>
 
-            </form>
+            </div>
+            <!-- /paso1 -->
+
+            <!-- ══ PASO 2 ══ -->
+            <div id="paso2" class="d-none">
+
+                <!-- Banner del empleado -->
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-4"
+                     style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                    <div id="paso2Avatar"
+                         style="width:40px;height:40px;border-radius:50%;background:#1a3c5e;
+                                display:flex;align-items:center;justify-content:center;
+                                color:#fff;font-size:13px;font-weight:500;flex-shrink:0;">
+                    </div>
+                    <div>
+                        <div style="font-size:14px;font-weight:500;color:#0369a1;" id="paso2Nombre"></div>
+                        <div style="font-size:11px;color:#7dd3fc;" id="paso2NumEmp"></div>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Username <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="u_username" class="form-control"
+                            placeholder="Ej: juan.garcia">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Contraseña <span class="text-danger">*</span>
+                        </label>
+                        <input type="password" id="u_password" class="form-control"
+                            placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Rol <span class="text-danger">*</span>
+                        </label>
+                        <select id="u_fk_rol" class="form-select" onchange="mostrarModulosPaso2()">
+                            <option value="">Seleccionar rol…</option>
+                        </select>
+                    </div>
+
+                    <!-- Preview módulos -->
+                    <div class="col-12" id="paso2Modulos" style="display:none;">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Módulos que heredará según el rol
+                        </label>
+                        <div id="paso2ModulosLista"
+                             class="d-flex flex-wrap gap-2 p-3 rounded-3"
+                             style="background:#f0f4f8;border:0.5px solid #dde3ea;min-height:42px;">
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-secondary px-4" onclick="irPaso1()">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Atrás
+                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary px-4" onclick="mostrarTabla()">
+                            <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                        </button>
+                        <button type="button" class="btn btn-success px-4" onclick="guardarTodo()">
+                            <i class="fa-solid fa-floppy-disk me-1"></i>Guardar todo
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+            <!-- /paso2 -->
+
         </div>
     </div>
 </div>
@@ -136,7 +264,6 @@
 <!-- ── CONTENEDOR TABLA ── -->
 <div id="contenedorTabla">
 
-    <!-- TABS -->
     <ul class="nav nav-tabs mb-3">
         <li class="nav-item">
             <button class="nav-link active d-flex align-items-center gap-2"
@@ -156,30 +283,29 @@
         </li>
     </ul>
 
-    <!-- VISTA ACTIVOS -->
     <div id="vistaActivos">
         <div class="d-flex gap-2 mb-3 flex-wrap">
             <div class="flex-grow-1 position-relative" style="min-width:200px;">
                 <i class="fa-solid fa-magnifying-glass text-muted"
-                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%);
-                           font-size:12px; pointer-events:none;"></i>
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                           font-size:12px;pointer-events:none;"></i>
                 <input type="text" class="form-control ps-4" id="searchInput"
                     placeholder="Buscar por nombre, número, correo…" oninput="filtrarTabla()">
             </div>
         </div>
 
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
+                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
                             <th class="py-3 px-3">#</th>
+                            <th class="py-3 px-3">FOTO</th>
                             <th class="py-3 px-3">N° EMP</th>
                             <th class="py-3 px-3">NOMBRE COMPLETO</th>
-                            <th class="py-3 px-3">SEXO</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
-                            <th class="py-3 px-3">FECHA INGRESO</th>
+                            <th class="py-3 px-3 text-center">CUENTA</th>
                             <th class="py-3 px-3 text-center">ACCIONES</th>
                         </tr>
                     </thead>
@@ -192,13 +318,12 @@
         </div>
     </div>
 
-    <!-- VISTA BAJAS -->
     <div id="vistaBajas" class="d-none">
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">
                     <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
+                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
                             <th class="py-3 px-3">#</th>
                             <th class="py-3 px-3">N° EMP</th>
                             <th class="py-3 px-3">NOMBRE COMPLETO</th>
@@ -215,10 +340,10 @@
 
 </div>
 
-<!-- ── MODAL DESACTIVAR ── -->
+<!-- ── MODAL BAJA ── -->
 <div class="modal fade" id="modalBaja" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:14px; overflow:hidden;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
             <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
                 <h5 class="modal-title">
                     <i class="fa-solid fa-triangle-exclamation me-2"></i>Dar de baja – Empleado
@@ -227,8 +352,8 @@
             </div>
             <div class="modal-body p-4">
                 <div class="d-flex align-items-center gap-3 p-3 rounded-3"
-                    style="background:#fbe9e7; border:1px solid rgba(178,56,45,.25);">
-                    <i class="fa-solid fa-user fa-2x" style="color:#b2382d; flex-shrink:0;"></i>
+                     style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-user fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
                     <div>
                         <div class="fw-bold" id="bajaNombre">—</div>
                         <div class="small text-muted" id="bajaNumeroEmp">—</div>

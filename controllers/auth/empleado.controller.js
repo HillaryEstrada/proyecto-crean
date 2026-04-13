@@ -35,7 +35,7 @@ exports.crear = async (req, res) => {
     try {
         const {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, estado, fecha_ingreso
+            sexo, telefono, correo, direccion, fecha_ingreso, fecha_nacimiento
         } = req.body;
 
         if (!nombre || !apellido_paterno || !numero_empleado) {
@@ -44,7 +44,6 @@ exports.crear = async (req, res) => {
             });
         }
 
-        // Verificar número de empleado duplicado
         const existeNumero = await Empleado.existeNumero(numero_empleado);
         if (existeNumero.rows.length > 0) {
             return res.status(400).json({
@@ -52,7 +51,6 @@ exports.crear = async (req, res) => {
             });
         }
 
-        // Verificar correo duplicado si se proporcionó
         if (correo) {
             const existeCorreo = await Empleado.existeCorreo(correo);
             if (existeCorreo.rows.length > 0) {
@@ -64,7 +62,9 @@ exports.crear = async (req, res) => {
 
         const result = await Empleado.crear({
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, estado, fecha_ingreso
+            sexo, telefono, correo, direccion,
+            estado: 'activo', // siempre activo al crear
+            fecha_ingreso, fecha_nacimiento
         });
 
         res.json({
@@ -83,7 +83,7 @@ exports.actualizar = async (req, res) => {
     try {
         const {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, estado, fecha_ingreso
+            sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento
         } = req.body;
 
         if (!nombre || !apellido_paterno || !numero_empleado) {
@@ -92,7 +92,6 @@ exports.actualizar = async (req, res) => {
             });
         }
 
-        // Verificar número duplicado excluyendo el actual
         const existeNumero = await Empleado.existeNumero(numero_empleado, req.params.id);
         if (existeNumero.rows.length > 0) {
             return res.status(400).json({
@@ -100,7 +99,6 @@ exports.actualizar = async (req, res) => {
             });
         }
 
-        // Verificar correo duplicado excluyendo el actual
         if (correo) {
             const existeCorreo = await Empleado.existeCorreo(correo, req.params.id);
             if (existeCorreo.rows.length > 0) {
@@ -112,7 +110,8 @@ exports.actualizar = async (req, res) => {
 
         await Empleado.actualizar(req.params.id, {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, estado, fecha_ingreso
+            sexo, telefono, correo, direccion, estado,
+            fecha_ingreso, fecha_nacimiento
         });
 
         res.json({ mensaje: 'Empleado actualizado exitosamente' });
@@ -130,6 +129,24 @@ exports.desactivar = async (req, res) => {
         res.json({ mensaje: 'Empleado desactivado exitosamente' });
     } catch (error) {
         console.error('Error al desactivar empleado:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.listarBajas = async (req, res) => {
+    try {
+        const data = await Empleado.listarBajas();
+        res.json(data.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.actualizarFoto = async (req, res) => {
+    try {
+        await Empleado.actualizarFoto(req.params.id, req.body.url);
+        res.json({ mensaje: 'Foto actualizada' });
+    } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
