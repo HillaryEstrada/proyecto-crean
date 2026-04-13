@@ -6,7 +6,7 @@
 const express    = require('express');
 const router     = express.Router();
 const controller = require('../../controllers/auth/empleado.controller');
-const { verificarToken, verificarRol } = require('../../middleware/auth.middleware');
+const { verificarToken, verificarModulo } = require('../../middleware/auth.middleware');
 
 // Todas requieren autenticación
 router.use(verificarToken);
@@ -17,13 +17,13 @@ router.get('/', controller.listar);
 // GET /empleados/:id - Obtener uno
 router.get('/:id', controller.obtenerPorId);
 
-// POST /empleados - Crear nuevo (solo Administrador)
-router.post('/', verificarRol('Administrador'), controller.crear);
+// POST /empleados - Crear nuevo (quien tenga el módulo)
+router.post('/', verificarModulo('admin/empleados'), controller.crear);
 
-// PUT /empleados/:id - Actualizar (solo Administrador)
-router.put('/:id', verificarRol('Administrador'), controller.actualizar);
+// PUT /empleados/:id - Actualizar (quien tenga el módulo)
+router.put('/:id', verificarModulo('admin/empleados'), controller.actualizar);
 
-// PATCH /empleados/:id/desactivar - Desactivar (solo Administrador)
-router.patch('/:id/desactivar', verificarRol('Administrador'), controller.desactivar);
+// PATCH /empleados/:id/desactivar - Desactivar (quien tenga el módulo)
+router.patch('/:id/desactivar', verificarModulo('admin/empleados'), controller.desactivar);
 
 module.exports = router;
