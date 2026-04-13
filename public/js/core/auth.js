@@ -30,12 +30,22 @@ function isAdmin() {
     return hasRole('Administrador');
 }
 
+// ← NUEVO: Obtener módulos del usuario actual
+function getModulos() {
+    const user = getCurrentUser();
+    return user?.modulos || [];
+}
+
+// ← NUEVO: Verificar si el usuario tiene acceso a un módulo
+function hasModulo(clave) {
+    return getModulos().includes(clave);
+}
+
 // Cerrar sesión
 async function logout() {
     const token = getToken();
     
     try {
-        // Notificar al backend
         await fetch('/auth/logout', {
             method: 'POST',
             headers: {
@@ -45,13 +55,10 @@ async function logout() {
     } catch (error) {
         console.error('Error al cerrar sesión:', error);
     } finally {
-        // Limpiar storage
         localStorage.removeItem('token');
         sessionStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('vista');
-        
-        // SOLUCIÓN: Redirigir forzando recarga completa
         window.top.location.href = '/views/auth/login.html';
     }
 }
@@ -80,14 +87,12 @@ async function fetchWithAuth(url, method = 'GET', data = null) {
     try {
         const res = await fetch(url, options);
         
-        // Si el token expiró o es inválido
         if (res.status === 401) {
             alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
             logout();
             return;
         }
 
-        // Si no tiene permisos
         if (res.status === 403) {
             const data = await res.json();
             alert(data.error || 'No tienes permisos para realizar esta acción');

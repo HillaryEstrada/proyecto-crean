@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Módulos</title>
+</head>
+<body>
+
+<div class="container-fluid py-4">
+
+    <!-- Encabezado -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-semibold">Gestión de módulos</h4>
+            <p class="text-muted mb-0" style="font-size:13px;">
+                Asigna los módulos que puede ver cada rol
+            </p>
+        </div>
+    </div>
+
+    <!-- Selector de roles -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <p class="text-muted mb-2" style="font-size:12px;font-weight:500;text-transform:uppercase;letter-spacing:.05em;">
+                Selecciona un rol
+            </p>
+            <div id="roles-container" class="d-flex flex-wrap gap-2">
+                <!-- Se genera dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de módulos -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+            <span class="fw-semibold" style="font-size:14px;">Módulos del sistema</span>
+            <span id="rol-seleccionado-label" class="badge bg-primary" style="font-size:12px;display:none;"></span>
+        </div>
+        <div class="card-body p-0">
+
+            <!-- Estado vacío -->
+            <div id="estado-vacio" class="text-center py-5 text-muted">
+                <i class="fas fa-hand-pointer fa-2x mb-3 d-block"></i>
+                Selecciona un rol para ver sus módulos
+            </div>
+
+            <!-- Sección Operación -->
+            <div id="seccion-operacion" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom">
+                    <small class="text-muted fw-semibold text-uppercase" style="letter-spacing:.06em;">Operación</small>
+                </div>
+                <div id="modulos-operacion"></div>
+            </div>
+
+            <!-- Sección Administración -->
+            <div id="seccion-administracion" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom">
+                    <small class="text-muted fw-semibold text-uppercase" style="letter-spacing:.06em;">Administración</small>
+                </div>
+                <div id="modulos-administracion"></div>
+            </div>
+
+        </div>
+
+        <!-- Footer con botón guardar -->
+        <div id="footer-guardar" class="card-footer bg-white border-top py-3 d-flex justify-content-end gap-2" style="display:none !important;">
+            <button class="btn btn-outline-secondary btn-sm" onclick="cancelarCambios()">
+                Cancelar
+            </button>
+            <button class="btn btn-primary btn-sm px-4" onclick="guardarModulos()">
+                <i class="fas fa-save me-1"></i> Guardar cambios
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script src="/js/modules/admin/modulos.js?v=${Date.now()}"></script>
+</body>
+</html>

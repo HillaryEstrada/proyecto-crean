@@ -1,0 +1,187 @@
+<!-- ============================================
+     VISTA: users.html
+     Descripción: Gestión de usuarios del sistema
+     Compatible con: users.js
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
+            <i class="fa-solid fa-users me-2"></i>Usuarios
+        </h4>
+        <p class="text-muted small mb-0">Gestión de cuentas y accesos del sistema</p>
+    </div>
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Nuevo usuario
+    </button>
+</div>
+
+<!-- ── FORMULARIO ── -->
+<div class="d-none mb-4" id="contenedorFormulario">
+    <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+        <div class="card-header fw-semibold text-white py-3 px-4" style="background:#1a3c5e;">
+            <i class="fa-solid fa-user-plus me-2"></i>
+            <span id="tituloFormulario">Nuevo usuario</span>
+        </div>
+        <div class="card-body p-4">
+            <form id="formUser">
+                <input type="hidden" id="pk_user">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            Username <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="username" class="form-control"
+                            placeholder="Ej: juan.garcia" required>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            Contraseña <span class="text-danger" id="labelPassword">*</span>
+                            <span class="text-muted fw-normal" id="labelPasswordEdit" style="display:none;">
+                                (dejar vacío para no cambiar)
+                            </span>
+                        </label>
+                        <input type="password" id="password" class="form-control"
+                            placeholder="Mínimo 6 caracteres">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            Empleado vinculado <span class="text-danger">*</span>
+                        </label>
+                        <select id="fk_empleado" class="form-select" required>
+                            <option value="">Seleccionar empleado…</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            Rol <span class="text-danger">*</span>
+                        </label>
+                        <select id="fk_rol" class="form-select" required onchange="mostrarModulosRol()">
+                            <option value="">Seleccionar rol…</option>
+                        </select>
+                    </div>
+
+                    <!-- Módulos heredados del rol -->
+                    <div class="col-12" id="modulosHeredados" style="display:none;">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            Módulos heredados del rol
+                        </label>
+                        <div id="modulosHeredadosLista"
+                            class="d-flex flex-wrap gap-2 p-3 rounded-3"
+                            style="background:#f0f4f8; border:1px solid #dde3ea; min-height:42px;">
+                        </div>
+                    </div>
+
+                    <!-- Módulos individuales — solo visible al editar -->
+                    <div class="col-12" id="seccionModulosIndividuales" style="display:none;">
+                        <hr class="my-2">
+                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
+                            <i class="fa-solid fa-sliders me-1"></i>
+                            Módulos individuales
+                            <span class="text-muted fw-normal">(ajustes sobre los del rol)</span>
+                        </label>
+                        <p class="text-muted small mb-3">
+                            Activa módulos extra o desactiva módulos del rol solo para este usuario.
+                            El ícono indica si viene del rol
+                            <span class="badge" style="background:#e8f0fe;color:#1a3c5e;font-size:10px;">
+                                <i class="fa-solid fa-shield-halved"></i> Rol
+                            </span>
+                            o es una excepción individual
+                            <span class="badge" style="background:#fff3cd;color:#856404;font-size:10px;">
+                                <i class="fa-solid fa-user"></i> Individual
+                            </span>
+                        </p>
+                        <div id="modulosIndividualesLista" class="d-flex flex-column gap-2"></div>
+                    </div>
+
+                </div>
+
+                <hr class="my-4">
+
+                <div class="d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-secondary px-4" onclick="mostrarTabla()">
+                        <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success px-4">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ── TABLA ── -->
+<div id="contenedorTabla">
+
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute; left:10px; top:50%; transform:translateY(-50%);
+                       font-size:12px; pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchInput"
+                placeholder="Buscar por username o rol…" oninput="filtrarTabla()">
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead style="background:#1a3c5e;">
+                    <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
+                        <th class="py-3 px-3">#</th>
+                        <th class="py-3 px-3">USERNAME</th>
+                        <th class="py-3 px-3">EMPLEADO</th>
+                        <th class="py-3 px-3">ROL</th>
+                        <th class="py-3 px-3 text-center">ESTADO</th>
+                        <th class="py-3 px-3">ÚLTIMO ACCESO</th>
+                        <th class="py-3 px-3 text-center">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="usersBody"></tbody>
+            </table>
+        </div>
+        <div class="px-3 py-2 bg-light border-top">
+            <small class="text-muted" id="footerInfo">Cargando…</small>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL DESACTIVAR ── -->
+<div class="modal fade" id="modalDesactivar" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px; overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Desactivar usuario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 rounded-3"
+                    style="background:#fbe9e7; border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-user fa-2x" style="color:#b2382d; flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="desactivarUsername">—</div>
+                        <div class="small text-muted">Este usuario no podrá iniciar sesión</div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarDesactivar()">
+                    <i class="fa-solid fa-ban me-1"></i>Desactivar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

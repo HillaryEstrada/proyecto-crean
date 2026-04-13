@@ -9,22 +9,6 @@
 setTimeout(() => {
 
     // ============================================
-    // AUTENTICACIÓN Y ROL
-    // Redirige si no hay sesión activa o si el usuario no es administrador
-    // ============================================
-
-    if (!isAuthenticated()) {
-        window.location.href = '/views/auth/login.html';
-        return;
-    }
-
-    if (!isAdmin()) {
-        alert('Solo los administradores pueden acceder a esta sección');
-        cargarVista('inicio');
-        return;
-    }
-
-    // ============================================
     // REFERENCIAS DOM
     // ============================================
 

@@ -68,3 +68,23 @@ exports.esRutaPublica = (req) => {
     
     return false;
 };
+
+// Verificar si el usuario tiene acceso a un módulo específico
+exports.verificarModulo = (clave) => {
+    return (req, res, next) => {
+        if (!req.user) {
+            return res.status(401).json({ error: 'Usuario no autenticado' });
+        }
+
+        const modulos = req.user.modulos || [];
+
+        if (!modulos.includes(clave)) {
+            return res.status(403).json({ 
+                error: 'No tienes acceso a este módulo',
+                modulo: clave
+            });
+        }
+
+        next();
+    };
+};
