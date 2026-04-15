@@ -1,0 +1,195 @@
+<!-- ============================================
+     VISTA: expediente.html
+     Descripción: Expediente de consulta de una máquina (solo lectura)
+     Compatible con: expediente.js
+     Nota: Partial view inyectada por cargarVista() en menu.js
+           No incluye <html>/<head>/<body>
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <button class="btn btn-sm btn-outline-secondary mb-2"
+                onclick="cargarVista('maquinaria/maquinaria')">
+            <i class="fa-solid fa-arrow-left me-1"></i>Volver a Maquinaria
+        </button>
+        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
+            <i class="fa-solid fa-folder-open me-2"></i>
+            Expediente de Maquinaria
+        </h4>
+        <p class="text-muted small mb-0" id="expSubtitulo">Cargando información…</p>
+    </div>
+
+    <!-- Badges de estado y garantía -->
+    <div class="d-flex gap-2 flex-wrap align-items-center" id="expBadges"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 1 – ALERTAS
+     Se oculta si no hay alertas
+════════════════════════════════════════════════ -->
+<div id="seccionAlertas" class="mb-4 d-none">
+    <h6 class="fw-semibold mb-3" style="color:#1a3c5e;">
+        <i class="fa-solid fa-bell me-1"></i>Alertas
+    </h6>
+    <div class="row g-3" id="contenedorAlertas"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 2 – DATOS GENERALES + KPIs
+════════════════════════════════════════════════ -->
+<div class="row g-3 mb-4">
+
+    <!-- Datos generales -->
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm h-100" style="border-radius:12px;">
+            <div class="card-header fw-semibold text-white py-3 px-4" style="background:#1a3c5e;">
+                <i class="fa-solid fa-tractor me-2"></i>Datos Generales
+            </div>
+            <div class="card-body p-4">
+                <table class="table table-sm table-borderless mb-0" id="tabDatosGenerales">
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="col-lg-7">
+        <div class="row g-3 h-100" id="contenedorKpis">
+            <!-- Llenado dinámicamente -->
+        </div>
+    </div>
+
+</div>
+
+<!-- ── Factura + Garantía ── -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6" id="colFactura"></div>
+    <div class="col-md-6" id="colGarantia"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     SECCIÓN 3 – TABS
+════════════════════════════════════════════════ -->
+<div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+    <div class="card-header py-0 px-0" style="background:#fff; border-bottom:1px solid #dee2e6;">
+        <ul class="nav nav-tabs border-0 px-3 pt-2">
+            <li class="nav-item">
+                <button class="nav-link active" id="tab-historial"
+                        onclick="expTab('historial')">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i>Historial
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="tab-uso"
+                        onclick="expTab('uso')">
+                    <i class="fa-solid fa-gauge me-1"></i>Uso
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="tab-mantenimientos"
+                        onclick="expTab('mantenimientos')">
+                    <i class="fa-solid fa-wrench me-1"></i>Mantenimientos
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="tab-fallas"
+                        onclick="expTab('fallas')">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Fallas
+                </button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" id="tab-checklist"
+                        onclick="expTab('checklist')">
+                    <i class="fa-solid fa-clipboard-check me-1"></i>Inspección
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body p-4">
+
+        <!-- ── TAB: HISTORIAL (timeline) ── -->
+        <div id="panel-historial">
+            <div id="timelineContainer"></div>
+        </div>
+
+        <!-- ── TAB: USO ── -->
+        <div id="panel-uso" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background:#1a3c5e;">
+                        <tr class="text-white" style="font-size:11.5px; font-weight:600;">
+                            <th class="py-3 px-3">FECHA</th>
+                            <th class="py-3 px-3 text-center">HORAS</th>
+                            <th class="py-3 px-3 text-center">COMBUSTIBLE (L)</th>
+                            <th class="py-3 px-3">OPERADOR</th>
+                            <th class="py-3 px-3">ACTIVIDAD</th>
+                            <th class="py-3 px-3">OBSERVACIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usoBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── TAB: MANTENIMIENTOS ── -->
+        <div id="panel-mantenimientos" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background:#1a3c5e;">
+                        <tr class="text-white" style="font-size:11.5px; font-weight:600;">
+                            <th class="py-3 px-3">TIPO</th>
+                            <th class="py-3 px-3">DESCRIPCIÓN</th>
+                            <th class="py-3 px-3">PROGRAMADO</th>
+                            <th class="py-3 px-3">REALIZADO</th>
+                            <th class="py-3 px-3 text-end">COSTO M.O.</th>
+                            <th class="py-3 px-3 text-end">COSTO REF.</th>
+                            <th class="py-3 px-3 text-center">ESTADO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mantenimientosBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── TAB: FALLAS ── -->
+        <div id="panel-fallas" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background:#1a3c5e;">
+                        <tr class="text-white" style="font-size:11.5px; font-weight:600;">
+                            <th class="py-3 px-3">DESCRIPCIÓN</th>
+                            <th class="py-3 px-3">REPORTADA</th>
+                            <th class="py-3 px-3">RESUELTA</th>
+                            <th class="py-3 px-3 text-center">SEVERIDAD</th>
+                            <th class="py-3 px-3 text-center">ESTADO</th>
+                            <th class="py-3 px-3">REPORTÓ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fallasBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ── TAB: CHECKLIST / INSPECCIÓN ── -->
+        <div id="panel-checklist" class="d-none">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead style="background:#1a3c5e;">
+                        <tr class="text-white" style="font-size:11.5px; font-weight:600;">
+                            <th class="py-3 px-3">FECHA</th>
+                            <th class="py-3 px-3">OPERADOR</th>
+                            <th class="py-3 px-3">TURNO</th>
+                            <th class="py-3 px-3 text-center">RESULTADO</th>
+                            <th class="py-3 px-3">OBSERVACIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="checklistBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>

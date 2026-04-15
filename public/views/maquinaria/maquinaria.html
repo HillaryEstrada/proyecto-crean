@@ -1,285 +1,818 @@
-<!-- ============================================
-     VISTA: maquinaria.html
-     Descripción: Gestión de maquinaria – diseño CREAN
-     Compatible con: maquinaria.js
-     Nota: Partial view inyectada por cargarVista() en menu.js
-           No incluye <html>/<head>/<body> — se inserta en #contenido
-     ============================================ -->
+<!-- ============================================================
+     CREAN · views/maquinaria/maquinaria.html
+     Vista parcial — se inyecta en #contenido por menu.js
+     NO incluye <html>, <head>, <body>, Bootstrap ni BI icons
+     (ya están en layout.html)
+     ============================================================ -->
 
+<style>
+/* ── Variables del módulo ────────────────────────────────── */
+:root {
+  --maq-primary:   #1a3c5e;
+  --maq-secondary: #2e86c1;
+  --maq-success:   #2e7d32;
+  --maq-warning:   #d97706;
+  --maq-danger:    #b2382d;
+  --maq-border:    #dde3ec;
+  --maq-text:      #1e2d3d;
+  --maq-muted:     #6b7c93;
+  --maq-surface:   #ffffff;
+  --maq-r-sm:      6px;
+  --maq-r-md:      10px;
+  --maq-r-lg:      14px;
+}
+#modMaquinaria { font-family:'Inter','Segoe UI',sans-serif; }
 
-<!-- ── CABECERA: título + botones de acción ── -->
-<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
-     <!-- Título -->
+/* ── Tipografía ─────────────────────────────────────────── */
+/* Título de módulo — Inter 22px Bold (700) */
+.maq-page-title {
+  font-size:22px;
+  font-weight:700;          /* antes 800 → ahora 700 */
+  color:var(--maq-primary);
+  margin-bottom:3px;
+  letter-spacing:-.2px;
+}
+/* Subtítulo — Inter 13px Regular (400) */
+.maq-page-sub {
+  font-size:13px;
+  font-weight:400;
+  color:var(--maq-muted);
+  margin:0;
+}
+
+/* ── Botones ── */
+.btn-maq-primary,.btn-maq-success,.btn-maq-secondary,
+.btn-maq-danger,.btn-maq-warning,.btn-maq-excel {
+  border:none;border-radius:var(--maq-r-md);font-size:13px;font-weight:600;
+  padding:9px 18px;display:inline-flex;align-items:center;gap:7px;
+  cursor:pointer;transition:opacity .15s,background .15s;font-family:inherit;
+}
+.btn-maq-primary   { background:var(--maq-primary);color:#fff; }
+.btn-maq-primary:hover { background:#122d47; }
+.btn-maq-success   { background:var(--maq-success);color:#fff; }
+.btn-maq-success:hover { opacity:.88; }
+.btn-maq-secondary { background:transparent;color:var(--maq-text);border:1.5px solid var(--maq-border); }
+.btn-maq-secondary:hover { background:#f0f4f8; }
+.btn-maq-danger    { background:var(--maq-danger);color:#fff; }
+.btn-maq-danger:hover  { opacity:.88; }
+.btn-maq-warning   { background:var(--maq-warning);color:#fff; }
+.btn-maq-warning:hover { opacity:.88; }
+.btn-maq-excel     { background:#1d6035;color:#fff; }
+.btn-maq-excel:hover   { opacity:.88; }
+.btn-act-maq {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+}
+.btn-act-maq:hover {
+  opacity: .8;
+  transform: scale(1.05);
+}
+.btn-act-maq.btn-ver {
+  background: var(--c-primary) !important;
+  color: #fff !important;
+}
+
+.btn-act-maq.btn-edit {
+  background: var(--c-warning) !important;
+  color: #fff !important;
+}
+
+.btn-act-maq.btn-baja {
+  background: var(--c-danger) !important;
+  color: #fff !important;
+}
+/* ── Tabs ── */
+.maq-tabs { display:flex;gap:4px;border-bottom:2px solid var(--maq-border);margin-bottom:20px; }
+.maq-tab {
+  display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+  font-size:13px;font-weight:600;color:var(--maq-muted);cursor:pointer;
+  border-radius:var(--maq-r-sm) var(--maq-r-sm) 0 0;border:none;
+  background:transparent;border-bottom:3px solid transparent;
+  margin-bottom:-2px;transition:all .2s;font-family:inherit;
+}
+.maq-tab:hover { color:var(--maq-primary);background:#f5f8fc; }
+.maq-tab.active { color:var(--maq-primary);border-bottom-color:var(--maq-primary);background:#eef4fb; }
+.maq-tab.active-danger { color:var(--maq-danger);border-bottom-color:var(--maq-danger);background:#fdf2f0; }
+.maq-tab.active-danger .maq-tab-badge { background:var(--maq-danger); }
+.maq-tab-badge { background:var(--maq-primary);color:#fff;font-size:10px;font-weight:600;border-radius:20px;padding:1px 7px; }
+
+/* ── Filtros ── */
+.maq-filtro-wrap { position:relative;flex:1;min-width:200px; }
+.maq-filtro-wrap .bi { position:absolute;left:11px;top:50%;transform:translateY(-50%);color:#adb5bd;font-size:13px;pointer-events:none; }
+.maq-filtro-wrap input { padding-left:34px; }
+
+/* ── Tabla ── */
+.maq-table-wrap { border-radius:var(--maq-r-lg);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06);background:var(--maq-surface); }
+
+/* Encabezado tabla — Inter 11.5px SemiBold (600) */
+.maq-table-wrap table thead th {
+  background:var(--maq-primary);color:#fff;
+  font-size:11.5px;font-weight:600;          /* antes 600 — ok */
+  letter-spacing:.4px;text-transform:uppercase;
+  padding:12px 14px;border:none;white-space:nowrap;
+}
+.maq-table-wrap table thead th.subhead { background:#16344f;font-size:11px;font-weight:500; }
+
+/* Celdas tabla — Inter 13px Regular (400) */
+.maq-table-wrap table tbody td {
+  font-size:13px;font-weight:400;
+  color:var(--maq-text);padding:11px 14px;vertical-align:middle;border-color:#f0f4f8;
+}
+.maq-table-wrap table tbody tr:hover { background:#f5f8fc; }
+.maq-table-footer { padding:12px 16px;border-top:1px solid #f0f4f8;background:var(--maq-surface);display:flex;align-items:center;font-size:12px;color:var(--maq-muted); }
+
+/* ── Badges estado operativo — Inter 11px SemiBold (600) ── */
+.badge-maq { display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;font-family:'Inter','Segoe UI',sans-serif;letter-spacing:.1px; }
+.badge-maq-disponible    { background:#1a3c5e;color:#fff; }
+.badge-maq-en_uso        { background:#2e7d32;color:#fff; }
+.badge-maq-mantenimiento { background:#d97706;color:#fff; }
+.badge-maq-revision      { background:#4b5563;color:#fff; }
+.badge-maq-baja          { background:#b2382d;color:#fff; }
+
+/* Estado físico */
+.badge-maq-fisico { display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:5px 12px;border-radius:20px;font-family:'Inter','Segoe UI',sans-serif; }
+.badge-maq-fisico-b { background:#2e7d32;color:#fff; }
+.badge-maq-fisico-r { background:#d97706;color:#fff; }
+.badge-maq-fisico-m { background:#b2382d;color:#fff; }
+
+/* ECO — Inter 12px SemiBold (600) */
+.maq-eco  { font-family:'Inter','Segoe UI',sans-serif;font-weight:600;color:var(--maq-primary);font-size:12px; }
+/* Descripción — Inter 12px SemiBold (600) */
+.maq-desc { font-size:12px;font-weight:600;line-height:1.45;color:var(--maq-text);text-transform:uppercase;max-width:280px; }
+
+/* ── Empty state ── */
+.maq-empty { text-align:center;padding:48px 24px; }
+.maq-empty i { font-size:3rem;color:#c8d5e3;display:block;margin-bottom:12px; }
+.maq-empty .title { font-weight:600;color:var(--maq-primary);margin-bottom:4px; }
+.maq-empty .sub   { font-size:13px;font-weight:400;color:var(--maq-muted); }
+
+/* ── Modales ── */
+.maq-modal-hdr        { background:var(--maq-primary);color:#fff;border-radius:var(--maq-r-lg) var(--maq-r-lg) 0 0;padding:16px 22px; }
+.maq-modal-hdr-danger { background:var(--maq-danger);color:#fff;border-radius:var(--maq-r-lg) var(--maq-r-lg) 0 0;padding:16px 22px; }
+/* Título modal — Inter 16px SemiBold (600) */
+.maq-modal-hdr h5,.maq-modal-hdr-danger h5,
+.maq-modal-hdr h6,.maq-modal-hdr-danger h6 {
+  font-size:16px;font-weight:600;margin:0;letter-spacing:-.1px;
+}
+.maq-modal-footer { background:#f8fafc;border-top:1px solid var(--maq-border);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:10px; }
+
+/* ── Wizard stepper ── */
+.maq-stepper { display:flex;align-items:center;gap:8px;padding:16px 24px;background:#f8fafc;border-bottom:1px solid var(--maq-border);overflow-x:auto; }
+.maq-wz-step { display:flex;flex-direction:column;align-items:center;gap:4px; }
+
+/* Círculo con icono — sin número, sin letra */
+.maq-wz-circle {
+  width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;                           /* tamaño del ícono BI */
+  background:#dde3ec;color:#8a96a4;
+  border:2px solid #dde3ec;transition:all .3s;
+}
+.maq-wz-step.active .maq-wz-circle { background:var(--maq-primary);color:#fff;border-color:var(--maq-primary); }
+.maq-wz-step.done   .maq-wz-circle { background:var(--maq-success);color:#fff;border-color:var(--maq-success); }
+
+/* Etiqueta stepper — Inter 11px SemiBold (600) */
+.maq-wz-label { font-size:11px;font-weight:600;color:#9aaabf;white-space:nowrap; }
+.maq-wz-step.active .maq-wz-label,
+.maq-wz-step.done   .maq-wz-label { color:var(--maq-primary); }
+.maq-wz-line { flex:1;height:2px;background:#dde3ec;border-radius:2px;min-width:24px;transition:background .3s; }
+.maq-wz-line.done { background:var(--maq-success); }
+
+/* ── Wizard cards ── */
+.maq-wz-card { background:#f8fafc;border-radius:var(--maq-r-md);border-left:4px solid var(--maq-secondary);padding:20px;margin-bottom:16px; }
+.maq-wz-card.green  { border-left-color:var(--maq-success); }
+.maq-wz-card.orange { border-left-color:var(--maq-warning); }
+.maq-wz-card-title  { display:flex;align-items:center;gap:8px;margin-bottom:16px; }
+
+/* Círculo número de tarjeta wizard — ahora con icono */
+.maq-wz-num {
+  width:28px;height:28px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;color:#fff;flex-shrink:0;
+}
+.maq-wz-num.blue   { background:var(--maq-secondary); }
+.maq-wz-num.green  { background:var(--maq-success); }
+.maq-wz-num.orange { background:var(--maq-warning); }
+
+/* ── Foto upload circular ── */
+.maq-foto-circle { width:90px;height:90px;border-radius:50%;border:2px dashed var(--maq-border);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:border-color .2s,background .2s;overflow:hidden;background:#f0f4f8;flex-shrink:0;position:relative; }
+.maq-foto-circle:hover { border-color:var(--maq-secondary);background:#e8f4fd; }
+.maq-foto-circle input { display:none; }
+.maq-foto-circle img { width:100%;height:100%;object-fit:cover;border-radius:50%;position:absolute;top:0;left:0;display:none; }
+.maq-foto-ph { display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px; }
+.maq-foto-ph span { font-size:11px;font-weight:400;color:var(--maq-muted); }
+
+/* ── File drop ── */
+.maq-file-drop { display:flex;align-items:center;gap:10px;border:2px dashed var(--maq-border);border-radius:var(--maq-r-md);padding:14px 18px;cursor:pointer;transition:border-color .2s,background .2s;color:var(--maq-muted);font-size:13px;font-weight:400; }
+.maq-file-drop:hover { border-color:var(--maq-secondary);background:#f0f7fd; }
+.maq-file-drop input { display:none; }
+
+/* ── Form ── */
+/* Etiqueta campo — Inter 12px SemiBold (600) */
+.maq-label { font-size:12px;font-weight:600;color:var(--maq-primary);margin-bottom:5px;display:block; }
+.maq-field-error { font-size:11px;font-weight:400;color:var(--maq-danger);margin-top:4px;display:none; }
+.maq-field-error.visible { display:block; }
+.form-control:focus,.form-select:focus { border-color:var(--maq-secondary)!important;box-shadow:0 0 0 3px rgba(46,134,193,.12)!important; }
+
+/* ── Paginación ── */
+.maq-pag-btn {
+  min-width:28px;height:28px;border-radius:6px;border:1.5px solid var(--maq-border);
+  background:transparent;font-size:13px;font-weight:500;color:var(--maq-muted);
+  cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+  transition:background .15s,color .15s;font-family:'Inter','Segoe UI',sans-serif;
+  padding:0 6px;
+}
+.maq-pag-btn:hover:not(:disabled) { background:#eef4fb;color:var(--maq-primary); }
+.maq-pag-btn:disabled { opacity:.4;cursor:not-allowed; }
+
+/* ── Baja info box ── */
+.maq-baja-box { display:flex;align-items:center;gap:14px;background:#fbe9e7;border:1px solid rgba(178,56,45,.25);border-radius:var(--maq-r-md);padding:14px 16px;margin-bottom:16px; }
+</style>
+
+<!-- ══ CONTENIDO ══════════════════════════════════════════════ -->
+<div id="modMaquinaria">
+
+  <!-- Header -->
+  <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-tractor me-2"></i>Maquinaria
-        </h4>
-        <p class="text-muted small mb-0">Gestión de equipos agrícolas e industriales</p>
+      <h4 class="maq-page-title"><i class="bi bi-truck me-2"></i>Maquinaria</h4>
+      <p class="maq-page-sub">Gestión de equipos agrícolas e industriales</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+      <button onclick="maqExportarExcel()" class="btn-maq-excel">
+        <i class="bi bi-file-earmark-arrow-down"></i> Exportar Excel
+      </button>
+      <button onclick="maqIniciarWizard()" class="btn-maq-primary">
+        <i class="bi bi-plus-lg"></i> Registrar maquinaria
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="maq-tabs">
+    <button class="maq-tab active" id="maqTabActivos" onclick="maqSwitchTab('activos')">
+      <i class="bi bi-check-circle-fill"></i> Activos
+    </button>
+    <button class="maq-tab" id="maqTabBajas" onclick="maqSwitchTab('bajas')">
+     <i class="bi bi-x-circle-fill"></i> Bajas
+    </button>
+  </div>
+
+  <!-- Vista Activos -->
+  <div id="maqVistaActivos">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+      <div class="maq-filtro-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" class="form-control" style="height:38px;"
+          placeholder="Buscar por # ECO, equipo, marca..." id="maqSearch" oninput="maqFiltrar()">
+      </div>
+      <select class="form-select" id="maqFiltroEstado" style="width:auto;height:38px;" onchange="maqFiltrar()">
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponible</option>
+        <option value="en_uso">En uso</option>
+        <option value="mantenimiento">Mantenimiento</option>
+        <option value="revision">Revisión</option>
+      </select>
+      <select class="form-select" id="maqFiltroUbicacion" style="width:auto;height:38px;" onchange="maqFiltrar()">
+        <option value="">Todas las ubicaciones</option>
+      </select>
     </div>
 
-    <div class="d-flex gap-2 align-items-center flex-wrap">
-         <!-- Exportar -->
-        <button onclick="exportarExcel()" class="btn btn-success">
-            <i class="fa-solid fa-file-arrow-down me-1"></i>Exportar
-        </button>
-
-        <!-- Importar -->
-        <button onclick="abrirImportar()" class="btn btn-success">
-            <i class="fa-solid fa-file-arrow-up me-1"></i>Importar
-        </button>
-        <!-- Abrir formulario de registro -->
-        <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
-            <i class="fa-solid fa-plus me-1"></i>Registrar maquinaria
-        </button>
-</div>
-
-</div>
-
-<div class="d-none mb-4" id="contenedorFormulario">
-    <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-
-        <!-- Header del formulario -->
-        <div class="card-header fw-semibold text-white py-3 px-4" style="background:#1a3c5e;">
-            <i class="fa-solid fa-tractor me-2"></i>
-            <span id="tituloFormulario">Registrar Maquinaria</span>
+    <div class="maq-table-wrap">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th rowspan="2" class="align-middle text-center"># PROG</th>
+              <th rowspan="2" class="align-middle"># ECO</th>
+              <th rowspan="2" class="align-middle">NÚM. INV.<br><span style="font-size:10px;opacity:.75;font-weight:400;">SEDER</span></th>
+              <th rowspan="2" class="align-middle" style="min-width:260px;">DESCRIPCIÓN DE LA MAQUINARIA,<br><span style="font-size:10px;font-weight:400;opacity:.8;">IMPLEMENTO, EQUIPO</span></th>
+              <th rowspan="2" class="align-middle">SERIE</th>
+              <th colspan="2" class="text-center">FACTURA</th>
+              <th rowspan="2" class="align-middle text-center">ESTADO<br><span style="font-size:9px;font-weight:400;opacity:.8;">B/R/M</span></th>
+              <th rowspan="2" class="align-middle">UBICACIÓN</th>
+              <th rowspan="2" class="align-middle text-center">ESTADO OP.</th>
+              <th rowspan="2" class="align-middle text-center">ACCIONES</th>
+            </tr>
+            <tr>
+              <th class="subhead text-center">FECHA</th>
+              <th class="subhead text-center">NÚMERO</th>
+            </tr>
+          </thead>
+          <tbody id="maqTbody"></tbody>
+        </table>
+      </div>
+      <div id="maqEmptyActivos" class="d-none maq-empty">
+        <i class="bi bi-truck"></i>
+        <div class="title">Sin resultados</div>
+        <div class="sub">No se encontraron equipos con los filtros seleccionados.</div>
+      </div>
+      <div class="maq-table-footer">
+        <span id="registro-info" style="font-size:12px;color:var(--maq-muted);"></span>
+        <div class="ms-auto d-flex align-items-center gap-2">
+          <button id="btn-primero" class="maq-pag-btn" title="Primera página">«</button>
+          <button id="btn-anterior" class="maq-pag-btn" title="Anterior">‹</button>
+          <span id="pagina-info" style="font-size:12px;color:var(--maq-muted);white-space:nowrap;"></span>
+          <input id="pagina-input" type="number" min="1"
+            style="width:48px;height:28px;text-align:center;border:1.5px solid var(--maq-border);border-radius:6px;font-size:12px;font-family:'Inter','Segoe UI',sans-serif;color:var(--maq-text);">
+          <button id="btn-siguiente" class="maq-pag-btn" title="Siguiente">›</button>
+          <button id="btn-ultimo" class="maq-pag-btn" title="Última página">»</button>
         </div>
-
-        <div class="card-body p-4">
-            <form id="formMaquinaria">
-
-                <!-- Campo oculto para el ID al editar -->
-                <input type="hidden" id="pk_maquinaria">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Número Económico <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="numero_economico" class="form-control"
-                            placeholder="Ej: MAQ-001" required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Tipo de Equipo <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="tipo_equipo" class="form-control"
-                            placeholder="Ej: Tractor" required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Marca</label>
-                        <input type="text" id="marca" class="form-control" placeholder="Ej: John Deere">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Modelo</label>
-                        <input type="text" id="modelo" class="form-control" placeholder="Ej: 5075E">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Año</label>
-                        <input type="number" id="anio" class="form-control"
-                            placeholder="2024" min="1980" max="2030">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Ubicación <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="ubicacion" class="form-control"
-                            placeholder="Ej: Campo Norte" required>
-                    </div>
-
-                </div>
-
-                <hr class="my-4">
-
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary px-4" onclick="mostrarTabla()">
-                        <i class="fa-solid fa-xmark me-1"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
-                    </button>
-                </div>
-
-            </form>
-        </div>
+      </div>
     </div>
-</div>
+  </div>
+
+  <!-- Vista Bajas -->
+  <div id="maqVistaBajas" class="d-none">
+    <div class="maq-table-wrap">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0">
+          <thead>
+            <tr>
+              <th>#</th><th># ECO</th><th>TIPO</th>
+              <th style="min-width:200px;">DESCRIPCIÓN</th>
+              <th>TIPO BAJA</th>
+              <th style="min-width:160px;">MOTIVO</th>
+              <th>FECHA BAJA</th><th>AUTORIZÓ</th><th>SOLICITÓ</th>
+            </tr>
+          </thead>
+          <tbody id="maqTbodyBajas"></tbody>
+        </table>
+      </div>
+      <div id="maqEmptyBajas" class="d-none maq-empty">
+        <i class="bi bi-slash-circle"></i>
+        <div class="title">Sin bajas registradas</div>
+        <div class="sub">No hay equipos dados de baja aún.</div>
+      </div>
+      <div class="maq-table-footer">
+        <span style="color:var(--maq-muted);">Registros de baja</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /modMaquinaria -->
 
 
-<!-- ══════════════════════════════════════════════
-     CONTENEDOR TABLA
-     Visible por defecto. Se oculta cuando el formulario está activo.
-     Contiene: tabs, filtros, tabla activos, tabla bajas
-════════════════════════════════════════════════ -->
-<div id="contenedorTabla">
+<!-- ══ MODAL WIZARD ════════════════════════════════════════════ -->
+<div class="modal fade" id="maqModalWizard" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0" style="border-radius:var(--maq-r-lg);box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="maq-modal-hdr">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 class="m-0" id="maqWizardTitulo"><i class="bi bi-plus-circle me-2"></i>Registrar Maquinaria</h5>
+          <button type="button" class="btn-close btn-close-white" onclick="maqCerrarWizard()"></button>
+        </div>
+      </div>
 
-    <!-- ── TABS: Activos / Bajas ── -->
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <button class="nav-link active d-flex align-items-center gap-2"
-                id="tabActivos" onclick="switchTab('activos')">
-                <i class="fa-solid fa-tractor"></i>
-                Activos
-                <span class="badge rounded-pill" style="background:#1a3c5e;" id="badgeActivos">0</span>
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link d-flex align-items-center gap-2"
-                id="tabBajas" onclick="switchTab('bajas')">
-                <i class="fa-solid fa-ban"></i>
-                Bajas
-                <span class="badge bg-secondary rounded-pill" id="badgeBajas">0</span>
-            </button>
-        </li>
-    </ul>
+      <!-- Stepper — círculos con íconos Bootstrap Icons -->
+      <div class="maq-stepper">
+        <!-- Paso 1: Identificación → bi-person-badge -->
+        <div class="maq-wz-step active" id="maqStep1">
+          <div class="maq-wz-circle"><i class="bi bi-person-badge"></i></div>
+          <div class="maq-wz-label">Identificación</div>
+        </div>
+        <div class="maq-wz-line" id="maqLine1"></div>
+        <!-- Paso 2: Datos Técnicos → bi-gear -->
+        <div class="maq-wz-step" id="maqStep2">
+          <div class="maq-wz-circle"><i class="bi bi-gear"></i></div>
+          <div class="maq-wz-label">Datos Técnicos</div>
+        </div>
+        <div class="maq-wz-line" id="maqLine2"></div>
+        <!-- Paso 3: Factura → bi-receipt -->
+        <div class="maq-wz-step" id="maqStep3">
+          <div class="maq-wz-circle"><i class="bi bi-receipt"></i></div>
+          <div class="maq-wz-label">Factura</div>
+        </div>
+        <div class="maq-wz-line" id="maqLine3"></div>
+        <!-- Paso 4: Garantía y Uso → bi-shield-check -->
+        <div class="maq-wz-step" id="maqStep4">
+          <div class="maq-wz-circle"><i class="bi bi-shield-check"></i></div>
+          <div class="maq-wz-label">Garantía y Uso</div>
+        </div>
+      </div>
 
+      <!-- Body -->
+      <div class="modal-body p-0" style="max-height:62vh;overflow-y:auto;">
 
-    <!-- ── VISTA ACTIVOS ── -->
-    <div id="vistaActivos">
-
-        <!-- Filtros de búsqueda -->
-        <div class="d-flex gap-2 mb-3 flex-wrap">
-            <div class="flex-grow-1 position-relative" style="min-width:200px;">
-                <i class="fa-solid fa-magnifying-glass text-muted"
-                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; pointer-events:none;"></i>
-                <input type="text" class="form-control ps-4" id="searchInput"
-                    placeholder="Buscar por número, tipo, marca…" oninput="filtrarTabla()">
+        <!-- Paso 1 -->
+        <div class="p-4" id="maqPage1">
+          <div class="maq-wz-card">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num blue"><i class="bi bi-person-badge"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Identificación</span>
             </div>
-            <select class="form-select" style="width:auto;" id="filtroEstado" onchange="filtrarTabla()">
-                <option value="">Todos los estados</option>
-                <option value="disponible">Disponible</option>
-                <option value="en_uso">En uso</option>
-                <option value="mantenimiento">Mantenimiento</option>
-                <option value="revision">Revisión</option>
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <div>
+                <label class="maq-label">Foto</label>
+                <label class="maq-foto-circle" id="maqFotoLabel">
+                  <input type="file" id="maqFotoEquipo" accept="image/*" onchange="maqPreviewFoto(this)">
+                  <div class="maq-foto-ph" id="maqFotoPh"><i class="bi bi-camera" style="font-size:22px;color:var(--maq-muted);"></i><span>Foto</span></div>
+                  <img id="maqFotoPreview" src="" alt="foto">
+                </label>
+              </div>
+              <div class="flex-grow-1">
+                <label class="maq-label">Número Económico <span class="text-danger">*</span></label>
+                <input class="form-control form-control-sm" id="maqNumEco" placeholder="Ej: MAQ-006" maxlength="20" autocomplete="off">
+                <div class="maq-field-error" id="maqErrNumEco">El número económico es obligatorio</div>
+              </div>
+              <div class="flex-grow-1">
+                <label class="maq-label">Núm. Inventario SEDER</label>
+                <input class="form-control form-control-sm" id="maqNumSeder" placeholder="Ej: INV-SEDER-006" autocomplete="off">
+                <div class="text-muted small mt-1">Dejar vacío si no ha sido asignado</div>
+              </div>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="maq-label">Tipo de Equipo <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                  <select class="form-select" id="maqSelectTipo"><option value="">— Seleccionar tipo —</option></select>
+                  <button type="button" class="btn btn-sm" style="background:var(--maq-secondary);color:#fff;border:none;" onclick="maqAbrirModalTipo()"><i class="bi bi-plus-lg"></i></button>
+                </div>
+                <div class="maq-field-error" id="maqErrTipo">Debes seleccionar el tipo de equipo</div>
+              </div>
+              <div class="col-12">
+                <label class="maq-label">Descripción</label>
+                <textarea class="form-control form-control-sm" id="maqDescripcion" rows="2" placeholder="Características relevantes del equipo…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 2 -->
+        <div class="p-4 d-none" id="maqPage2">
+          <div class="maq-wz-card green">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num green"><i class="bi bi-gear"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Datos Técnicos</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="maq-label">Marca <span class="text-danger">*</span></label>
+                <input class="form-control form-control-sm" id="maqMarca" placeholder="Ej: John Deere" autocomplete="off">
+                <div class="maq-field-error" id="maqErrMarca">La marca es obligatoria</div>
+              </div>
+              <div class="col-md-4">
+                <label class="maq-label">Modelo <span class="text-danger">*</span></label>
+                <input class="form-control form-control-sm" id="maqModelo" placeholder="Ej: 5075E" autocomplete="off">
+                <div class="maq-field-error" id="maqErrModelo">El modelo es obligatorio</div>
+              </div>
+              <div class="col-md-4">
+                <label class="maq-label">Año</label>
+                <input class="form-control form-control-sm" id="maqAnio" type="number" placeholder="2025" min="1980" max="2035">
+              </div>
+              <div class="col-md-6">
+                <label class="maq-label">Color</label>
+                <input class="form-control form-control-sm" id="maqColor" placeholder="Ej: Verde" autocomplete="off">
+              </div>
+              <div class="col-md-6">
+                <label class="maq-label">Número de Serie</label>
+                <input class="form-control form-control-sm" id="maqSerie" placeholder="Ej: JD5075E006" autocomplete="off">
+              </div>
+            </div>
+          </div>
+          <div class="maq-wz-card orange">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num orange"><i class="bi bi-speedometer2"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Estado y Ubicación</span>
+            </div>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="maq-label">Estado Físico <span class="text-danger">*</span></label>
+                <select class="form-select form-select-sm" id="maqEstadoFisico">
+                  <option value="">Seleccionar…</option>
+                  <option value="bueno">Bueno</option>
+                  <option value="regular">Regular</option>
+                  <option value="malo">Malo</option>
+                </select>
+                <div class="maq-field-error" id="maqErrEstadoFisico">El estado físico es obligatorio</div>
+              </div>
+              <div class="col-md-4">
+                <label class="maq-label">Estado Operativo</label>
+                <select class="form-select form-select-sm" id="maqEstadoOp">
+                  <option value="disponible">Disponible</option>
+                  <option value="en_uso">En uso</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="revision">Revisión</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="maq-label">Ubicación <span class="text-danger">*</span></label>
+                <div class="input-group input-group-sm">
+                  <select class="form-select" id="maqSelectUbicacion"><option value="">Seleccionar…</option></select>
+                  <button type="button" class="btn btn-sm" style="background:var(--maq-secondary);color:#fff;border:none;" onclick="maqAbrirModalUbicacion()"><i class="bi bi-plus-lg"></i></button>
+                </div>
+                <div class="maq-field-error" id="maqErrUbicacion">La ubicación es obligatoria</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 3 -->
+        <div class="p-4 d-none" id="maqPage3">
+          <div class="maq-wz-card">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num blue"><i class="bi bi-receipt"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Factura de Compra</span>
+            </div>
+            <div class="row g-3 mb-3">
+              <div class="col-md-5">
+                <label class="maq-label">Número de Factura <span class="text-danger">*</span></label>
+                <input class="form-control form-control-sm" id="maqNumFactura" placeholder="FAC-2025-006" autocomplete="off">
+                <div class="maq-field-error" id="maqErrNumFactura">El número de factura es obligatorio</div>
+              </div>
+              <div class="col-md-4">
+                <label class="maq-label">Fecha de Factura <span class="text-danger">*</span></label>
+                <input class="form-control form-control-sm" id="maqFechaFactura" type="date">
+                <div class="maq-field-error" id="maqErrFechaFactura">La fecha de factura es obligatoria</div>
+              </div>
+              <div class="col-md-3">
+                <label class="maq-label">Proveedor</label>
+                <div class="input-group input-group-sm">
+                  <select class="form-select" id="maqSelectProveedor"><option value="">Seleccionar…</option></select>
+                  <button type="button" class="btn btn-sm" style="background:var(--maq-secondary);color:#fff;border:none;" onclick="maqAbrirModalProveedor()"><i class="bi bi-plus-lg"></i></button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <label class="maq-label">Subir Factura (PDF)</label>
+              <label class="maq-file-drop w-100">
+                <input type="file" id="maqPdfFactura" accept=".pdf" onchange="maqMostrarArchivo(this,'maqNombreFactura')">
+                <i class="bi bi-cloud-arrow-up" style="color:var(--maq-secondary);font-size:18px;"></i>
+                <span>Haz clic o arrastra el PDF aquí</span>
+              </label>
+              <div class="text-success small mt-1 d-none" id="maqNombreFactura"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paso 4 -->
+        <div class="p-4 d-none" id="maqPage4">
+          <div class="maq-wz-card green">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num green"><i class="bi bi-shield-check"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Garantía</span>
+              <span class="badge ms-1" style="background:#fef5e4;color:#7a5700;border:1px solid #f9ca74;font-size:.65rem;">OPCIONAL</span>
+              <button type="button" class="btn btn-sm ms-auto rounded-pill px-2 py-0"
+                style="border:1px solid var(--maq-secondary);color:var(--maq-secondary);font-size:.75rem;"
+                onclick="maqToggleGarantia()">
+                <span id="maqGarToggle">+ Agregar</span>
+              </button>
+            </div>
+            <div class="d-none" id="maqGarBody">
+              <div class="row g-3 mb-3">
+                <div class="col-md-4">
+                  <label class="maq-label">Fecha Inicio</label>
+                  <input class="form-control form-control-sm" id="maqGarInicio" type="date">
+                </div>
+                <div class="col-md-4">
+                  <label class="maq-label">Fecha Fin</label>
+                  <input class="form-control form-control-sm" id="maqGarFin" type="date">
+                </div>
+                <div class="col-md-4">
+                  <label class="maq-label">Límite de Horas</label>
+                  <div class="input-group input-group-sm">
+                    <input class="form-control" id="maqGarHoras" type="number" placeholder="2000" min="0">
+                    <span class="input-group-text">hrs</span>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <label class="maq-label">PDF de Garantía</label>
+                <label class="maq-file-drop w-100">
+                  <input type="file" id="maqPdfGarantia" accept=".pdf" onchange="maqMostrarArchivo(this,'maqNombreGarantia')">
+                  <i class="bi bi-cloud-arrow-up" style="color:var(--maq-secondary);font-size:18px;"></i>
+                  <span>Haz clic o arrastra el PDF aquí</span>
+                </label>
+                <div class="text-success small mt-1 d-none" id="maqNombreGarantia"></div>
+              </div>
+            </div>
+          </div>
+          <div class="maq-wz-card orange">
+            <div class="maq-wz-card-title">
+              <span class="maq-wz-num orange"><i class="bi bi-clock-history"></i></span>
+              <span class="fw-semibold" style="color:var(--maq-primary);font-size:.88rem;">Datos de Uso Previo</span>
+            </div>
+            <div class="alert border-0 py-2 px-3 small mb-3" style="background:#fff5e6;color:#7d3b00;border-radius:8px;">
+              <i class="bi bi-info-circle me-1"></i>Registra las lecturas al momento de ingreso al sistema.
+            </div>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="maq-label">Horas del Horómetro</label>
+                <div class="input-group input-group-sm">
+                  <input class="form-control" id="maqHorasHorometro" type="number" placeholder="0" min="0">
+                  <span class="input-group-text">hrs</span>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="maq-label">Diésel en Tanque</label>
+                <div class="input-group input-group-sm">
+                  <input class="form-control" id="maqDiesel" type="number" placeholder="0" min="0" step="0.1">
+                  <span class="input-group-text">L</span>
+                </div>
+              </div>
+              <div class="col-12">
+                <label class="maq-label">Observaciones de Recepción</label>
+                <textarea class="form-control form-control-sm" id="maqObservaciones" rows="2"
+                  placeholder="Condición general al recibirlo, daños visibles…"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /modal-body -->
+
+      <div class="maq-modal-footer">
+        <div class="d-flex gap-2">
+          <button class="btn-maq-secondary" onclick="maqCerrarWizard()"><i class="bi bi-x-lg"></i> Cancelar</button>
+          <button class="btn-maq-secondary d-none" id="maqBtnAnterior" onclick="maqAnteriorPaso()"><i class="bi bi-arrow-left"></i> Anterior</button>
+        </div>
+        <span style="font-size:12px;color:var(--maq-muted);" id="maqIndicador">Paso 1 de 4</span>
+        <div class="d-flex gap-2">
+          <button class="btn-maq-primary" id="maqBtnSiguiente" onclick="maqSiguientePaso()">Siguiente <i class="bi bi-arrow-right ms-1"></i></button>
+          <button class="btn-maq-success d-none" id="maqBtnGuardar" onclick="maqGuardar()"><i class="bi bi-floppy2"></i> Guardar Equipo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL BAJA ══════════════════════════════════════════════ -->
+<div class="modal fade" id="maqModalBaja" tabindex="-1" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+    <div class="modal-content border-0" style="border-radius:var(--maq-r-lg);box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="maq-modal-hdr-danger">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 class="m-0"><i class="bi bi-exclamation-triangle me-2"></i>Dar de Baja</h5>
+          <button type="button" class="btn-close btn-close-white" onclick="maqCerrarBaja()"></button>
+        </div>
+      </div>
+      <div class="modal-body p-4">
+        <!-- Tarjeta del equipo -->
+        <div class="maq-baja-box">
+          <i class="bi bi-truck" style="font-size:2rem;color:var(--maq-danger);flex-shrink:0;"></i>
+          <div>
+            <div class="fw-semibold" id="maqBajaEco">—</div>
+            <div class="small text-muted" id="maqBajaDesc">—</div>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="maq-label">Tipo de Baja <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm" id="maqBajaTipo">
+            <option value="">Seleccionar…</option>
+            <option value="venta">Venta</option>
+            <option value="donacion">Donación</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="baja_tecnica">Baja técnica</option>
+            <option value="perdida">Pérdida</option>
+          </select>
+          <div class="maq-field-error" id="maqErrBajaTipo">El tipo de baja es obligatorio</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="maq-label">Motivo <span class="text-danger">*</span></label>
+          <textarea class="form-control form-control-sm" id="maqBajaMotivo" rows="3"
+            placeholder="Describe la razón de la baja…"></textarea>
+          <div class="maq-field-error" id="maqErrBajaMotivo">El motivo es obligatorio</div>
+        </div>
+
+        <div class="mb-3">
+          <label class="maq-label">Autorizado por <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm" id="maqBajaAutorizadoPor">
+            <option value="">Seleccionar usuario…</option>
+          </select>
+          <div class="maq-field-error" id="maqErrBajaAutorizado">Debes seleccionar quién autorizó</div>
+        </div>
+
+        <div>
+          <label class="maq-label">Documento de respaldo <span class="text-muted small">(opcional)</span></label>
+          <input type="file" class="form-control form-control-sm" id="maqBajaDocumento" accept=".pdf,.jpg,.jpeg,.png">
+        </div>
+      </div><!-- fin modal-body -->
+
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid var(--maq-border);">
+        <button class="btn-maq-secondary" onclick="maqCerrarBaja()">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button class="btn-maq-danger" onclick="maqConfirmarBaja()">
+          <i class="bi bi-trash3"></i> Confirmar Baja
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVO TIPO ════════════════════════════════════════ -->
+<div class="modal fade" id="maqModalTipo" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+    <div class="modal-content border-0" style="border-radius:var(--maq-r-lg);box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="maq-modal-hdr">
+        <div class="d-flex align-items-center justify-content-between">
+          <h6 class="m-0"><i class="bi bi-tag me-2"></i>Nuevo Tipo de Equipo</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div class="modal-body p-4">
+        <label class="maq-label">Nombre del tipo <span class="text-danger">*</span></label>
+        <input class="form-control form-control-sm" id="maqInputTipo" placeholder="Ej: Sembradora de precisión" maxlength="80" autocomplete="off">
+        <div class="maq-field-error" id="maqErrInputTipo">El nombre es obligatorio</div>
+        <div class="text-muted small mt-2">Primera letra mayúscula. Ej: <em>Bordeadora</em></div>
+      </div>
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid var(--maq-border);">
+        <button class="btn-maq-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
+        <button class="btn-maq-primary" onclick="maqConfirmarTipo()"><i class="bi bi-plus-lg"></i> Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVA UBICACIÓN — campos completos ═══════════════ -->
+<div class="modal fade" id="maqModalUbicacion" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+    <div class="modal-content border-0" style="border-radius:var(--maq-r-lg);box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="maq-modal-hdr">
+        <div class="d-flex align-items-center justify-content-between">
+          <h6 class="m-0"><i class="bi bi-geo-alt me-2"></i>Nueva Ubicación</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-3">
+          <!-- Nombre (obligatorio) -->
+          <div class="col-12">
+            <label class="maq-label">Nombre de la ubicación <span class="text-danger">*</span></label>
+            <input class="form-control form-control-sm" id="maqInputUbicacion"
+              placeholder="Ej: Bodega central" maxlength="80" autocomplete="off">
+            <div class="maq-field-error" id="maqErrInputUbicacion">El nombre es obligatorio</div>
+            <div class="text-muted small mt-1">Primera letra mayúscula. Ej: <em>Patio norte</em></div>
+          </div>
+          <!-- Descripción -->
+          <div class="col-12">
+            <label class="maq-label">Descripción</label>
+            <input class="form-control form-control-sm" id="maqInputUbiDesc"
+              placeholder="Ej: Área principal de resguardo de maquinaria" maxlength="200" autocomplete="off">
+          </div>
+          <!-- Categoría (fk_categoria → tabla categoria_ubicacion) -->
+          <div class="col-md-6">
+            <label class="maq-label">Categoría</label>
+            <select class="form-select form-select-sm" id="maqInputUbiCategoria">
+              <option value="">Seleccionar</option>
+              <!-- Se carga dinámicamente -->
             </select>
+          </div>
         </div>
-
-        <!-- Tabla de maquinaria activa -->
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
-                            <th class="py-3 px-3">N° ECO</th>
-                            <th class="py-3 px-3">TIPO DE EQUIPO</th>
-                            <th class="py-3 px-3">MARCA / MODELO</th>
-                            <th class="py-3 px-3 text-center">AÑO</th>
-                            <th class="py-3 px-3">UBICACIÓN</th>
-                            <th class="py-3 px-3 text-center">ESTADO OP.</th>
-                            <th class="py-3 px-3 text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <!-- Llenado dinámicamente por listar() en maquinaria.js -->
-                    <tbody id="maqBody"></tbody>
-                </table>
-            </div>
-            <!-- Pie de tabla con información de paginación/conteo -->
-            <div class="px-3 py-2 bg-light border-top">
-                <small class="text-muted" id="footerInfo">Cargando…</small>
-            </div>
-        </div>
-
-    </div><!-- /vistaActivos -->
-
-
-    <!-- ── VISTA BAJAS (oculta por defecto) ── -->
-    <div id="vistaBajas" class="d-none">
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
-                            <th class="py-3 px-3">N° ECO</th>
-                            <th class="py-3 px-3">TIPO DE EQUIPO</th>
-                            <th class="py-3 px-3">MARCA / MODELO</th>
-                            <th class="py-3 px-3">UBICACIÓN</th>
-                            <th class="py-3 px-3 text-center">ESTADO</th>
-                        </tr>
-                    </thead>
-                    <!-- Llenado dinámicamente por listarBajas() en maquinaria.js -->
-                    <tbody id="bajasBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div><!-- /vistaBajas -->
-
-</div><!-- /contenedorTabla -->
-
-
-<!-- ══════════════════════════════════════════════
-     MODAL: DAR DE BAJA
-     Abierto por abrirBaja() en maquinaria.js
-     Confirmación llama a confirmarBajaModal() → desactivar()
-════════════════════════════════════════════════ -->
-<div class="modal fade" id="modalBaja" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:14px; overflow:hidden;">
-
-            <!-- Header rojo de peligro -->
-            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
-                <h5 class="modal-title">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Dar de Baja – Maquinaria
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body p-4">
-
-                <!-- Resumen del equipo que se va a dar de baja -->
-                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3"
-                    style="background:#fbe9e7; border:1px solid rgba(178,56,45,.25);">
-                    <i class="fa-solid fa-tractor fa-2x" style="color:#b2382d; flex-shrink:0;"></i>
-                    <div>
-                        <div class="fw-bold" id="bajaNumero">—</div>
-                        <div class="small text-muted" id="bajaEquipoDesc">—</div>
-                    </div>
-                </div>
-
-                <!-- Tipo de baja -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                        Tipo de Baja <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select" id="bajaTipoInput">
-                        <option value="">Seleccionar…</option>
-                        <option value="venta">Venta</option>
-                        <option value="donacion">Donación</option>
-                        <option value="transferencia">Transferencia</option>
-                        <option value="baja_tecnica">Baja Técnica</option>
-                        <option value="perdida">Pérdida</option>
-                    </select>
-                    <div class="text-danger d-none small mt-1" id="err_baja_tipo">Campo requerido</div>
-                </div>
-
-                <!-- Motivo -->
-                <div>
-                    <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                        Motivo <span class="text-danger">*</span>
-                    </label>
-                    <textarea class="form-control" id="bajaMotivoInput" rows="3"
-                        placeholder="Describe la razón de la baja…"></textarea>
-                    <div class="text-danger d-none small mt-1" id="err_baja_motivo">Campo requerido</div>
-                </div>
-
-            </div>
-
-            <div class="modal-footer bg-light border-top">
-                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
-                </button>
-                <!-- confirmarBajaModal() valida y llama a desactivar() -->
-                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarBajaModal()">
-                    <i class="fa-solid fa-ban me-1"></i>Confirmar Baja
-                </button>
-            </div>
-
-        </div>
+      </div>
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid var(--maq-border);">
+        <button class="btn-maq-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
+        <button class="btn-maq-primary" onclick="maqConfirmarUbicacion()"><i class="bi bi-plus-lg"></i> Agregar</button>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- ══ MODAL NUEVO PROVEEDOR ══════════════════════════════════ -->
+<div class="modal fade" id="maqModalProveedor" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:480px;">
+    <div class="modal-content border-0" style="border-radius:var(--maq-r-lg);box-shadow:0 20px 60px rgba(0,0,0,.18);">
+      <div class="maq-modal-hdr">
+        <div class="d-flex align-items-center justify-content-between">
+          <h6 class="m-0"><i class="bi bi-building me-2"></i>Nuevo Proveedor</h6>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+      </div>
+      <div class="modal-body p-4">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="maq-label">Nombre o razón social <span class="text-danger">*</span></label>
+            <input class="form-control form-control-sm" id="maqProvNombre" placeholder="Ej: Agromaquinaria del Norte SA de CV" maxlength="200" autocomplete="off">
+            <div class="maq-field-error" id="maqErrProvNombre">El nombre es obligatorio</div>
+          </div>
+          <div class="col-12">
+            <label class="maq-label">Dirección</label>
+            <input class="form-control form-control-sm" id="maqProvDir" placeholder="Calle, colonia, ciudad…" maxlength="300" autocomplete="off">
+          </div>
+          <div class="col-md-6">
+            <label class="maq-label">Teléfono</label>
+            <input class="form-control form-control-sm" id="maqProvTel" placeholder="Ej: 311 123 4567" maxlength="50" autocomplete="off">
+          </div>
+          <div class="col-md-6">
+            <label class="maq-label">Correo electrónico</label>
+            <input class="form-control form-control-sm" id="maqProvCorreo" type="email" placeholder="contacto@proveedor.mx" maxlength="100" autocomplete="off">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="background:#f8fafc;border-top:1px solid var(--maq-border);">
+        <button class="btn-maq-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancelar</button>
+        <button class="btn-maq-primary" onclick="maqConfirmarProveedor()"><i class="bi bi-plus-lg"></i> Agregar</button>
+      </div>
+    </div>
+  </div>
 </div>

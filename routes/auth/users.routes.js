@@ -32,4 +32,19 @@ router.patch('/:id/desactivar', controller.desactivar);
 // DELETE /users/:id - Eliminar usuario permanentemente (hard delete)
 router.delete('/:id', controller.desaparecer);
 
+router.get('/', async (req, res) => {
+    try {
+        const result = await Conexion.query(
+            `SELECT pk_user AS id, nombre, username
+             FROM users                    -- ← cambia "users" por tu tabla real
+             WHERE activo = true
+             ORDER BY nombre ASC`
+        );
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ ok: false, message: 'Error al obtener usuarios' });
+    }
+});
+
+
 module.exports = router;

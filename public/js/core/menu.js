@@ -1,54 +1,66 @@
-// ============================================
-// JAVASCRIPT: menu.js
-// Descripción: Navegación y carga de vistas dinámicas
-// ============================================
+// ============================================================
+// menu.js — Navegación dinámica
+// Sin Tailwind. Usa clases CSS propias de sistema.css
+// ============================================================
 
-// Mapa completo: clave → archivo JS del módulo
 const modulosJS = {
-    'admin/inicio':                  null,
-    'admin/modulos':                 'modules/admin/modulos',
-    'admin/users':                   'modules/admin/users',
-    'admin/empleados':               'modules/admin/empleados',
-    'maquinaria/maquinaria':         'modules/maquinaria/maquinaria',
-    'vehiculo/vehiculo':             'modules/vehiculo/vehiculo',
-    'mantenimiento/mantenimiento':   'modules/mantenimiento/mantenimiento',
+    'admin/inicio':                null,
+    'admin/modulos':               'modules/admin/modulos',
+    'admin/users':                 'modules/admin/users',
+    'admin/empleados':             'modules/admin/empleados',
+    'maquinaria/maquinaria':       'modules/maquinaria/maquinaria',
+    'vehiculo/vehiculo':           'modules/vehiculo/vehiculo',
+    'mantenimiento/mantenimiento': 'modules/mantenimiento/mantenimiento',
+    'falla/falla':                 'modules/falla/falla',
+    'checklist/checklist':         'modules/checklist/checklist',
 };
 
-// Mapa de íconos por clave (Font Awesome)
+// Bootstrap Icons
 const modulosIconos = {
-    'maquinaria/maquinaria':        'fa-tractor',
-    'vehiculo/vehiculo':            'fa-truck',
-    'mantenimiento/mantenimiento':  'fa-wrench',
-    'admin/empleados':              'fa-user',
-    'admin/users':                  'fa-users',
-    'admin/modulos':                'fa-th',
+    'maquinaria/maquinaria':       'bi-truck',
+    'vehiculo/vehiculo':           'bi-car-front',
+    'mantenimiento/mantenimiento': 'bi-tools',
+    'falla/falla':                 'bi-exclamation-triangle',
+    'checklist/checklist':         'bi-clipboard-check',
+    'admin/empleados':             'bi-person-badge',
+    'admin/users':                 'bi-people',
+    'admin/modulos':               'bi-grid',
 };
 
-// Módulos que pertenecen a la sección Operación
+const nombresModulos = {
+    'maquinaria/maquinaria':       'Maquinaria',
+    'vehiculo/vehiculo':           'Vehículos',
+    'mantenimiento/mantenimiento': 'Mantenimiento',
+    'falla/falla':                 'Fallas',
+    'checklist/checklist':         'Checklist',
+    'admin/empleados':             'Empleados',
+    'admin/users':                 'Usuarios',
+    'admin/modulos':               'Módulos',
+};
+
 const seccionOperacion = [
     'maquinaria/maquinaria',
     'vehiculo/vehiculo',
     'mantenimiento/mantenimiento',
+    'falla/falla',
+    'checklist/checklist',
 ];
 
-// Módulos que pertenecen a la sección Administración
 const seccionAdmin = [
     'admin/empleados',
     'admin/users',
     'admin/modulos',
 ];
 
-// Banderas de inicialización por módulo
 const _flagsModulos = {
-    'modules/admin/modulos':       '_modulosInicializado',
-    'modules/admin/users':         '_usersInicializado',
-    'modules/admin/empleados':     '_empleadosInicializado',
-    'modules/maquinaria/maquinaria': '_maquinariaInicializado',
-    'modules/vehiculo/vehiculo':   '_vehiculoInicializado',
+    'modules/admin/modulos':               '_modulosInicializado',
+    'modules/admin/users':                 '_usersInicializado',
+    'modules/admin/empleados':             '_empleadosInicializado',
+    'modules/maquinaria/maquinaria':       '_maquinariaInicializado',
+    'modules/vehiculo/vehiculo':           '_vehiculoInicializado',
     'modules/mantenimiento/mantenimiento': '_mantenimientoInicializado',
 };
 
-// Construir el sidebar dinámicamente según los módulos del usuario
 function construirSidebar() {
     const user = getCurrentUser();
     if (!user) return;
@@ -62,83 +74,79 @@ function construirSidebar() {
     // Sección OPERACIÓN
     const tieneOperacion = seccionOperacion.some(c => modulosUsuario.includes(c));
     if (tieneOperacion) {
-        nav.innerHTML += `<p class="text-xs text-gray-400 px-2 mt-4 mb-2">OPERACIÓN</p>`;
+        nav.insertAdjacentHTML('beforeend', `<div class="sidebar-section-label">Operación</div>`);
+
         seccionOperacion.forEach(clave => {
             if (!modulosUsuario.includes(clave)) return;
-            const nombre  = clave.split('/')[0];
-            const nombre2 = nombre.charAt(0).toUpperCase() + nombre.slice(1);
-            const icono   = modulosIconos[clave] || 'fa-circle';
-            nav.innerHTML += `
-                <a href="#" onclick="cargarVista('${clave}')"
-                   id="menu-${clave.replace('/', '-')}"
-                   class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-                    <i class="fas ${icono} mr-2"></i>
-                    <span class="sidebar-text">${nombre2}</span>
-                </a>`;
+            const icono  = modulosIconos[clave] || 'bi-circle';
+            const nombre = nombresModulos[clave] || clave;
+            const idLink = `menu-${clave.replace('/', '-')}`;
+
+            nav.insertAdjacentHTML('beforeend', `
+                <a href="#" class="sidebar-link" id="${idLink}"
+                   onclick="cargarVista('${clave}'); return false;">
+                    <i class="bi ${icono}"></i>
+                    <span class="nav-label">${nombre}</span>
+                </a>`);
         });
     }
 
     // Sección ADMINISTRACIÓN
     const tieneAdmin = seccionAdmin.some(c => modulosUsuario.includes(c));
     if (tieneAdmin) {
-        nav.innerHTML += `<p class="text-xs text-gray-400 px-2 mt-4 mb-2">ADMINISTRACIÓN</p>`;
-        const nombresAdmin = {
-            'admin/empleados': 'Empleados',
-            'admin/users':     'Usuarios',
-            'admin/modulos':   'Módulos',
-        };
+        nav.insertAdjacentHTML('beforeend', `<div class="sidebar-section-label">Administración</div>`);
+
         seccionAdmin.forEach(clave => {
             if (!modulosUsuario.includes(clave)) return;
-            const icono  = modulosIconos[clave] || 'fa-circle';
-            const nombre = nombresAdmin[clave];
-            nav.innerHTML += `
-                <a href="#" onclick="cargarVista('${clave}')"
-                   id="menu-${clave.replace('/', '-')}"
-                   class="flex items-center px-2 py-2 text-sm text-gray-300 hover:bg-gray-700 rounded-md">
-                    <i class="fas ${icono} mr-2"></i>
-                    <span class="sidebar-text">${nombre}</span>
-                </a>`;
+            const icono  = modulosIconos[clave] || 'bi-circle';
+            const nombre = nombresModulos[clave] || clave;
+            const idLink = `menu-${clave.replace('/', '-')}`;
+
+            nav.insertAdjacentHTML('beforeend', `
+                <a href="#" class="sidebar-link" id="${idLink}"
+                   onclick="cargarVista('${clave}'); return false;">
+                    <i class="bi ${icono}"></i>
+                    <span class="nav-label">${nombre}</span>
+                </a>`);
         });
     }
 }
 
-// Marcar ítem activo en el sidebar
 function marcarActivo(vista) {
-    document.querySelectorAll('#sidebar-nav a').forEach(a => {
-        a.classList.remove('bg-blue-600', 'text-white');
-        a.classList.add('text-gray-300');
+    document.querySelectorAll('#sidebar-nav .sidebar-link').forEach(a => {
+        a.classList.remove('active');
     });
+
     const id = `menu-${vista.replace('/', '-')}`;
     const el = document.getElementById(id);
-    if (el) {
-        el.classList.add('bg-blue-600', 'text-white');
-        el.classList.remove('text-gray-300');
-    }
+    if (el) el.classList.add('active');
+
+    // Actualizar breadcrumb topbar
+    const parts = vista.split('/');
+    const section = document.getElementById('topbarSection');
+    const page    = document.getElementById('topbarPage');
+    if (section) section.textContent = nombresModulos[vista] || parts[0] || 'Inicio';
+    if (page)    page.textContent    = '';
 }
 
-// Cargar vista inicial al arrancar
 window.onload = () => {
     if (!isAuthenticated()) {
         window.top.location.href = '/views/auth/login.html';
         return;
     }
-
     construirSidebar();
-
     const vistaInicial = localStorage.getItem('vista') || 'admin/inicio';
     cargarVista(vistaInicial);
 };
 
-// Función principal para cargar vistas
 async function cargarVista(vista) {
     if (!isAuthenticated()) {
         window.top.location.href = '/views/auth/login.html';
         return;
     }
 
-    // Verificar si tiene acceso al módulo (excepto inicio)
     if (vista !== 'admin/inicio' && !hasModulo(vista)) {
-        alert('No tienes permisos para acceder a esta sección.');
+        toastWarn('No tienes permisos para acceder a esta sección.');
         cargarVista('admin/inicio');
         return;
     }
@@ -146,32 +154,35 @@ async function cargarVista(vista) {
     localStorage.setItem('vista', vista);
     marcarActivo(vista);
 
+    // Mostrar spinner mientras carga
+    const contenedor = document.getElementById('contenido');
+    contenedor.innerHTML = `
+        <div class="crean-spinner">
+            <div class="spinner-border" style="color:var(--crean-secondary);" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>`;
+
     try {
         const res = await fetch(`/views/${vista}.html`, {
             headers: { 'Authorization': `Bearer ${getToken()}` }
         });
 
         if (res.status === 401) {
-            alert('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
+            toastError('Tu sesión ha expirado. Inicia sesión nuevamente.');
             logout();
             return;
         }
 
-        if (!res.ok) throw new Error(`Error al cargar la vista: ${res.status}`);
+        if (!res.ok) throw new Error(`Error ${res.status} al cargar la vista`);
 
         const html = await res.text();
-        const contenedor = document.getElementById('contenido');
         contenedor.innerHTML = html;
 
-        // Eliminar scripts anteriores
+        // Resetear banderas
         document.querySelectorAll('script[data-modulo]').forEach(s => s.remove());
+        Object.values(_flagsModulos).forEach(flag => { window[flag] = false; });
 
-        // ← CLAVE: resetear TODAS las banderas de inicialización
-        Object.values(_flagsModulos).forEach(flag => {
-            window[flag] = false;
-        });
-
-        // Cargar JS del módulo si existe
         const moduloRuta = modulosJS[vista];
         if (!moduloRuta) return;
 
@@ -183,12 +194,13 @@ async function cargarVista(vista) {
 
     } catch (error) {
         console.error('Error al cargar vista:', error);
-        document.getElementById('contenido').innerHTML = `
-            <div class="alert alert-danger text-center mt-5">
-                <h4>Error al cargar la vista</h4>
-                <p>${error.message}</p>
-                <button class="btn btn-primary" onclick="cargarVista('admin/inicio')">
-                    Volver al Inicio
+        contenedor.innerHTML = `
+            <div class="crean-card p-4 text-center" style="max-width:400px;margin:40px auto;">
+                <i class="bi bi-exclamation-triangle" style="font-size:2.5rem;color:var(--crean-danger);"></i>
+                <h5 class="mt-3" style="color:var(--crean-primary);">Error al cargar</h5>
+                <p class="text-muted small">${error.message}</p>
+                <button class="btn btn-primary btn-sm mt-2" onclick="cargarVista('admin/inicio')">
+                    <i class="bi bi-house me-1"></i> Volver al Inicio
                 </button>
             </div>`;
     }

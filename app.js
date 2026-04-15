@@ -36,9 +36,10 @@ app.use('/empleados', require('./routes/auth/empleado.routes'));
 
 // --- MÓDULO CREAN ---
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));
-
 app.use('/vehiculo', require('./routes/vehiculo/vehiculo.routes'));
+app.use('/checklist', require('./routes/checklist/checklist.routes'));
 app.use('/archivo', require('./routes/upload/upload.routes'));
+
 
 // Rutas generales
 app.use('/', require('./routes/index.routes'));
