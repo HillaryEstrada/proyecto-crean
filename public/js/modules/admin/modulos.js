@@ -135,6 +135,7 @@
     }
 
     // ── Guardar asignación ───────────────────────
+    // ── Guardar asignación ───────────────────────
     window.guardarModulos = async function() {
         if (!rolActivo) return;
 
@@ -143,18 +144,6 @@
         checkboxes.forEach(cb => {
             if (cb.checked) modulosSeleccionados.push(parseInt(cb.dataset.id));
         });
-
-        // Si no es Administrador, preservar los módulos restringidos
-        // que ya tenía asignados (no tocarlos)
-        if (rolActivoNombre !== 'Administrador') {
-            modulosOriginales.forEach(id => {
-                // Buscar si ese id original corresponde a un módulo restringido
-                // Si sí, preservarlo en el array a guardar
-                if (!modulosSeleccionados.includes(id)) {
-                    modulosSeleccionados.push(id);
-                }
-            });
-        }
 
         try {
             await fetchWithAuth(`/modulos/rol/${rolActivo}`, 'POST', {
@@ -178,7 +167,7 @@
             });
         }
     };
-
+    
     // ── Cancelar cambios ─────────────────────────
     window.cancelarCambios = function() {
         document.querySelectorAll('.form-check-input[data-id]').forEach(cb => {
