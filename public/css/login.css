@@ -1,40 +1,119 @@
+/* ============================================================
+   LOGIN.CSS — CREAN · Gobierno del Estado de Nayarit
+   Paleta azul institucional: #1a3c5e
+   ============================================================ */
+
 /* ── VARIABLES ──────────────────────────────────────────────── */
 :root {
-  --green-deep:   #1b4d2e;
-  --green-mid:    #2d7a4f;
-  --green-light:  #4aab70;
-  --green-glow:   #74c69d;
-  --green-pale:   #d4edda;
+  --blue-deep:    #1a3c5e;
+  --blue-mid:     #2a6da8;
+  --blue-light:   #3d8fd4;
+  --blue-glow:    #7ec8f0;
+  --blue-pale:    #dbeeff;
   --white:        #ffffff;
-  --text-dark:    #0f2d1a;
-  --text-muted:   #52796f;
-  --input-bg:     #f4faf6;
-  --input-border: #cce3d3;
-  --shadow-btn:   0 8px 24px rgba(27, 77, 46, 0.38);
+  --text-dark:    #0f2440;
+  --text-muted:   #4a7090;
+  --input-bg:     #f0f7ff;
+  --input-border: #b8d4ea;
+  --shadow-btn:   0 8px 24px rgba(26, 60, 94, 0.38);
 }
- 
+
 /* ── RESET ──────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
- 
+
 html, body {
   height: 100%;
   font-family: 'DM Sans', sans-serif;
+  overflow: hidden; /* evita scroll en desktop */
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
-   LAYOUT
+   NOTIFICACIONES FLOTANTES
+   Fuera del layout, flotan por encima de todo
+───────────────────────────────────────────────────────────── */
+.notif-area {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.notif-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  min-width: 260px;
+  max-width: 320px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity .28s ease, transform .28s ease;
+  pointer-events: all;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.22);
+}
+
+.notif-error {
+  background: #c0392b;
+  color: #fff;
+}
+
+.notif-info {
+  background: var(--blue-deep);
+  color: #fff;
+}
+
+.notif-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.notif-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.notif-close {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color .15s;
+}
+
+.notif-close:hover {
+  color: #fff;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   LAYOUT PRINCIPAL — ocupa exactamente el viewport
 ───────────────────────────────────────────────────────────── */
 .login-page {
   display: flex;
-  min-height: 100vh;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
-   PANEL IZQUIERDO — verde sólido con círculo decorativo
+   PANEL IZQUIERDO
 ───────────────────────────────────────────────────────────── */
 .panel-left {
   flex: 1 1 60%;
@@ -42,12 +121,9 @@ html, body {
   overflow: hidden;
   display: flex;
   align-items: flex-end;
- 
-  /* Degradado verde igual a la imagen de referencia */
-  background: linear-gradient(145deg, #2d7a4f 0%, #1b4d2e 55%, #0f2d1a 100%);
+  background: linear-gradient(145deg, #2a5f96 0%, #1a3c5e 55%, #0f2440 100%);
 }
- 
-/* Círculo decorativo grande (esquina superior derecha) */
+
 .panel-left::before {
   content: '';
   position: absolute;
@@ -59,8 +135,7 @@ html, body {
   background: rgba(255, 255, 255, 0.06);
   pointer-events: none;
 }
- 
-/* Brillo radial sutil abajo-izquierda */
+
 .panel-left::after {
   content: '';
   position: absolute;
@@ -69,77 +144,32 @@ html, body {
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(74, 171, 112, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(126, 200, 240, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
- 
-/* Contenido sobre el fondo */
+
 .panel-left__content {
   position: relative;
   z-index: 1;
   padding: 52px;
   width: 100%;
 }
- 
-/* Badge "Gobierno del Estado · Nayarit" */
-.brand-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.10);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 50px;
-  padding: 7px 18px;
-  margin-bottom: 36px;
-  width: fit-content;
-}
- 
-.brand-badge i {
-  color: var(--green-glow);
-  font-size: 13px;
-}
- 
-.brand-badge span {
-  color: #b7f0cc;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-}
- 
-/* Título principal */
+
 .panel-left__title {
   font-family: 'Playfair Display', serif;
   font-size: clamp(28px, 3.5vw, 50px);
   font-weight: 800;
   color: #ffffff;
   line-height: 1.13;
-  margin-bottom: 20px;
-}
- 
-/* "Excelencia Agrícola" en verde claro */
-.panel-left__title em {
-  font-style: normal;
-  color: var(--green-glow);
-}
- 
-/* Descripción */
-.panel-left__desc {
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 15px;
-  max-width: 380px;
-  line-height: 1.7;
   margin-bottom: 44px;
 }
- 
-/* Fila de datos de contacto */
+
 .panel-left__contact {
   display: flex;
   flex-wrap: wrap;
   gap: 12px 28px;
 }
- 
+
 .contact-item {
   display: inline-flex;
   align-items: center;
@@ -147,29 +177,28 @@ html, body {
   color: rgba(255, 255, 255, 0.45);
   font-size: 12px;
 }
- 
+
 .contact-item i {
-  color: var(--green-glow);
+  color: var(--blue-glow);
   font-size: 13px;
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
-   PANEL DERECHO — blanco, formulario
+   PANEL DERECHO
 ───────────────────────────────────────────────────────────── */
 .panel-right {
   flex: 0 0 420px;
-  background: var(--white);
+  background: #f8fbff;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  padding: 56px 48px;
+  padding: 48px;
   position: relative;
   overflow: hidden;
-  min-height: 100vh;
+  height: 100vh;
 }
- 
-/* Círculo decorativo inferior-derecha */
+
 .panel-right::before {
   content: '';
   position: absolute;
@@ -178,11 +207,10 @@ html, body {
   width: 340px;
   height: 340px;
   border-radius: 50%;
-  background: radial-gradient(circle, var(--green-pale) 0%, transparent 68%);
+  background: radial-gradient(circle, var(--blue-pale) 0%, transparent 68%);
   pointer-events: none;
 }
- 
-/* Círculo decorativo superior-izquierda */
+
 .panel-right::after {
   content: '';
   position: absolute;
@@ -191,10 +219,10 @@ html, body {
   width: 230px;
   height: 230px;
   border-radius: 50%;
-  background: radial-gradient(circle, #eaf7ee 0%, transparent 70%);
+  background: radial-gradient(circle, #eaf4ff 0%, transparent 70%);
   pointer-events: none;
 }
- 
+
 /* ── FORM WRAP ──────────────────────────────────────────────── */
 .form-wrap {
   width: 100%;
@@ -203,12 +231,12 @@ html, body {
   z-index: 1;
   animation: fadeUp .45s ease both;
 }
- 
+
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: translateY(0); }
 }
- 
+
 /* ── TÍTULO Y SUBTÍTULO ─────────────────────────────────────── */
 .form-wrap h2 {
   font-family: 'Playfair Display', serif;
@@ -217,48 +245,48 @@ html, body {
   color: var(--text-dark);
   margin-bottom: 6px;
 }
- 
+
 .form-subtitle {
   font-size: 13px;
   color: var(--text-muted);
-  margin-bottom: 32px;
+  margin-bottom: 28px;
   line-height: 1.55;
 }
- 
+
 /* ── CAMPOS ─────────────────────────────────────────────────── */
 .field-group {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
- 
+
 .field-label {
   display: block;
   font-size: 11px;
   font-weight: 600;
-  color: var(--green-deep);
+  color: var(--blue-deep);
   letter-spacing: 0.6px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 7px;
 }
- 
+
 .input-wrap {
   position: relative;
   display: flex;
   align-items: center;
 }
- 
+
 .input-icon {
   position: absolute;
   left: 14px;
-  color: #a8c5b4;
+  color: #8ab4cc;
   font-size: 15px;
   pointer-events: none;
   transition: color .2s;
   z-index: 1;
 }
- 
+
 .field-input {
   width: 100%;
-  height: 48px;
+  height: 46px;
   border: 1.8px solid var(--input-border);
   border-radius: 12px;
   padding: 0 16px 0 42px;
@@ -268,22 +296,25 @@ html, body {
   background: var(--input-bg);
   outline: none;
   transition: border-color .2s, background .2s, box-shadow .2s;
+  /* crítico en móvil: evita que iOS/Android agrande la fuente y rompa el layout */
+  -webkit-text-size-adjust: 100%;
+  touch-action: manipulation;
 }
- 
+
 .field-input::placeholder {
-  color: #a8c5b4;
+  color: #8ab4cc;
 }
- 
+
 .field-input:focus {
-  border-color: var(--green-mid);
+  border-color: var(--blue-mid);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(45, 122, 79, 0.12);
+  box-shadow: 0 0 0 3px rgba(42, 109, 168, 0.12);
 }
- 
+
 .input-wrap:focus-within .input-icon {
-  color: var(--green-mid);
+  color: var(--blue-mid);
 }
- 
+
 /* ── TOGGLE CONTRASEÑA ──────────────────────────────────────── */
 .toggle-pw {
   position: absolute;
@@ -291,43 +322,44 @@ html, body {
   background: none;
   border: none;
   cursor: pointer;
-  color: #a8c5b4;
+  color: #8ab4cc;
   font-size: 15px;
   padding: 0;
   line-height: 1;
   transition: color .2s;
   z-index: 1;
+  /* evita que en móvil el tap dispare eventos del input */
+  touch-action: manipulation;
 }
- 
+
 .toggle-pw:hover {
-  color: var(--green-mid);
+  color: var(--blue-mid);
 }
- 
+
 /* ── ¿OLVIDASTE TU CONTRASEÑA? ──────────────────────────────── */
 .forgot-row {
   text-align: right;
-  margin-top: -8px;
-  margin-bottom: 26px;
+  margin-bottom: 22px;
 }
- 
+
 .forgot-link {
   font-size: 12px;
-  color: var(--green-mid);
+  color: var(--blue-mid);
   text-decoration: none;
   font-weight: 500;
   transition: color .2s;
 }
- 
+
 .forgot-link:hover {
-  color: var(--green-deep);
+  color: var(--blue-deep);
   text-decoration: underline;
 }
- 
+
 /* ── BOTÓN ENTRAR ───────────────────────────────────────────── */
 .btn-enter {
   width: 100%;
-  height: 50px;
-  background: linear-gradient(135deg, var(--green-light) 0%, var(--green-deep) 100%);
+  height: 48px;
+  background: linear-gradient(135deg, var(--blue-mid) 0%, var(--blue-deep) 100%);
   color: #fff;
   border: none;
   border-radius: 12px;
@@ -342,152 +374,133 @@ html, body {
   align-items: center;
   justify-content: center;
   gap: 10px;
+  touch-action: manipulation;
 }
- 
+
 .btn-enter:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(27, 77, 46, 0.44);
+  box-shadow: 0 12px 32px rgba(26, 60, 94, 0.44);
 }
- 
+
 .btn-enter:active {
   transform: translateY(0);
   opacity: 0.92;
 }
- 
-/* ── CHECKBOX RECORDAR SESIÓN ───────────────────────────────── */
-.remember-row {
-  margin-bottom: 4px;
-}
- 
-.remember-row .form-check {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-}
- 
-.remember-row .form-check-input {
-  width: 16px;
-  height: 16px;
-  border: 1.8px solid var(--input-border);
-  border-radius: 4px;
-  margin: 0;
-  accent-color: var(--green-mid);
-  cursor: pointer;
-  flex-shrink: 0;
-}
- 
-.remember-row .form-check-label {
-  font-size: 13px;
-  color: var(--text-muted);
-  cursor: pointer;
-  margin: 0;
-}
- 
-/* ── ALERTA ─────────────────────────────────────────────────── */
-#mensaje.alert {
-  border-radius: 10px;
-  font-family: "DM Sans", sans-serif;
-  font-size: 13px;
-  padding: 12px 16px;
-}
- 
-#mensaje.alert-danger {
-  background: #fef2f2;
-  border-color: #fca5a5;
-  color: #991b1b;
-  margin-top: 20px !important;
-}
- 
-/* Ocultar alerta de éxito — la redirección la maneja login.js */
-#mensaje.alert-success {
+
+/* ── ALERTA OCULTA (usada internamente por login.js) ────────── */
+#mensaje {
   display: none !important;
 }
- 
-/* ── BOOTSTRAP TOASTS ───────────────────────────────────────── */
-#toastError {
-  background: #c0392b;
-  color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  font-family: "DM Sans", sans-serif;
-  font-size: 14px;
-  min-width: 280px;
-}
- 
-#toastAdmin {
-  background: #1a3a5c;
-  color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  font-family: "DM Sans", sans-serif;
-  font-size: 14px;
-  min-width: 280px;
-}
- 
-.toast .btn-close {
-  filter: invert(1);
-  opacity: 0.8;
-}
- 
+
 /* ── FOOTER ─────────────────────────────────────────────────── */
 .form-footer {
-  margin-top: 30px;
+  margin-top: 24px;
   text-align: center;
   font-size: 11px;
-  color: #a8c5b4;
+  color: #9ab8cc;
 }
- 
+
 /* ─────────────────────────────────────────────────────────────
-   RESPONSIVE
+   RESPONSIVE — TABLET (≤ 900px)
 ───────────────────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .panel-right {
     flex: 0 0 360px;
-    padding: 48px 36px;
+    padding: 40px 32px;
   }
 }
- 
+
+/* ─────────────────────────────────────────────────────────────
+   RESPONSIVE — MÓVIL (≤ 768px)
+   Layout vertical: panel izq arriba (solo branding),
+   panel der abajo (formulario completo, scrollable)
+───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
+  html, body {
+    overflow: auto; /* en móvil sí se puede hacer scroll */
+    height: auto;
+  }
+
   .login-page {
     flex-direction: column;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
- 
+
+  /* Panel izquierdo: franja compacta de branding */
   .panel-left {
     flex: none;
-    min-height: 250px;
+    width: 100%;
+    height: auto;
+    min-height: 200px;
     align-items: flex-end;
+    overflow: hidden;
   }
- 
+
   .panel-left__content {
-    padding: 32px 28px;
+    padding: 28px 24px;
   }
- 
+
   .panel-left__title {
-    font-size: 26px;
-    margin-bottom: 10px;
+    font-size: 24px;
+    margin-bottom: 0;
   }
- 
-  .panel-left__desc,
+
+  /* Ocultar contacto en móvil para ahorrar espacio */
   .panel-left__contact {
     display: none;
   }
- 
-  .brand-badge {
-    margin-bottom: 16px;
-  }
- 
+
+  /* Panel derecho: ocupa el resto, sin altura fija */
   .panel-right {
-    flex: 1;
-    min-height: auto;
+    flex: none;
     width: 100%;
-    padding: 44px 28px 52px;
+    height: auto;
+    min-height: auto;
+    padding: 36px 24px 48px;
+    overflow: visible;
+    justify-content: flex-start;
+  }
+
+  /* Los círculos decorativos no interfieren */
+  .panel-right::before,
+  .panel-right::after {
+    display: none;
+  }
+
+  .form-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  /* Inputs más grandes en móvil para facilitar el toque */
+  .field-input {
+    height: 52px;
+    font-size: 16px; /* evita zoom automático en iOS */
+  }
+
+  .btn-enter {
+    height: 52px;
+    font-size: 16px;
+  }
+
+  /* Notifs en móvil: top centrado */
+  .notif-area {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    align-items: stretch;
+  }
+
+  .notif-box {
+    min-width: auto;
+    max-width: 100%;
   }
 }
- 
+
 @media (max-width: 420px) {
   .panel-right {
-    padding: 36px 20px 44px;
+    padding: 28px 20px 44px;
   }
 }
- 
