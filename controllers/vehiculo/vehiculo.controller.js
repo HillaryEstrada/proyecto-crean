@@ -3,19 +3,27 @@
 // Descripción: Maneja la lógica de negocio para vehiculo
 // ============================================
 
-const vehiculo = require('../../models/vehiculo/vehiculo.model'); // Importa el modelo de vehiculo
+const vehiculo = require('../../models/vehiculo/vehiculo.model');
 
-// Crear un nuevo vehiculo
+// ============================================
+// CONTROLADOR: CREAR VEHICULO
+// ============================================
 exports.crear = async (req, res) => {
     try {
-        await vehiculo.crear(req.body);
-        res.json({ mensaje: 'vehiculo creado exitosamente' });
+        req.body.registrado_por = req.user.pk_user; 
+        const resultado = await vehiculo.crear(req.body);
+        res.json({
+            mensaje: 'Vehículo creado exitosamente',
+            data: resultado.rows[0]
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Listar todos los vehiculo activos
+// ============================================
+// CONTROLADOR: LISTAR VEHICULOS ACTIVOS
+// ============================================
 exports.listar = async (req, res) => {
     try {
         const data = await vehiculo.listar();
@@ -25,42 +33,117 @@ exports.listar = async (req, res) => {
     }
 };
 
-// Obtener un vehiculo por ID
+// ============================================
+// CONTROLADOR: OBTENER VEHICULO POR ID
+// ============================================
 exports.obtenerPorId = async (req, res) => {
     try {
         const data = await vehiculo.obtenerPorId(req.params.id);
+
+        if (!data.rows.length) {
+            return res.status(404).json({ error: 'Vehículo no encontrado' });
+        }
+
         res.json(data.rows[0]);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Actualizar vehiculo
+// ============================================
+// CONTROLADOR: ACTUALIZAR VEHICULO
+// ============================================
 exports.actualizar = async (req, res) => {
     try {
-        await vehiculo.actualizar(req.params.id, req.body);
-        res.json({ mensaje: 'vehiculo actualizado exitosamente' });
+        const resultado = await vehiculo.actualizar(req.params.id, req.body);
+
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Vehículo no encontrado' });
+        }
+
+        res.json({
+            mensaje: 'Vehículo actualizado exitosamente',
+            data: resultado.rows[0]
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Desactivar vehiculo (soft delete)
+// ============================================
+// CONTROLADOR: DESACTIVAR (BAJA LÓGICA)
+// ============================================
 exports.desactivar = async (req, res) => {
     try {
-        await vehiculo.desactivar(req.params.id);
-        res.json({ mensaje: 'vehiculo desactivado exitosamente' });
+        const resultado = await vehiculo.desactivar(req.params.id);
+
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Vehículo no encontrado' });
+        }
+
+        res.json({
+            mensaje: 'Vehículo dado de baja exitosamente',
+            data: resultado.rows[0]
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-// Eliminar vehiculo permanentemente (hard delete)
-exports.desaparecer = async (req, res) => {
+// ============================================
+// CONTROLADOR: LISTAR VEHICULOS DADOS DE BAJA
+// ============================================
+exports.listarBajas = async (req, res) => {
     try {
-        await vehiculo.desaparecer(req.params.id);
-        res.json({ mensaje: 'vehiculo eliminado permanentemente' });
+        const data = await vehiculo.listarBajas();
+        res.json(data.rows);
     } catch (error) {
-        res.status(500).json({ error: 'No se puede eliminar el vehiculo' });
+        console.error('Error en listarBajas:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// CONTROLADOR: REGISTRAR BAJA EN HISTORIAL
+// ============================================
+exports.registrarBaja = async (req, res) => {
+    try {
+        const resultado = await vehiculo.registrarBaja(req.body);
+        res.json({
+            mensaje: 'Baja registrada exitosamente',
+            data: resultado.rows[0]
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// CONTROLADOR: LISTAR HISTORIAL DE BAJAS
+// ============================================
+exports.listarBajasRegistradas = async (req, res) => {
+    try {
+        const data = await vehiculo.listarBajasRegistradas();
+        res.json(data.rows);
+    } catch (error) {
+        console.error('Error en listarBajasRegistradas:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// CONTROLADOR: OBTENER BAJA POR ID (pk_baja)
+// ============================================
+exports.obtenerBajaPorId = async (req, res) => {
+    try {
+        const data = await vehiculo.obtenerBajaPorId(req.params.id);
+
+        if (!data.rows.length) {
+            return res.status(404).json({ error: 'Baja no encontrada' });
+        }
+
+        res.json(data.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
     }
 };

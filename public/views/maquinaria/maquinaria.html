@@ -1,285 +1,267 @@
-<!-- ============================================
-     VISTA: maquinaria.html
-     Descripción: Gestión de maquinaria – diseño CREAN
-     Compatible con: maquinaria.js
-     Nota: Partial view inyectada por cargarVista() en menu.js
-           No incluye <html>/<head>/<body> — se inserta en #contenido
-     ============================================ -->
 
 
-<!-- ── CABECERA: título + botones de acción ── -->
+<!-- ── CABECERA ─────────────────────────────────────────────── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
-     <!-- Título -->
-    <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-tractor me-2"></i>Maquinaria
-        </h4>
-        <p class="text-muted small mb-0">Gestión de equipos agrícolas e industriales</p>
-    </div>
 
-    <div class="d-flex gap-2 align-items-center flex-wrap">
-         <!-- Exportar -->
-        <button onclick="exportarExcel()" class="btn btn-success">
-            <i class="fa-solid fa-file-arrow-down me-1"></i>Exportar
-        </button>
+  <div>
+    <h4 class="maq-page-title">
+      <i class="bi bi-truck me-2"></i>Maquinaria
+    </h4>
+    <p class="maq-page-sub">Gestión de equipos agrícolas e industriales</p>
+  </div>
 
-        <!-- Importar -->
-        <button onclick="abrirImportar()" class="btn btn-success">
-            <i class="fa-solid fa-file-arrow-up me-1"></i>Importar
-        </button>
-        <!-- Abrir formulario de registro -->
-        <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
-            <i class="fa-solid fa-plus me-1"></i>Registrar maquinaria
-        </button>
-</div>
+  <div class="d-flex gap-2 flex-wrap">
+    <button onclick="exportarExcel()" class="btn-maq-excel">
+      <i class="bi bi-file-earmark-arrow-down"></i> Exportar
+    </button>
+    <button onclick="abrirImportar()" class="btn-maq-secondary">
+      <i class="bi bi-file-earmark-arrow-up"></i> Importar
+    </button>
+    <button onclick="mostrarFormulario()" class="btn-maq-primary">
+      <i class="bi bi-plus-lg"></i> Registrar maquinaria
+    </button>
+  </div>
 
 </div>
 
+<!-- ── FORMULARIO (oculto por defecto) ──────────────────────── -->
 <div class="d-none mb-4" id="contenedorFormulario">
-    <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+  <div class="maq-table-wrap">
 
-        <!-- Header del formulario -->
-        <div class="card-header fw-semibold text-white py-3 px-4" style="background:#1a3c5e;">
-            <i class="fa-solid fa-tractor me-2"></i>
-            <span id="tituloFormulario">Registrar Maquinaria</span>
-        </div>
-
-        <div class="card-body p-4">
-            <form id="formMaquinaria">
-
-                <!-- Campo oculto para el ID al editar -->
-                <input type="hidden" id="pk_maquinaria">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Número Económico <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="numero_economico" class="form-control"
-                            placeholder="Ej: MAQ-001" required>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Tipo de Equipo <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="tipo_equipo" class="form-control"
-                            placeholder="Ej: Tractor" required>
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Marca</label>
-                        <input type="text" id="marca" class="form-control" placeholder="Ej: John Deere">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Modelo</label>
-                        <input type="text" id="modelo" class="form-control" placeholder="Ej: 5075E">
-                    </div>
-
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">Año</label>
-                        <input type="number" id="anio" class="form-control"
-                            placeholder="2024" min="1980" max="2030">
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                            Ubicación <span class="text-danger">*</span>
-                        </label>
-                        <input type="text" id="ubicacion" class="form-control"
-                            placeholder="Ej: Campo Norte" required>
-                    </div>
-
-                </div>
-
-                <hr class="my-4">
-
-                <div class="d-flex justify-content-end gap-2">
-                    <button type="button" class="btn btn-secondary px-4" onclick="mostrarTabla()">
-                        <i class="fa-solid fa-xmark me-1"></i>Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
-                    </button>
-                </div>
-
-            </form>
-        </div>
+    <!-- Header del card -->
+    <div class="maq-modal-hdr" style="border-radius:var(--maq-r-lg) var(--maq-r-lg) 0 0;">
+      <div class="d-flex align-items-center justify-content-between">
+        <h5 class="m-0">
+          <i class="bi bi-truck me-2"></i>
+          <span id="tituloFormulario">Registrar Maquinaria</span>
+        </h5>
+        <button type="button" class="btn-maq-secondary" style="padding:5px 12px;" onclick="mostrarTabla()">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
     </div>
+
+    <!-- Body del formulario -->
+    <div class="p-4">
+      <form id="formMaquinaria">
+        <input type="hidden" id="pk_maquinaria">
+
+        <div class="row g-3">
+
+          <div class="col-md-6">
+            <label class="maq-label">
+              Número Económico <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="numero_economico" class="form-control form-control-sm"
+              placeholder="Ej: MAQ-001" required autocomplete="off">
+          </div>
+
+          <div class="col-md-6">
+            <label class="maq-label">
+              Tipo de Equipo <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="tipo_equipo" class="form-control form-control-sm"
+              placeholder="Ej: Tractor" required autocomplete="off">
+          </div>
+
+          <div class="col-md-4">
+            <label class="maq-label">Marca</label>
+            <input type="text" id="marca" class="form-control form-control-sm"
+              placeholder="Ej: John Deere" autocomplete="off">
+          </div>
+
+          <div class="col-md-4">
+            <label class="maq-label">Modelo</label>
+            <input type="text" id="modelo" class="form-control form-control-sm"
+              placeholder="Ej: 5075E" autocomplete="off">
+          </div>
+
+          <div class="col-md-4">
+            <label class="maq-label">Año</label>
+            <input type="number" id="anio" class="form-control form-control-sm"
+              placeholder="2024" min="1980" max="2030">
+          </div>
+
+          <div class="col-12">
+            <label class="maq-label">
+              Ubicación <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="ubicacion" class="form-control form-control-sm"
+              placeholder="Ej: Campo Norte" required autocomplete="off">
+          </div>
+
+        </div>
+
+        <hr class="my-4" style="border-color:var(--maq-border);">
+
+        <div class="d-flex justify-content-end gap-2">
+          <button type="button" class="btn-maq-secondary" onclick="mostrarTabla()">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="submit" class="btn-maq-success">
+            <i class="bi bi-floppy2"></i> Guardar
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+  </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════
-     CONTENEDOR TABLA
-     Visible por defecto. Se oculta cuando el formulario está activo.
-     Contiene: tabs, filtros, tabla activos, tabla bajas
-════════════════════════════════════════════════ -->
+<!-- ── CONTENEDOR TABLA ──────────────────────────────────────── -->
 <div id="contenedorTabla">
 
-    <!-- ── TABS: Activos / Bajas ── -->
-    <ul class="nav nav-tabs mb-3">
-        <li class="nav-item">
-            <button class="nav-link active d-flex align-items-center gap-2"
-                id="tabActivos" onclick="switchTab('activos')">
-                <i class="fa-solid fa-tractor"></i>
-                Activos
-                <span class="badge rounded-pill" style="background:#1a3c5e;" id="badgeActivos">0</span>
-            </button>
-        </li>
-        <li class="nav-item">
-            <button class="nav-link d-flex align-items-center gap-2"
-                id="tabBajas" onclick="switchTab('bajas')">
-                <i class="fa-solid fa-ban"></i>
-                Bajas
-                <span class="badge bg-secondary rounded-pill" id="badgeBajas">0</span>
-            </button>
-        </li>
-    </ul>
+  <!-- Tabs: Activos / Bajas -->
+  <div class="maq-tabs">
+    <button class="maq-tab active" id="tabActivos" onclick="switchTab('activos')">
+      <i class="bi bi-check-circle-fill"></i> Activos
+      <span class="maq-tab-badge" id="badgeActivos">0</span>
+    </button>
+    <button class="maq-tab" id="tabBajas" onclick="switchTab('bajas')">
+      <i class="bi bi-x-circle-fill"></i> Bajas
+      <span class="maq-tab-badge" id="badgeBajas">0</span>
+    </button>
+  </div>
 
+  <!-- ── VISTA ACTIVOS ─────────────────────────────────────── -->
+  <div id="vistaActivos">
 
-    <!-- ── VISTA ACTIVOS ── -->
-    <div id="vistaActivos">
+    <!-- Filtros -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+      <div class="maq-filtro-wrap">
+        <i class="bi bi-search"></i>
+        <input type="text" class="form-control" style="height:38px;"
+          placeholder="Buscar por número, tipo, marca…"
+          id="searchInput" oninput="filtrarTabla()">
+      </div>
+      <select class="form-select" id="filtroEstado"
+        style="width:auto; height:38px;" onchange="filtrarTabla()">
+        <option value="">Todos los estados</option>
+        <option value="disponible">Disponible</option>
+        <option value="en_uso">En uso</option>
+        <option value="mantenimiento">Mantenimiento</option>
+        <option value="revision">Revisión</option>
+      </select>
+    </div>
 
-        <!-- Filtros de búsqueda -->
-        <div class="d-flex gap-2 mb-3 flex-wrap">
-            <div class="flex-grow-1 position-relative" style="min-width:200px;">
-                <i class="fa-solid fa-magnifying-glass text-muted"
-                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:12px; pointer-events:none;"></i>
-                <input type="text" class="form-control ps-4" id="searchInput"
-                    placeholder="Buscar por número, tipo, marca…" oninput="filtrarTabla()">
-            </div>
-            <select class="form-select" style="width:auto;" id="filtroEstado" onchange="filtrarTabla()">
-                <option value="">Todos los estados</option>
-                <option value="disponible">Disponible</option>
-                <option value="en_uso">En uso</option>
-                <option value="mantenimiento">Mantenimiento</option>
-                <option value="revision">Revisión</option>
-            </select>
-        </div>
+    <!-- Tabla activos -->
+    <div class="maq-table-wrap">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>N° ECO</th>
+              <th>TIPO DE EQUIPO</th>
+              <th>MARCA / MODELO</th>
+              <th class="text-center">AÑO</th>
+              <th>UBICACIÓN</th>
+              <th class="text-center">ESTADO OP.</th>
+              <th class="text-center">ACCIONES</th>
+            </tr>
+          </thead>
+          <tbody id="maqBody"></tbody>
+        </table>
+      </div>
+      <div class="maq-table-footer">
+        <span id="footerInfo">Cargando…</span>
+      </div>
+    </div>
 
-        <!-- Tabla de maquinaria activa -->
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
-                            <th class="py-3 px-3">N° ECO</th>
-                            <th class="py-3 px-3">TIPO DE EQUIPO</th>
-                            <th class="py-3 px-3">MARCA / MODELO</th>
-                            <th class="py-3 px-3 text-center">AÑO</th>
-                            <th class="py-3 px-3">UBICACIÓN</th>
-                            <th class="py-3 px-3 text-center">ESTADO OP.</th>
-                            <th class="py-3 px-3 text-center">ACCIONES</th>
-                        </tr>
-                    </thead>
-                    <!-- Llenado dinámicamente por listar() en maquinaria.js -->
-                    <tbody id="maqBody"></tbody>
-                </table>
-            </div>
-            <!-- Pie de tabla con información de paginación/conteo -->
-            <div class="px-3 py-2 bg-light border-top">
-                <small class="text-muted" id="footerInfo">Cargando…</small>
-            </div>
-        </div>
+  </div><!-- /vistaActivos -->
 
-    </div><!-- /vistaActivos -->
-
-
-    <!-- ── VISTA BAJAS (oculta por defecto) ── -->
-    <div id="vistaBajas" class="d-none">
-        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
-                            <th class="py-3 px-3">N° ECO</th>
-                            <th class="py-3 px-3">TIPO DE EQUIPO</th>
-                            <th class="py-3 px-3">MARCA / MODELO</th>
-                            <th class="py-3 px-3">UBICACIÓN</th>
-                            <th class="py-3 px-3 text-center">ESTADO</th>
-                        </tr>
-                    </thead>
-                    <!-- Llenado dinámicamente por listarBajas() en maquinaria.js -->
-                    <tbody id="bajasBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div><!-- /vistaBajas -->
+  <!-- ── VISTA BAJAS ───────────────────────────────────────── -->
+  <div id="vistaBajas" class="d-none">
+    <div class="maq-table-wrap">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>N° ECO</th>
+              <th>TIPO DE EQUIPO</th>
+              <th>MARCA / MODELO</th>
+              <th>UBICACIÓN</th>
+              <th class="text-center">ESTADO</th>
+            </tr>
+          </thead>
+          <tbody id="bajasBody"></tbody>
+        </table>
+      </div>
+      <div class="maq-table-footer">
+        <span style="color:var(--maq-muted);">Registros de baja</span>
+      </div>
+    </div>
+  </div><!-- /vistaBajas -->
 
 </div><!-- /contenedorTabla -->
 
 
-<!-- ══════════════════════════════════════════════
-     MODAL: DAR DE BAJA
-     Abierto por abrirBaja() en maquinaria.js
-     Confirmación llama a confirmarBajaModal() → desactivar()
-════════════════════════════════════════════════ -->
+<!-- ══ MODAL: DAR DE BAJA ══════════════════════════════════════
+     Abierto por abrirBaja() — confirmación llama a confirmarBajaModal()
+════════════════════════════════════════════════════════════════ -->
 <div class="modal fade" id="modalBaja" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg" style="border-radius:14px; overflow:hidden;">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:500px;">
+    <div class="modal-content border-0"
+      style="border-radius:var(--maq-r-lg); box-shadow:0 20px 60px rgba(0,0,0,.18);">
 
-            <!-- Header rojo de peligro -->
-            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
-                <h5 class="modal-title">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Dar de Baja – Maquinaria
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body p-4">
-
-                <!-- Resumen del equipo que se va a dar de baja -->
-                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3"
-                    style="background:#fbe9e7; border:1px solid rgba(178,56,45,.25);">
-                    <i class="fa-solid fa-tractor fa-2x" style="color:#b2382d; flex-shrink:0;"></i>
-                    <div>
-                        <div class="fw-bold" id="bajaNumero">—</div>
-                        <div class="small text-muted" id="bajaEquipoDesc">—</div>
-                    </div>
-                </div>
-
-                <!-- Tipo de baja -->
-                <div class="mb-3">
-                    <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                        Tipo de Baja <span class="text-danger">*</span>
-                    </label>
-                    <select class="form-select" id="bajaTipoInput">
-                        <option value="">Seleccionar…</option>
-                        <option value="venta">Venta</option>
-                        <option value="donacion">Donación</option>
-                        <option value="transferencia">Transferencia</option>
-                        <option value="baja_tecnica">Baja Técnica</option>
-                        <option value="perdida">Pérdida</option>
-                    </select>
-                    <div class="text-danger d-none small mt-1" id="err_baja_tipo">Campo requerido</div>
-                </div>
-
-                <!-- Motivo -->
-                <div>
-                    <label class="form-label fw-semibold" style="font-size:12px; color:#1a3c5e;">
-                        Motivo <span class="text-danger">*</span>
-                    </label>
-                    <textarea class="form-control" id="bajaMotivoInput" rows="3"
-                        placeholder="Describe la razón de la baja…"></textarea>
-                    <div class="text-danger d-none small mt-1" id="err_baja_motivo">Campo requerido</div>
-                </div>
-
-            </div>
-
-            <div class="modal-footer bg-light border-top">
-                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
-                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
-                </button>
-                <!-- confirmarBajaModal() valida y llama a desactivar() -->
-                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarBajaModal()">
-                    <i class="fa-solid fa-ban me-1"></i>Confirmar Baja
-                </button>
-            </div>
-
+      <!-- Header peligro -->
+      <div class="maq-modal-hdr-danger">
+        <div class="d-flex align-items-center justify-content-between">
+          <h5 class="m-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>Dar de Baja – Maquinaria
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
         </div>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-4">
+
+        <!-- Resumen del equipo -->
+        <div class="maq-baja-box">
+          <i class="bi bi-truck" style="font-size:2rem; color:var(--maq-danger); flex-shrink:0;"></i>
+          <div>
+            <div class="fw-semibold" id="bajaNumero">—</div>
+            <div class="small" style="color:var(--maq-muted);" id="bajaEquipoDesc">—</div>
+          </div>
+        </div>
+
+        <!-- Tipo de baja -->
+        <div class="mb-3">
+          <label class="maq-label">Tipo de Baja <span class="text-danger">*</span></label>
+          <select class="form-select form-select-sm" id="bajaTipoInput">
+            <option value="">Seleccionar…</option>
+            <option value="venta">Venta</option>
+            <option value="donacion">Donación</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="baja_tecnica">Baja Técnica</option>
+            <option value="perdida">Pérdida</option>
+          </select>
+          <div class="maq-field-error d-none" id="err_baja_tipo">Campo requerido</div>
+        </div>
+
+        <!-- Motivo -->
+        <div>
+          <label class="maq-label">Motivo <span class="text-danger">*</span></label>
+          <textarea class="form-control form-control-sm" id="bajaMotivoInput" rows="3"
+            placeholder="Describe la razón de la baja…"></textarea>
+          <div class="maq-field-error d-none" id="err_baja_motivo">Campo requerido</div>
+        </div>
+
+      </div>
+
+      <!-- Footer -->
+      <div class="maq-modal-footer" style="border-radius:0 0 var(--maq-r-lg) var(--maq-r-lg);">
+        <button class="btn-maq-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button class="btn-maq-danger" onclick="confirmarBajaModal()">
+          <i class="bi bi-slash-circle-fill"></i> Confirmar Baja
+        </button>
+      </div>
+
     </div>
+  </div>
 </div>

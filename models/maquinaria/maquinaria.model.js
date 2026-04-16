@@ -7,71 +7,231 @@ const Conexion = require('../../config/database');
 
 module.exports = {
 
+    // ============================================
     // Crear maquinaria
+    // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO maquinaria 
-        (numero_economico, tipo_equipo, marca, modelo, anio, ubicacion) 
-        VALUES($1, $2, $3, $4, $5, $6)`,
+        (numero_economico, numero_inventario_seder, fk_tipo, descripcion, marca, modelo, anio, 
+         color, serie, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
+         fk_ubicacion, fk_factura, fk_garantia, foto_maquina, registrado_por) 
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        RETURNING *`,
         [
             data.numero_economico,
-            data.tipo_equipo,
+            data.numero_inventario_seder || null,
+            data.fk_tipo,
+            data.descripcion,
             data.marca,
             data.modelo,
             data.anio,
-            data.ubicacion
+            data.color || null,
+            data.serie,
+            data.horas_actuales || 0,
+            data.combustible_litros || 0,
+            data.estado_fisico || 'bueno',
+            data.estado_operativo || 'disponible',
+            data.fk_ubicacion,
+            data.fk_factura || null,
+            data.fk_garantia || null,
+            data.foto_maquina || null,
+            data.registrado_por
         ]
     ),
 
-    // Listar maquinaria activa
+    // ============================================
+    // Listar maquinaria activa (NO en baja)
+    // ============================================
     listar: () => Conexion.query(
-        `SELECT * FROM maquinaria 
-         WHERE estado_operativo != 'baja'
-         ORDER BY pk_maquinaria ASC`
+        `SELECT 
+            m.*,
+            te.nombre as tipo_nombre,
+            u.nombre as ubicacion_nombre,
+            f.numero_factura,
+            g.fecha_inicio,
+            g.fecha_fin,
+            usr.username as registrado_por_usuario
+        FROM maquinaria m
+        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
+        LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
+        LEFT JOIN factura f ON m.fk_factura = f.pk_factura
+        LEFT JOIN garantia g ON m.fk_garantia = g.pk_garantia
+        LEFT JOIN users usr ON m.registrado_por = usr.pk_user
+        WHERE m.estado_operativo != 'baja'
+        ORDER BY m.pk_maquinaria ASC`
     ),
 
-    // Obtener por ID
+    // ============================================
+    // Obtener por ID (con detalles completos)
+    // ============================================
     obtenerPorId: (id) => Conexion.query(
-        `SELECT * FROM maquinaria 
-         WHERE pk_maquinaria = $1`,
+        `SELECT 
+            m.*,
+            te.nombre as tipo_nombre,
+            u.nombre as ubicacion_nombre,
+            f.numero_factura,
+            f.fecha_factura,
+            f.costo_adquisicion,
+            g.fecha_inicio,
+            g.fecha_fin,
+            g.limite_horas,
+            g.limite_km,
+            usr.username as registrado_por_usuario
+        FROM maquinaria m
+        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
+        LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
+        LEFT JOIN factura f ON m.fk_factura = f.pk_factura
+        LEFT JOIN garantia g ON m.fk_garantia = g.pk_garantia
+        LEFT JOIN users usr ON m.registrado_por = usr.pk_user
+        WHERE m.pk_maquinaria = $1`,
         [id]
     ),
 
+    // ============================================
     // Actualizar maquinaria
+    // ============================================
     actualizar: (id, data) => Conexion.query(
         `UPDATE maquinaria 
-         SET tipo_equipo=$1, marca=$2, modelo=$3, anio=$4, ubicacion=$5 
-         WHERE pk_maquinaria=$6`,
+SET 
+    numero_economico = COALESCE($1, numero_economico),
+    numero_inventario_seder = COALESCE($2, numero_inventario_seder),
+    fk_tipo = COALESCE($3, fk_tipo),
+    descripcion = COALESCE($4, descripcion),
+    marca = COALESCE($5, marca),
+    modelo = COALESCE($6, modelo),
+    anio = COALESCE($7, anio),
+    color = COALESCE($8, color),
+    serie = COALESCE($9, serie),
+    horas_actuales = COALESCE($10, horas_actuales),
+    combustible_litros = COALESCE($11, combustible_litros),
+    estado_fisico = COALESCE($12, estado_fisico),
+    estado_operativo = COALESCE($13, estado_operativo),
+    fk_ubicacion = COALESCE($14, fk_ubicacion),
+    fk_factura = COALESCE($15, fk_factura),
+    fk_garantia = COALESCE($16, fk_garantia),
+    foto_maquina = COALESCE($17, foto_maquina)
+WHERE pk_maquinaria = $18
+RETURNING *`,
         [
-            data.tipo_equipo,
+            data.numero_economico,
+            data.numero_inventario_seder,
+            data.fk_tipo,
+            data.descripcion,
             data.marca,
             data.modelo,
             data.anio,
-            data.ubicacion,
+            data.color,
+            data.serie,
+            data.horas_actuales,
+            data.combustible_litros,
+            data.estado_fisico,
+            data.estado_operativo,
+            data.fk_ubicacion,
+            data.fk_factura,
+            data.fk_garantia,
+            data.foto_maquina,
             id
         ]
     ),
 
-    // Baja lógica
+    // ============================================
+    // Desactivar (Baja lógica)
+    // ============================================
     desactivar: (id) => Conexion.query(
         `UPDATE maquinaria 
          SET estado_operativo='baja' 
-         WHERE pk_maquinaria=$1`,
+         WHERE pk_maquinaria=$1
+         RETURNING *`,
         [id]
     ),
 
-    // Eliminación definitiva
-    desaparecer: (id) => Conexion.query(
-        `DELETE FROM maquinaria 
-         WHERE pk_maquinaria=$1`,
+    // ============================================
+    // Listar maquinaria dada de baja
+    // ============================================
+    listarBajas: () => Conexion.query(
+        `SELECT 
+            m.*,
+            te.nombre as tipo_nombre,
+            u.nombre as ubicacion_nombre,
+            usr.username as registrado_por_usuario
+        FROM maquinaria m
+        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
+        LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
+        LEFT JOIN users usr ON m.registrado_por = usr.pk_user
+        WHERE m.estado_operativo = 'baja'
+        ORDER BY m.pk_maquinaria ASC`
+    ),
+
+    // ============================================
+    // Registrar baja (inserta en historial)
+    // ============================================
+    registrarBaja: (data) => Conexion.query(
+        `INSERT INTO baja_maquinaria
+        (fk_maquinaria, tipo_baja, motivo, documento_respaldo, autorizado_por, registrado_por)
+        VALUES($1, $2, $3, $4, $5, $6)
+        RETURNING *`,
+        [
+            data.fk_maquinaria,
+            data.tipo_baja,
+            data.motivo || null,
+            data.documento_respaldo || null,
+            data.autorizado_por || null,
+            data.registrado_por
+        ]
+    ),
+
+    // ============================================
+    // Listar historial de bajas registradas
+    // ============================================
+    listarBajasRegistradas: () => Conexion.query(
+        `SELECT 
+            bm.*,
+            m.numero_economico,
+            m.marca,
+            m.modelo,
+            m.anio,
+            te.nombre as tipo_nombre,
+            u1.username as autorizado_por_usuario,
+            u2.username as registrado_por_usuario
+        FROM baja_maquinaria bm
+        LEFT JOIN maquinaria m ON bm.fk_maquinaria = m.pk_maquinaria
+        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
+        LEFT JOIN users u1 ON bm.autorizado_por = u1.pk_user
+        LEFT JOIN users u2 ON bm.registrado_por = u2.pk_user
+        ORDER BY bm.fecha_baja DESC`
+    ),
+
+    // ============================================
+    // Obtener baja por ID (pk_baja)
+    // ============================================
+    obtenerBajaPorId: (id) => Conexion.query(
+        `SELECT 
+            bm.*,
+            m.numero_economico,
+            m.marca,
+            m.modelo,
+            m.anio,
+            te.nombre as tipo_nombre,
+            u.nombre as ubicacion_nombre,
+            u1.username as autorizado_por_usuario,
+            u2.username as registrado_por_usuario
+        FROM baja_maquinaria bm
+        LEFT JOIN maquinaria m ON bm.fk_maquinaria = m.pk_maquinaria
+        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
+        LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
+        LEFT JOIN users u1 ON bm.autorizado_por = u1.pk_user
+        LEFT JOIN users u2 ON bm.registrado_por = u2.pk_user
+        WHERE bm.pk_baja = $1`,
         [id]
     ),
-    
-    // Listar maquinaria dada de baja
-    listarBajas: () => Conexion.query(`
-    SELECT *
-    FROM maquinaria
-    WHERE estado_operativo = 'baja'
-    ORDER BY pk_maquinaria ASC
-`)
+
+    // ============================================
+    // Verificar si maquinaria ya tiene baja registrada
+    // ============================================
+    existeBaja: (fk_maquinaria) => Conexion.query(
+        `SELECT pk_baja FROM baja_maquinaria
+         WHERE fk_maquinaria = $1`,
+        [fk_maquinaria]
+    )
 
 };
