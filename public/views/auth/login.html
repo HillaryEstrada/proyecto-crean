@@ -4,69 +4,50 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CREAN · Iniciar Sesión</title>
- 
-    <!-- Google Fonts -->
+
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
- 
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous" />
- 
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
- 
-    <!-- Estilos propios -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="/css/login.css" />
   </head>
- 
+
   <body>
+
+    <!-- Notificaciones flotantes — fuera del layout, flotan sobre todo -->
+    <div id="notifArea" class="notif-area"></div>
+
     <div class="login-page">
- 
+
       <!-- ═══════════ PANEL IZQUIERDO ═══════════ -->
       <div class="panel-left">
         <div class="panel-left__content">
- 
-          <div class="brand-badge">
-            <i class="bi bi-tree"></i>
-            <span>Gobierno del Estado · Nayarit</span>
-          </div>
- 
+
           <h1 class="panel-left__title">
             Centro de Rendimiento<br>
-            <em>Excelencia Agrícola</em><br>
+            Excelencia Agrícola<br>
             de Nayarit
           </h1>
- 
-          <p class="panel-left__desc">
-            Sistema institucional de gestión y seguimiento agrícola del estado de Nayarit.
-          </p>
- 
+
           <div class="panel-left__contact">
-            <span class="contact-item">
-              <i class="bi bi-telephone"></i> +52 311 000 0000
-            </span>
-            <span class="contact-item">
-              <i class="bi bi-envelope"></i> contacto@crean.gob.mx
-            </span>
-            <span class="contact-item">
-              <i class="bi bi-globe"></i> crean.nayarit.gob.mx
-            </span>
-            <span class="contact-item">
-              <i class="bi bi-geo-alt"></i> Tepic, Nayarit
-            </span>
+            <span class="contact-item"><i class="bi bi-telephone"></i> +52 311 000 0000</span>
+            <span class="contact-item"><i class="bi bi-envelope"></i> contacto@crean.gob.mx</span>
+            <span class="contact-item"><i class="bi bi-globe"></i> crean.nayarit.gob.mx</span>
+            <span class="contact-item"><i class="bi bi-geo-alt"></i> Tepic, Nayarit</span>
           </div>
- 
+
         </div>
       </div>
- 
+
       <!-- ═══════════ PANEL DERECHO ═══════════ -->
       <div class="panel-right">
         <div class="form-wrap">
- 
+
           <h2>Iniciar Sesión</h2>
           <p class="form-subtitle">Accede con tus credenciales institucionales para continuar.</p>
- 
+
           <form id="formLogin" novalidate>
- 
+
             <!-- Usuario -->
             <div class="field-group">
               <label for="credencial" class="field-label">Usuario</label>
@@ -82,7 +63,7 @@
                 />
               </div>
             </div>
- 
+
             <!-- Contraseña -->
             <div class="field-group">
               <label for="password" class="field-label">Contraseña</label>
@@ -101,20 +82,15 @@
                 </button>
               </div>
             </div>
- 
-            <!-- Recordar sesión (requerido por login.js) -->
-            <div class="remember-row">
-              <div class="form-check">
-                <input type="checkbox" class="form-check-input" id="recordar" />
-                <label class="form-check-label" for="recordar">Recordar mi sesión</label>
-              </div>
-            </div>
- 
+
+            <!-- Recordar sesión: oculto visualmente, login.js lo necesita -->
+            <input type="checkbox" id="recordar" style="display:none;" />
+
             <!-- Olvidé mi contraseña -->
             <div class="forgot-row">
               <a href="#" class="forgot-link" id="btnOlvide">¿Olvidaste tu contraseña?</a>
             </div>
- 
+
             <!-- Botón submit -->
             <button type="submit" class="btn-enter" id="btnLogin">
               <i class="bi bi-box-arrow-in-right"></i>
@@ -123,54 +99,61 @@
                 <span class="visually-hidden">Cargando...</span>
               </span>
             </button>
- 
-            <!-- #mensaje oculto: login.js lo usa internamente; los Toasts lo interceptan -->
+
+            <!-- #mensaje oculto: login.js lo usa internamente; las notifs lo interceptan -->
             <div id="mensaje" class="alert d-none" role="alert" style="display:none!important;position:absolute;pointer-events:none;opacity:0;"></div>
- 
+
           </form>
- 
+
           <p class="form-footer">© 2026 CREAN · Todos los derechos reservados</p>
- 
+
         </div>
       </div>
- 
+
     </div>
- 
-    <!-- Bootstrap JS (necesario para Toasts) -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
- 
-    <!-- Contenedor de Toasts — esquina superior derecha -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999;">
- 
-      <!-- Toast de error -->
-      <div id="toastError" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="4000">
-        <div class="d-flex">
-          <div class="toast-body" id="toastErrorMsg">
-            <i class="bi bi-x-circle-fill me-2"></i> Credenciales inválidas.
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-        </div>
-      </div>
- 
-      <!-- Toast de aviso administrador -->
-      <div id="toastAdmin" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-        <div class="d-flex">
-          <div class="toast-body">
-            <i class="bi bi-shield-lock-fill me-2"></i> Contacte con un administrador del sistema.
-          </div>
-          <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
-        </div>
-      </div>
- 
-    </div>
- 
+
     <script src="/js/modules/auth/login.js" defer></script>
- 
+
     <script>
+      // Muestra notificación flotante (top-right), se cierra sola en 4s
+      function showNotif(msg, type) {
+        var area = document.getElementById('notifArea');
+
+        var div = document.createElement('div');
+        div.className = 'notif-box notif-' + type;
+        div.innerHTML =
+          '<span class="notif-msg">' +
+            '<i class="bi ' + (type === 'error' ? 'bi-x-circle-fill' : 'bi-shield-lock-fill') + ' notif-icon"></i>' +
+            msg +
+          '</span>' +
+          '<button type="button" class="notif-close" aria-label="Cerrar">' +
+            '<i class="bi bi-x-lg"></i>' +
+          '</button>';
+
+        div.querySelector('.notif-close').addEventListener('click', function () {
+          hideNotif(div);
+        });
+
+        area.appendChild(div);
+
+        // Auto-cierre en 4 segundos
+        setTimeout(function () {
+          if (div.parentNode) hideNotif(div);
+        }, 4000);
+      }
+
+      function hideNotif(div) {
+        div.style.opacity = '0';
+        div.style.transform = 'translateY(-8px)';
+        setTimeout(function () {
+          if (div.parentNode) div.remove();
+        }, 280);
+      }
+
       // Toggle contraseña
       document.getElementById('togglePw').addEventListener('click', function () {
-        const pw  = document.getElementById('password');
-        const ico = document.getElementById('eyeIcon');
+        var pw  = document.getElementById('password');
+        var ico = document.getElementById('eyeIcon');
         if (pw.type === 'password') {
           pw.type = 'text';
           ico.classList.replace('bi-eye', 'bi-eye-slash');
@@ -179,28 +162,31 @@
           ico.classList.replace('bi-eye-slash', 'bi-eye');
         }
       });
- 
-      // Olvidé contraseña → Toast de administrador
+
+      // Olvidé contraseña → notif de administrador
       document.getElementById('btnOlvide').addEventListener('click', function (e) {
         e.preventDefault();
-        new bootstrap.Toast(document.getElementById('toastAdmin'), { autohide: true, delay: 4000 }).show();
+        showNotif('Contacte con un administrador del sistema.', 'info');
       });
- 
-      // MutationObserver: intercepta cambios en #mensaje y dispara Toasts
-      const msgEl = document.getElementById('mensaje');
-      const observer = new MutationObserver(function () {
-        const txt = msgEl.textContent.trim();
+
+      // MutationObserver: intercepta cambios en #mensaje y dispara notif
+      var msgEl = document.getElementById('mensaje');
+      var observer = new MutationObserver(function () {
+        var txt = msgEl.textContent.trim();
         if (!txt) return;
- 
-        // Solo disparar Toast en caso de ERROR — el éxito lo maneja login.js con redirección
+
+        // Solo disparar en caso de ERROR — el éxito lo maneja login.js con redirección
         if (msgEl.classList.contains('alert-danger')) {
-          const t = document.getElementById('toastError');
-          document.getElementById('toastErrorMsg').innerHTML =
-            '<i class="bi bi-x-circle-fill me-2"></i>' + txt;
-          new bootstrap.Toast(t, { autohide: true, delay: 4000 }).show();
+          showNotif(txt, 'error');
+          // Limpiar campos al equivocarse
+          document.getElementById('credencial').value = '';
+          document.getElementById('password').value = '';
+          document.getElementById('password').type = 'password';
+          var ico = document.getElementById('eyeIcon');
+          if (ico) { ico.classList.remove('bi-eye-slash'); ico.classList.add('bi-eye'); }
         }
- 
-        // Limpiar siempre para que el siguiente intento vuelva a disparar
+
+        // Limpiar para que el siguiente intento vuelva a disparar
         setTimeout(function () {
           msgEl.classList.add('d-none');
           msgEl.classList.remove('alert-danger', 'alert-success');
@@ -209,6 +195,6 @@
       });
       observer.observe(msgEl, { attributes: true, childList: true, subtree: true, characterData: true });
     </script>
- 
+
   </body>
 </html>
