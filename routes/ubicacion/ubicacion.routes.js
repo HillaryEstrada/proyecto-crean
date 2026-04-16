@@ -11,26 +11,13 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 // Todas requieren autenticación
 router.use(verificarToken);
 
-// Todas requieren tener el módulo asignado
-router.use(verificarModulo('ubicacion/ubicacion'));
-
-// ============================================
-// RUTAS DE UBICACIÓN
-// ============================================
-
-// GET /ubicacion
+// ── LECTURA — cualquier usuario autenticado ──
 router.get('/', controller.listar);
-
-// GET /ubicacion/todas
 router.get('/todas', controller.listarTodas);
-
-// GET /ubicacion/:id
 router.get('/:id', controller.obtenerPorId);
 
-// POST /ubicacion
-router.post('/', controller.crear);
-
-// PUT /ubicacion/:id
-router.put('/:id', controller.actualizar);
+// ── ESCRITURA — solo quien tenga el módulo ──
+router.post('/', verificarModulo('ubicacion/ubicacion'), controller.crear);
+router.put('/:id', verificarModulo('ubicacion/ubicacion'), controller.actualizar);
 
 module.exports = router;

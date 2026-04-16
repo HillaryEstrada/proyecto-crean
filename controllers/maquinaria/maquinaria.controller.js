@@ -3,98 +3,102 @@
 // Descripción: Maneja la lógica de negocio para maquinaria
 // ============================================
 
-const maquinaria = require('../../models/maquinaria/maquinaria.model');
+const Maquinaria = require('../../models/maquinaria/maquinaria.model');
 
 // ============================================
-// CONTROLADOR: CREAR MAQUINARIA
+// CREAR MAQUINARIA
+// registrado_por viene del JWT (req.user.id)
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        const resultado = await maquinaria.crear(req.body);
+        const resultado = await Maquinaria.crear({
+            ...req.body,
+            registrado_por: req.user.id
+        });
         res.json({
             mensaje: 'Maquinaria creada exitosamente',
             data: resultado.rows[0]
         });
     } catch (error) {
+        console.error('Error al crear maquinaria:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: LISTAR MAQUINARIA ACTIVA
+// LISTAR MAQUINARIA ACTIVA
 // ============================================
 exports.listar = async (req, res) => {
     try {
-        const data = await maquinaria.listar();
+        const data = await Maquinaria.listar();
         res.json(data.rows);
     } catch (error) {
+        console.error('Error al listar maquinaria:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: OBTENER MAQUINARIA POR ID
+// OBTENER MAQUINARIA POR ID
 // ============================================
 exports.obtenerPorId = async (req, res) => {
     try {
-        const data = await maquinaria.obtenerPorId(req.params.id);
-
+        const data = await Maquinaria.obtenerPorId(req.params.id);
         if (!data.rows.length) {
             return res.status(404).json({ error: 'Maquinaria no encontrada' });
         }
-
         res.json(data.rows[0]);
     } catch (error) {
+        console.error('Error al obtener maquinaria:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: ACTUALIZAR MAQUINARIA
+// ACTUALIZAR MAQUINARIA
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        const resultado = await maquinaria.actualizar(req.params.id, req.body);
-
+        const resultado = await Maquinaria.actualizar(req.params.id, req.body);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Maquinaria no encontrada' });
         }
-
         res.json({
             mensaje: 'Maquinaria actualizada exitosamente',
             data: resultado.rows[0]
         });
     } catch (error) {
+        console.error('Error al actualizar maquinaria:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: DESACTIVAR (BAJA LÓGICA)
+// DESACTIVAR — BAJA LÓGICA
+// Cambia estado_operativo a 'baja'
 // ============================================
 exports.desactivar = async (req, res) => {
     try {
-        const resultado = await maquinaria.desactivar(req.params.id);
-
+        const resultado = await Maquinaria.desactivar(req.params.id);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Maquinaria no encontrada' });
         }
-
         res.json({
             mensaje: 'Maquinaria dada de baja exitosamente',
             data: resultado.rows[0]
         });
     } catch (error) {
+        console.error('Error al desactivar maquinaria:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: LISTAR MAQUINARIA DADA DE BAJA
+// LISTAR MAQUINARIA DADA DE BAJA
 // ============================================
 exports.listarBajas = async (req, res) => {
     try {
-        const data = await maquinaria.listarBajas();
+        const data = await Maquinaria.listarBajas();
         res.json(data.rows);
     } catch (error) {
         console.error('Error en listarBajas:', error);
@@ -103,26 +107,31 @@ exports.listarBajas = async (req, res) => {
 };
 
 // ============================================
-// CONTROLADOR: REGISTRAR BAJA EN HISTORIAL
+// REGISTRAR BAJA EN HISTORIAL
+// registrado_por viene del JWT
 // ============================================
 exports.registrarBaja = async (req, res) => {
     try {
-        const resultado = await maquinaria.registrarBaja(req.body);
+        const resultado = await Maquinaria.registrarBaja({
+            ...req.body,
+            registrado_por: req.user.id
+        });
         res.json({
             mensaje: 'Baja registrada exitosamente',
             data: resultado.rows[0]
         });
     } catch (error) {
+        console.error('Error al registrar baja:', error);
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// CONTROLADOR: LISTAR HISTORIAL DE BAJAS
+// LISTAR HISTORIAL DE BAJAS REGISTRADAS
 // ============================================
 exports.listarBajasRegistradas = async (req, res) => {
     try {
-        const data = await maquinaria.listarBajasRegistradas();
+        const data = await Maquinaria.listarBajasRegistradas();
         res.json(data.rows);
     } catch (error) {
         console.error('Error en listarBajasRegistradas:', error);
@@ -131,18 +140,17 @@ exports.listarBajasRegistradas = async (req, res) => {
 };
 
 // ============================================
-// CONTROLADOR: OBTENER BAJA POR ID (pk_baja)
+// OBTENER BAJA POR ID
 // ============================================
 exports.obtenerBajaPorId = async (req, res) => {
     try {
-        const data = await maquinaria.obtenerBajaPorId(req.params.id);
-
+        const data = await Maquinaria.obtenerBajaPorId(req.params.id);
         if (!data.rows.length) {
             return res.status(404).json({ error: 'Baja no encontrada' });
         }
-
         res.json(data.rows[0]);
     } catch (error) {
+        console.error('Error al obtener baja:', error);
         res.status(500).json({ error: error.message });
     }
 };

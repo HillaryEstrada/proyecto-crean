@@ -11,26 +11,13 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 // Todas requieren autenticación
 router.use(verificarToken);
 
-// Todas requieren tener el módulo asignado
-router.use(verificarModulo('tipo_equipo/tipo_equipo'));
-
-// ============================================
-// RUTAS DE TIPO EQUIPO
-// ============================================
-
-// GET /tipo-equipo
+// ── LECTURA — cualquier usuario autenticado ──
 router.get('/', controller.listar);
-
-// GET /tipo-equipo/todos
 router.get('/todos', controller.listarTodos);
-
-// GET /tipo-equipo/:id
 router.get('/:id', controller.obtenerPorId);
 
-// POST /tipo-equipo
-router.post('/', controller.crear);
-
-// PUT /tipo-equipo/:id
-router.put('/:id', controller.actualizar);
+// ── ESCRITURA — solo quien tenga el módulo ──
+router.post('/', verificarModulo('tipo_equipo/tipo_equipo'), controller.crear);
+router.put('/:id', verificarModulo('tipo_equipo/tipo_equipo'), controller.actualizar);
 
 module.exports = router;

@@ -48,6 +48,7 @@ module.exports = {
             te.nombre as tipo_nombre,
             u.nombre as ubicacion_nombre,
             f.numero_factura,
+            f.fecha_factura,
             g.fecha_inicio,
             g.fecha_fin,
             usr.username as registrado_por_usuario
@@ -167,15 +168,16 @@ RETURNING *`,
     // ============================================
     registrarBaja: (data) => Conexion.query(
         `INSERT INTO baja_maquinaria
-        (fk_maquinaria, tipo_baja, motivo, documento_respaldo, autorizado_por, registrado_por)
-        VALUES($1, $2, $3, $4, $5, $6)
+        (fk_maquinaria, tipo_baja, motivo, documento_respaldo, autorizado_por, autorizado_por_nombre, registrado_por)
+        VALUES($1, $2, $3, $4, $5, $6, $7)
         RETURNING *`,
         [
             data.fk_maquinaria,
             data.tipo_baja,
-            data.motivo || null,
-            data.documento_respaldo || null,
-            data.autorizado_por || null,
+            data.motivo              || null,
+            data.documento_respaldo  || null,
+            data.autorizado_por      || null,
+            data.autorizado_por_nombre || null,
             data.registrado_por
         ]
     ),

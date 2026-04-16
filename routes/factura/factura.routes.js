@@ -4,33 +4,20 @@
 // ============================================
 
 const express = require('express');
-const router = express.Router();
+const router  = express.Router();
 const controller = require('../../controllers/factura/factura.controller');
 const { verificarToken, verificarModulo } = require('../../middleware/auth.middleware');
 
 // Todas requieren autenticación
 router.use(verificarToken);
 
-// Todas requieren tener el módulo asignado
-router.use(verificarModulo('factura/factura'));
-
-// ============================================
-// RUTAS DE FACTURA
-// ============================================
-
-// GET /factura
+// ── LECTURA — cualquier usuario autenticado ──
 router.get('/', controller.listar);
-
-// GET /factura/todas
 router.get('/todas', controller.listarTodas);
-
-// GET /factura/:id
 router.get('/:id', controller.obtenerPorId);
 
-// POST /factura
-router.post('/', controller.crear);
-
-// PUT /factura/:id
-router.put('/:id', controller.actualizar);
+// ── ESCRITURA — solo con módulo asignado ──
+router.post('/', verificarModulo('factura/factura'), controller.crear);
+router.put('/:id', verificarModulo('factura/factura'), controller.actualizar);
 
 module.exports = router;
