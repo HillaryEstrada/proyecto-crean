@@ -1,0 +1,279 @@
+(function () {
+    // quitar flag de inicialización
+    let _registrosActivos = [];
+    let _idParaDesactivar = null;
+
+    esperarElemento('teBody', async () => {
+        listar();
+    });
+
+    // ============================================
+    // LISTAR ACTIVOS
+    // ============================================
+    async function listar() {
+        const tabla = document.getElementById('teBody');
+        if (!tabla) return;
+        try {
+            const data        = await fetchWithAuth('/tipo-equipo');
+            _registrosActivos = Array.isArray(data) ? data : [];
+            renderTabla(_registrosActivos);
+        } catch(e) {
+            console.error('Error listar tipos:', e);
+            Swal.fire({ icon:'error', title:'Error', text:'No se pudieron cargar los tipos de equipo' });
+        }
+    }
+
+    // ============================================
+    // RENDER TABLA ACTIVOS
+    // ============================================
+    function renderTabla(data) {
+        const tabla  = document.getElementById('teBody');
+        const footer = document.getElementById('footerInfo');
+        if (!data.length) {
+            tabla.innerHTML = `
+                <tr><td colspan="6" class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-tags fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    No hay tipos de equipo registrados
+                </td></tr>`;
+            if (footer) footer.textContent = 'Sin registros';
+            return;
+        }
+        if (footer) footer.textContent =
+            `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
+
+        tabla.innerHTML = data.map((t, i) => `
+            <tr>
+                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                <td class="px-3">
+                    <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                        ${t.nombre||'—'}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">
+                    ${t.registrado_por_usuario||'—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${t.fecha_registro
+                        ? new Date(t.fecha_registro).toLocaleDateString('es-MX')
+                        : '—'}
+                </td>
+                <td class="px-3 text-center">
+                    <span class="badge bg-success" style="font-size:11px;">Activo</span>
+                </td>
+                <td class="px-3 text-center" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
+                        onclick="editarTipo(${t.pk_tipo_equipo})">
+                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Desactivar"
+                        onclick="abrirDesactivar(${t.pk_tipo_equipo}, '${(t.nombre||'').replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-ban" style="font-size:11px;"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
+    }
+
+    // ============================================
+    // FILTRAR TABLA
+    // ============================================
+    window.filtrarTabla = function() {
+        const q = (document.getElementById('searchInput')?.value||'').toLowerCase();
+        renderTabla(_registrosActivos.filter(t => {
+            const txt = `${t.nombre} ${t.registrado_por_usuario||''}`.toLowerCase();
+            return !q || txt.includes(q);
+        }));
+    };
+
+    // ============================================
+    // SWITCH TABS
+    // ============================================
+    window.switchTab = function(tab) {
+        const va = document.getElementById('vistaActivos');
+        const vi = document.getElementById('vistaInactivos');
+        const ta = document.getElementById('tabActivos');
+        const ti = document.getElementById('tabInactivos');
+        if (tab === 'activos') {
+            va.classList.remove('d-none'); vi.classList.add('d-none');
+            ta.classList.add('active');    ti.classList.remove('active');
+        } else {
+            va.classList.add('d-none');    vi.classList.remove('d-none');
+            ta.classList.remove('active'); ti.classList.add('active');
+            listarInactivos();
+        }
+    };
+
+    // ============================================
+    // LISTAR INACTIVOS
+    // ============================================
+    async function listarInactivos() {
+        const cuerpo = document.getElementById('teBodyInactivos');
+        if (!cuerpo) return;
+        cuerpo.innerHTML = `
+            <tr><td colspan="5" class="text-center py-4 text-muted">
+                <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+            </td></tr>`;
+        try {
+            const data = await fetchWithAuth('/tipo-equipo/inactivos');
+            if (!data.length) {
+                cuerpo.innerHTML = `
+                    <tr><td colspan="5" class="text-center py-5 text-muted">
+                        <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                        No hay tipos de equipo inactivos
+                    </td></tr>`;
+                return;
+            }
+            cuerpo.innerHTML = data.map((t, i) => `
+                <tr>
+                    <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                    <td class="px-3">
+                        <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                            ${t.nombre||'—'}
+                        </span>
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:13px;">
+                        ${t.registrado_por_usuario||'—'}
+                    </td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                        ${t.fecha_registro
+                            ? new Date(t.fecha_registro).toLocaleDateString('es-MX')
+                            : '—'}
+                    </td>
+                    <td class="px-3 text-center" style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                            onclick="reactivarTipo(${t.pk_tipo_equipo}, '${(t.nombre||'').replace(/'/g,"\\'")}')">
+                            <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                            Reactivar
+                        </button>
+                    </td>
+                </tr>`).join('');
+        } catch(e) { console.error('Error inactivos:', e); }
+    }
+
+    // ============================================
+    // ABRIR FORMULARIO (CREAR)
+    // ============================================
+    window.abrirFormulario = function() {
+        document.getElementById('f_pk_tipo_equipo').value = '';
+        document.getElementById('f_nombre').value         = '';
+        document.getElementById('formTitulo').textContent  = 'Registrar Tipo de Equipo';
+        document.getElementById('btnGuardarLabel').textContent = 'Guardar tipo';
+        document.getElementById('err_nombre').classList.add('d-none');
+
+        document.getElementById('vistaTabla').classList.add('d-none');
+        document.getElementById('vistaFormulario').classList.remove('d-none');
+        document.getElementById('f_nombre').focus();
+    };
+
+    // ============================================
+    // EDITAR TIPO
+    // ============================================
+    window.editarTipo = function(id) {
+        const t = _registrosActivos.find(x => x.pk_tipo_equipo === id);
+        if (!t) return;
+
+        document.getElementById('f_pk_tipo_equipo').value     = t.pk_tipo_equipo;
+        document.getElementById('f_nombre').value             = t.nombre||'';
+        document.getElementById('formTitulo').textContent      = `Editando: ${t.nombre}`;
+        document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
+        document.getElementById('err_nombre').classList.add('d-none');
+
+        document.getElementById('vistaTabla').classList.add('d-none');
+        document.getElementById('vistaFormulario').classList.remove('d-none');
+        document.getElementById('f_nombre').focus();
+    };
+
+    // ============================================
+    // CANCELAR FORMULARIO
+    // ============================================
+    window.cancelarFormulario = function() {
+        document.getElementById('vistaFormulario').classList.add('d-none');
+        document.getElementById('vistaTabla').classList.remove('d-none');
+        document.getElementById('f_pk_tipo_equipo').value = '';
+        document.getElementById('f_nombre').value         = '';
+        document.getElementById('err_nombre').classList.add('d-none');
+    };
+
+    // ============================================
+    // GUARDAR (CREAR O ACTUALIZAR)
+    // ============================================
+    window.guardarTipo = async function() {
+        const id     = document.getElementById('f_pk_tipo_equipo').value;
+        const nombre = document.getElementById('f_nombre').value.trim();
+
+        if (!nombre) {
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('f_nombre').focus();
+            return;
+        }
+        document.getElementById('err_nombre').classList.add('d-none');
+
+        try {
+            if (id) {
+                await fetchWithAuth(`/tipo-equipo/${id}`, 'PUT', { nombre });
+                Swal.fire({ icon:'success', title:'Actualizado',
+                    text:'Tipo de equipo actualizado exitosamente',
+                    timer:2000, showConfirmButton:false });
+            } else {
+                await fetchWithAuth('/tipo-equipo', 'POST', { nombre });
+                Swal.fire({ icon:'success', title:'Registrado',
+                    text:'Tipo de equipo creado exitosamente',
+                    timer:2000, showConfirmButton:false });
+            }
+            cancelarFormulario();
+            listar();
+        } catch(error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
+
+    // ============================================
+    // ABRIR MODAL DESACTIVAR
+    // ============================================
+    window.abrirDesactivar = function(id, nombre) {
+        _idParaDesactivar = id;
+        document.getElementById('desactivarNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalDesactivar')).show();
+    };
+
+    // ============================================
+    // CONFIRMAR DESACTIVAR
+    // ============================================
+    window.confirmarDesactivar = async function() {
+        try {
+            await fetchWithAuth(`/tipo-equipo/${_idParaDesactivar}/desactivar`, 'PATCH');
+            bootstrap.Modal.getInstance(document.getElementById('modalDesactivar')).hide();
+            Swal.fire({ icon:'success', title:'Desactivado',
+                text:'Tipo de equipo desactivado exitosamente',
+                timer:2000, showConfirmButton:false });
+            listar();
+        } catch(error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
+
+    // ============================================
+    // REACTIVAR TIPO
+    // ============================================
+    window.reactivarTipo = async function(id, nombre) {
+        const confirm = await Swal.fire({
+            icon:              'question',
+            title:             'Reactivar tipo',
+            text:              `¿Deseas reactivar "${nombre}"?`,
+            showCancelButton:   true,
+            confirmButtonText: 'Sí, reactivar',
+            cancelButtonText:  'Cancelar',
+            confirmButtonColor:'#1a3c5e'
+        });
+        if (!confirm.isConfirmed) return;
+        try {
+            await fetchWithAuth(`/tipo-equipo/${id}/reactivar`, 'PATCH');
+            Swal.fire({ icon:'success', title:'Reactivado',
+                text:'Tipo de equipo reactivado exitosamente',
+                timer:2000, showConfirmButton:false });
+            listarInactivos();
+        } catch(error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
+
+})();

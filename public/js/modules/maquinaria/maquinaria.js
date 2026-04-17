@@ -1,14 +1,12 @@
 (function () {
-    if (window._maquinariaInicializado) return;
-    window._maquinariaInicializado = true;
-
+    // quitar flag de inicialización
     let _registrosActivos = [];
     let _idParaBaja       = null;
     let _archivoBaja      = null;
     let _wPasoActual      = 1;
     let _wFotoFile        = null;
 
-    setTimeout(async () => {
+    esperarElemento('maqBody', async () => {
         await Promise.all([
             cargarTipos(),
             cargarUbicaciones(),
@@ -16,7 +14,7 @@
             cargarGarantias()
         ]);
         listar();
-    }, 100);
+    });
 
     async function cargarTipos() {
         try {
@@ -259,7 +257,10 @@
             cerrarWizard();
             listar();
         } catch(error) {
-            Swal.fire({ icon:'error', title:'Error', text:error.message });
+            const msg = error.message.includes('duplicate key') 
+                ? 'El número económico ya existe, usa uno diferente'
+                : error.message;
+            Swal.fire({ icon:'error', title:'Error', text: msg });
         }
     };
 

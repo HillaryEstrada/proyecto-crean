@@ -1,21 +1,17 @@
 (function () {
-    if (window._usersInicializado) return;
-    window._usersInicializado = true;
-
+    // quitar flag de inicialización
     let _registros    = [];
     let _idDesactivar = null;
     let _modulosCache = {};
     let _userEditando = null;
 
-    // Módulos exclusivos de Administrador — no se muestran para otros roles
     const modulosRestringidos = ['admin/users', 'admin/modulos'];
 
-    // ── Carga inicial ────────────────────────────
-    setTimeout(async () => {
+    esperarElemento('usersBody', async () => {
         await cargarRolesSelect();
         await cargarEmpleadosSelect();
         listar();
-    }, 100);
+    });
 
     // ── Cargar roles ─────────────────────────────
     async function cargarRolesSelect() {

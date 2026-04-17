@@ -64,7 +64,8 @@ exports.crear = async (req, res) => {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion,
             estado: 'activo', // siempre activo al crear
-            fecha_ingreso, fecha_nacimiento
+            fecha_ingreso:    fecha_ingreso    || null,  // ← fix
+            fecha_nacimiento: fecha_nacimiento || null 
         });
 
         res.json({
@@ -111,7 +112,8 @@ exports.actualizar = async (req, res) => {
         await Empleado.actualizar(req.params.id, {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion, estado,
-            fecha_ingreso, fecha_nacimiento
+            fecha_ingreso:    fecha_ingreso    || null,  // ← fix
+            fecha_nacimiento: fecha_nacimiento || null
         });
 
         res.json({ mensaje: 'Empleado actualizado exitosamente' });

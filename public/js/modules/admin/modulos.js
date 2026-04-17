@@ -1,25 +1,16 @@
 (function() {
-    if (window._modulosInicializado) return;
-    window._modulosInicializado = true;
+    // quitar flag de inicialización
 
-    // ============================================
-    // MÓDULO: modulos.js
-    // Descripción: Gestión de módulos por rol
-    // ============================================
-
-    let rolActivo     = null;
+    let rolActivo       = null;
     let rolActivoNombre = null;
     let modulosOriginales = [];
 
-    // Módulos exclusivos de Administrador
     const modulosRestringidos = ['admin/users', 'admin/modulos'];
-
     const clavesOperacion = [
         'maquinaria/maquinaria',
         'vehiculo/vehiculo',
         'mantenimiento/mantenimiento'
     ];
-
     const clavesAdmin = [
         'admin/empleados',
         'admin/users',
@@ -27,9 +18,9 @@
     ];
 
     // ── Inicializar ──────────────────────────────
-    (async function init() {
+    esperarElemento('roles-container', async () => {
         await cargarRoles();
-    })();
+    });
 
     // ── Cargar roles en los pills ────────────────
     async function cargarRoles() {

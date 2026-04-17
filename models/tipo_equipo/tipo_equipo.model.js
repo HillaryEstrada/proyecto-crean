@@ -1,82 +1,109 @@
 // ============================================
 // MODELO: tipo_equipo.model.js
-// Descripción: Consultas SQL para tipos de equipo
+// Descripción: Consultas SQL para tipo de equipo
 // ============================================
 
 const Conexion = require('../../config/database');
 
 module.exports = {
 
+    // ============================================
     // Crear tipo de equipo
+    // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO tipo_equipo 
-        (nombre, estado, registrado_por) 
-        VALUES($1, $2, $3)
+        (nombre, registrado_por) 
+        VALUES($1, $2)
         RETURNING *`,
         [
             data.nombre,
-            data.estado || 1,
             data.registrado_por
         ]
     ),
 
-    // Listar todos los tipos de equipo activos
+    // ============================================
+    // Listar tipos de equipo activos (estado = 1)
+    // ============================================
     listar: () => Conexion.query(
         `SELECT 
             te.*,
-            u.username as registrado_por_usuario
+            usr.username as registrado_por_usuario
         FROM tipo_equipo te
-        LEFT JOIN users u ON te.registrado_por = u.pk_user
+        LEFT JOIN users usr ON te.registrado_por = usr.pk_user
         WHERE te.estado = 1
-        ORDER BY te.nombre ASC`
+        ORDER BY te.pk_tipo_equipo ASC`
     ),
 
-    // Listar todos (activos e inactivos)
-    listarTodos: () => Conexion.query(
-        `SELECT 
-            te.*,
-            u.username as registrado_por_usuario
-        FROM tipo_equipo te
-        LEFT JOIN users u ON te.registrado_por = u.pk_user
-        ORDER BY te.nombre ASC`
-    ),
-
-    // Obtener por ID
+    // ============================================
+    // Obtener por ID (con detalles completos)
+    // ============================================
     obtenerPorId: (id) => Conexion.query(
         `SELECT 
             te.*,
-            u.username as registrado_por_usuario
+            usr.username as registrado_por_usuario
         FROM tipo_equipo te
-        LEFT JOIN users u ON te.registrado_por = u.pk_user
+        LEFT JOIN users usr ON te.registrado_por = usr.pk_user
         WHERE te.pk_tipo_equipo = $1`,
         [id]
     ),
 
+    // ============================================
     // Actualizar tipo de equipo
+    // ============================================
     actualizar: (id, data) => Conexion.query(
         `UPDATE tipo_equipo 
-         SET nombre=$1, estado=$2
-         WHERE pk_tipo_equipo=$3
-         RETURNING *`,
+        SET 
+            nombre = COALESCE($1, nombre)
+        WHERE pk_tipo_equipo = $2
+        RETURNING *`,
         [
             data.nombre,
-            data.estado,
             id
         ]
     ),
 
-    // Verificar si existe
-    existe: (id) => Conexion.query(
-        `SELECT pk_tipo_equipo FROM tipo_equipo 
-         WHERE pk_tipo_equipo = $1`,
+    // ============================================
+    // Desactivar (Baja lógica, estado = 0)
+    // ============================================
+    desactivar: (id) => Conexion.query(
+        `UPDATE tipo_equipo 
+         SET estado = 0 
+         WHERE pk_tipo_equipo = $1
+         RETURNING *`,
         [id]
     ),
 
+    // ============================================
+    // Listar tipos de equipo inactivos (estado = 0)
+    // ============================================
+    listarInactivos: () => Conexion.query(
+        `SELECT 
+            te.*,
+            usr.username as registrado_por_usuario
+        FROM tipo_equipo te
+        LEFT JOIN users usr ON te.registrado_por = usr.pk_user
+        WHERE te.estado = 0
+        ORDER BY te.pk_tipo_equipo ASC`
+    ),
+
+    // ============================================
+    // Reactivar tipo de equipo (estado = 1)
+    // ============================================
+    reactivar: (id) => Conexion.query(
+        `UPDATE tipo_equipo 
+         SET estado = 1 
+         WHERE pk_tipo_equipo = $1
+         RETURNING *`,
+        [id]
+    ),
+
+    // ============================================
     // Verificar si el nombre ya existe
-    existePorNombre: (nombre, idActual = null) => Conexion.query(
-        `SELECT pk_tipo_equipo FROM tipo_equipo 
-         WHERE nombre = $1 ${idActual ? `AND pk_tipo_equipo != $2` : ''}`,
-        idActual ? [nombre, idActual] : [nombre]
+    // ============================================
+    existeNombre: (nombre) => Conexion.query(
+        `SELECT pk_tipo_equipo FROM tipo_equipo
+         WHERE LOWER(nombre) = LOWER($1)`,
+        [nombre]
     )
 
 };
