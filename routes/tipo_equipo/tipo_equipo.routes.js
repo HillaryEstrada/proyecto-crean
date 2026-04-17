@@ -11,37 +11,15 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 // Todas requieren autenticación
 router.use(verificarToken);
 
-// ============================================
-// RUTAS DE INACTIVOS (ANTES DE /:id para evitar conflictos)
-// ============================================
-
-// GET /tipo-equipo/inactivos - Listar tipos de equipo inactivos
+// ── LECTURA — cualquier usuario autenticado ──
+router.get('/',          controller.listar);
 router.get('/inactivos', controller.listarInactivos);
+router.get('/:id',       controller.obtenerPorId);
 
-// ============================================
-// RUTAS SIN PARÁMETRO
-// ============================================
-
-// GET /tipo-equipo - Listar todos los activos
-router.get('/', controller.listar);
-
-// POST /tipo-equipo - Crear nuevo tipo de equipo
-router.post('/', controller.crear);
-
-// ============================================
-// RUTAS CON PARÁMETRO :id (AL FINAL)
-// ============================================
-
-// GET /tipo-equipo/:id - Obtener por ID
-router.get('/:id', controller.obtenerPorId);
-
-// PUT /tipo-equipo/:id - Actualizar tipo de equipo
-router.put('/:id', controller.actualizar);
-
-// PATCH /tipo-equipo/:id/desactivar - Desactivar tipo de equipo
-router.patch('/:id/desactivar', controller.desactivar);
-
-// PATCH /tipo-equipo/:id/reactivar - Reactivar tipo de equipo
-router.patch('/:id/reactivar', controller.reactivar);
+// ── ESCRITURA — solo con módulo asignado ──
+router.post('/',                verificarModulo('tipo_equipo/tipo_equipo'), controller.crear);
+router.put('/:id',              verificarModulo('tipo_equipo/tipo_equipo'), controller.actualizar);
+router.patch('/:id/desactivar', verificarModulo('tipo_equipo/tipo_equipo'), controller.desactivar);
+router.patch('/:id/reactivar',  verificarModulo('tipo_equipo/tipo_equipo'), controller.reactivar);
 
 module.exports = router;

@@ -6,10 +6,10 @@
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-tractor me-2"></i>Maquinaria
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-tractor me-2 fs-2"></i>Maquinaria
         </h4>
-        <p class="text-muted small mb-0">Gestión de equipos agrícolas e industriales</p>
+        <p class="text-muted mb-0 fs-5">Gestión de equipos agrícolas e industriales</p>
     </div>
     <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
         onclick="abrirWizard()">
@@ -22,7 +22,7 @@
     <li class="nav-item">
         <button class="nav-link active d-flex align-items-center gap-2"
             id="tabActivos" onclick="switchTab('activos')">
-            <i class="fa-solid fa-tractor"></i>
+            <i class="fa-solid fa-circle-check"></i>
             Activos
         </button>
     </li>
@@ -50,46 +50,102 @@
             <option value="">Todos los estados</option>
             <option value="disponible">Disponible</option>
             <option value="prestada">Prestada</option>
-            <option value="en_uso">En uso</option>
             <option value="mantenimiento">Mantenimiento</option>
-            <option value="revision">Revisión</option>
         </select>
     </div>
 
     <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background:#1a3c5e;">
-                    <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
-                        <th class="py-3 px-3">#</th>
-                        <th class="py-3 px-3">N° ECO</th>
-                        <th class="py-3 px-3">N° INV. SEDER</th>
-                        <th class="py-3 px-3">DESCRIPCIÓN</th>
-                        <th class="py-3 px-3">SERIE</th>
-                        <th class="py-3 px-3 text-center">FACTURA FECHA</th>
-                        <th class="py-3 px-3 text-center">FACTURA N°</th>
-                        <th class="py-3 px-3 text-center">ESTADO FÍS.</th>
-                        <th class="py-3 px-3">UBICACIÓN</th>
-                        <th class="py-3 px-3 text-center">ESTADO OP.</th>
-                        <th class="py-3 px-3 text-center">ACCIONES</th>
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <!-- FILA 1 -->
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th rowspan="2" style="width:50px;">FOTO</th>
+                        <th rowspan="2" style="width:30px;white-space:nowrap;" class="text-center"># PROG</th>
+                        <th rowspan="2" style="width:30px;white-space:nowrap;"># ECO</th>
+                        <th rowspan="2" class="py-3 px-3">
+                            NÚM. INV.<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">SEDER</span>
+                        </th>
+                        <th rowspan="2" style="width:220px;">
+                            DESCRIPCIÓN DE LA MAQUINARIA<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">IMPLEMENTO, EQUIPO</span>
+                        </th>
+                        <th rowspan="2" style="width:110px;">SERIE</th>
+                        <th rowspan="2" style="width:110px;">N° MOTOR</th>
+                        <th colspan="2" style="width:200px;" class="text-center">FACTURA</th>
+                        <th rowspan="2" style="width:100px;" class="text-center">
+                            ESTADO<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">B / R / M</span>
+                        </th>
+                        <th rowspan="2" style="width:100px;">UBICACIÓN</th>
+                        <th rowspan="2" style="width:100px;" class="text-center">ESTADO OP.</th>
+                        <th rowspan="2" style="width:110px;" class="text-center">ACCIONES</th>
+                    </tr>
+                    <!-- FILA 2 subcolumnas factura -->
+                    <tr style="font-size:11px;">
+                        <th class="py-2 text-center" style="width:100px;">FECHA</th>
+                        <th class="py-2 text-center" style="width:120px;">NÚMERO</th>
                     </tr>
                 </thead>
-                <tbody id="maqBody"></tbody>
+                <tbody id="maqBody" class="bg-white">
+                <tr>
+                    <td colspan="13" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                    </td>
+                </tr>
+            </tbody>
             </table>
         </div>
-        <div class="px-3 py-2 bg-light border-top">
-            <small class="text-muted" id="footerInfo">Cargando…</small>
+
+        <!-- Footer activos: info + paginación -->
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <small class="text-muted d-block" id="footerInfo"></small>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="info-registros" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
 <!-- ── VISTA BAJAS ── -->
 <div id="vistaBajas" class="d-none">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <!-- Buscador -->
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchBajas"
+                placeholder="Buscar por número, tipo, marca…" oninput="filtrarBajas()">
+        </div>
+        <!-- Filtro tipo baja -->
+        <select class="form-select" style="width:auto;" id="filtroTipoBaja"
+            onchange="filtrarBajas()">
+            <option value="">Todos los tipos</option>
+            <option value="venta">Venta</option>
+            <option value="donacion">Donación</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="baja_tecnica">Baja Técnica</option>
+            <option value="perdida">Pérdida</option>
+        </select>
+    </div>
+
     <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background:#1a3c5e;">
-                    <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
+            <table class="table table-hover align-middle mb-0 table-bordered" style="min-width:900px;">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:11.5px;font-weight:600;">
                         <th class="py-3 px-3"># PRO</th>
                         <th class="py-3 px-3">N° ECO</th>
                         <th class="py-3 px-3">TIPO</th>
@@ -100,8 +156,31 @@
                         <th class="py-3 px-3 text-center">FECHA BAJA</th>
                     </tr>
                 </thead>
-                <tbody id="bajasBody"></tbody>
+                <tbody id="bajasBody" class="bg-white">
+                <tr>
+                    <td colspan="13" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                    </td>
+                </tr>
+            </tbody>
             </table>
+        </div>
+
+        <!-- Footer bajas: info + paginación -->
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-bajas" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-bajas" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-bajas"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -187,7 +266,7 @@
                                         Número Económico <span class="text-danger">*</span>
                                     </label>
                                     <input type="text" id="w_numero_economico" class="form-control"
-                                        placeholder="Ej: MAQ-001">
+                                        placeholder="Ej: T002">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
@@ -242,6 +321,13 @@
                             </label>
                             <input type="text" id="w_serie" class="form-control" placeholder="Ej: JD5075E006">
                         </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Número de Motor
+                            </label>
+                            <input type="text" id="w_numero_motor" class="form-control"
+                                placeholder="Ej: 001883319">
+                        </div>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -261,9 +347,7 @@
                             <select id="w_estado_operativo" class="form-select">
                                 <option value="disponible">Disponible</option>
                                 <option value="prestada">Prestada</option>
-                                <option value="en_uso">En uso</option>
                                 <option value="mantenimiento">Mantenimiento</option>
-                                <option value="revision">Revisión</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -408,8 +492,6 @@
                         placeholder="Describe la razón de la baja…"></textarea>
                     <div class="text-danger d-none small mt-1" id="err_baja_motivo">Campo requerido</div>
                 </div>
-
-                <!-- ← NUEVO: Autorizado por -->
                 <div class="mb-3">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Autorizado por
@@ -418,7 +500,6 @@
                     <input type="text" id="bajaAutorizadoInput" class="form-control"
                         placeholder="Ej: Ing. Roberto Flores">
                 </div>
-
                 <div>
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Documento de respaldo

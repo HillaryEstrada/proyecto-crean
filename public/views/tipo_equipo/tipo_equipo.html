@@ -6,10 +6,10 @@
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-tags me-2"></i>Tipos de Equipo
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-tags me-2 fs-2"></i>Tipos de Equipo
         </h4>
-        <p class="text-muted small mb-0">Gestión de categorías de maquinaria y vehículos</p>
+        <p class="text-muted mb-0 fs-5">Gestión de categorías de maquinaria y vehículos</p>
     </div>
     <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
         onclick="abrirFormulario()">
@@ -22,7 +22,7 @@
     <li class="nav-item">
         <button class="nav-link active d-flex align-items-center gap-2"
             id="tabActivos" onclick="switchTab('activos')">
-            <i class="fa-solid fa-tags"></i>
+            <i class="fa-solid fa-circle-check"></i>
             Activos
         </button>
     </li>
@@ -52,22 +52,43 @@
 
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
                             <th class="py-3 px-3">REGISTRADO POR</th>
                             <th class="py-3 px-3 text-center">FECHA REGISTRO</th>
-                            <th class="py-3 px-3 text-center">ESTADO</th>
-                            <th class="py-3 px-3 text-center">ACCIONES</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
+                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
-                    <tbody id="teBody"></tbody>
+                    <tbody id="teBody" class="bg-white">
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
                 </table>
             </div>
-            <div class="px-3 py-2 bg-light border-top">
-                <small class="text-muted" id="footerInfo">Cargando…</small>
+
+            <!-- Footer activos: info + paginación -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <small class="text-muted d-block" id="footerInfo"></small>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-te" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-te" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-te" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-te" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-te"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-te" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-te" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -76,18 +97,41 @@
     <div id="vistaInactivos" class="d-none">
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
                             <th class="py-3 px-3">REGISTRADO POR</th>
                             <th class="py-3 px-3 text-center">FECHA REGISTRO</th>
-                            <th class="py-3 px-3 text-center">ACCIONES</th>
+                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
-                    <tbody id="teBodyInactivos"></tbody>
+                    <tbody id="teBodyInactivos" class="bg-white">
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
                 </table>
+            </div>
+
+            <!-- Footer inactivos: info + paginación -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div id="info-registros-te-inactivos" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-te-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-te-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-te-inactivos" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-te-inactivos"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-te-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-te-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
