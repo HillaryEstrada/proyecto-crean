@@ -13,9 +13,9 @@ module.exports = {
     crear: (data) => Conexion.query(
         `INSERT INTO maquinaria 
         (numero_economico, numero_inventario_seder, fk_tipo, descripcion, marca, modelo, anio, 
-         color, serie, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
+         color, serie, numero_motor, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
          fk_ubicacion, fk_factura, fk_garantia, foto_maquina, registrado_por) 
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
         RETURNING *`,
         [
             data.numero_economico,
@@ -27,6 +27,7 @@ module.exports = {
             data.anio,
             data.color || null,
             data.serie,
+            data.numero_motor || null,
             data.horas_actuales || 0,
             data.combustible_litros || 0,
             data.estado_fisico || 'bueno',
@@ -103,15 +104,16 @@ SET
     anio = COALESCE($7, anio),
     color = COALESCE($8, color),
     serie = COALESCE($9, serie),
-    horas_actuales = COALESCE($10, horas_actuales),
-    combustible_litros = COALESCE($11, combustible_litros),
-    estado_fisico = COALESCE($12, estado_fisico),
-    estado_operativo = COALESCE($13, estado_operativo),
-    fk_ubicacion = COALESCE($14, fk_ubicacion),
-    fk_factura = COALESCE($15, fk_factura),
-    fk_garantia = COALESCE($16, fk_garantia),
-    foto_maquina = COALESCE($17, foto_maquina)
-WHERE pk_maquinaria = $18
+    numero_motor = COALESCE($10, numero_motor),
+    horas_actuales = COALESCE($11, horas_actuales),
+    combustible_litros = COALESCE($12, combustible_litros),
+    estado_fisico = COALESCE($13, estado_fisico),
+    estado_operativo = COALESCE($14, estado_operativo),
+    fk_ubicacion = COALESCE($15, fk_ubicacion),
+    fk_factura = COALESCE($16, fk_factura),
+    fk_garantia = COALESCE($17, fk_garantia),
+    foto_maquina = COALESCE($18, foto_maquina)
+WHERE pk_maquinaria = $19
 RETURNING *`,
         [
             data.numero_economico,
@@ -123,6 +125,7 @@ RETURNING *`,
             data.anio,
             data.color,
             data.serie,
+            data.numero_motor,
             data.horas_actuales,
             data.combustible_litros,
             data.estado_fisico,
