@@ -1,6 +1,7 @@
 (function () {
-    // quitar flag de inicialización
+
     let _registrosActivos = [];
+    let _registrosBajas   = [];
     let _idParaBaja       = null;
     let _archivoBaja      = null;
     let _wPasoActual      = 1;
@@ -16,6 +17,9 @@
         listar();
     });
 
+    // ─────────────────────────────────────────
+    // CARGAR CATÁLOGOS
+    // ─────────────────────────────────────────
     async function cargarTipos() {
         try {
             const data = await fetchWithAuth('/tipo-equipo');
@@ -68,6 +72,9 @@
         } catch(e) { console.error('Error garantías:', e); }
     }
 
+    // ─────────────────────────────────────────
+    // WIZARD
+    // ─────────────────────────────────────────
     window.wPrevisualizarFoto = function(input) {
         const file = input.files[0];
         if (!file) return;
@@ -86,7 +93,7 @@
         document.getElementById('w_pk_maquinaria').value = '';
         document.getElementById('wizardTitulo').textContent = 'Registrar Maquinaria';
         ['w_numero_economico','w_numero_inventario_seder','w_descripcion',
-         'w_marca','w_modelo','w_anio','w_color','w_serie'].forEach(id => {
+         'w_marca','w_modelo','w_anio','w_color','w_serie','w_numero_motor'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
@@ -98,7 +105,7 @@
         document.getElementById('w_fk_ubicacion').value       = '';
         document.getElementById('w_fk_factura').value         = '';
         document.getElementById('w_fk_garantia').value        = '';
-        document.getElementById('wFotoPreview').innerHTML     =
+        document.getElementById('wFotoPreview').innerHTML =
             `<i class="fa-solid fa-camera" style="color:#3b82f6;font-size:16px;"></i>
              <span style="font-size:9px;color:#3b82f6;">Foto</span>`;
         wIrPaso(1);
@@ -119,6 +126,7 @@
         document.getElementById('w_anio').value                    = m.anio||'';
         document.getElementById('w_color').value                   = m.color||'';
         document.getElementById('w_serie').value                   = m.serie||'';
+        document.getElementById('w_numero_motor').value            = m.numero_motor||'';
         document.getElementById('w_horas_actuales').value          = m.horas_actuales||0;
         document.getElementById('w_combustible_litros').value      = m.combustible_litros||0;
         document.getElementById('w_estado_fisico').value           = m.estado_fisico||'bueno';
@@ -207,7 +215,7 @@
     };
 
     window.wGuardar = async function() {
-        const id = document.getElementById('w_pk_maquinaria').value;
+        const id   = document.getElementById('w_pk_maquinaria').value;
         const data = {
             numero_economico:        document.getElementById('w_numero_economico').value.trim(),
             numero_inventario_seder: document.getElementById('w_numero_inventario_seder').value.trim() || null,
@@ -218,6 +226,7 @@
             anio:                    document.getElementById('w_anio').value || null,
             color:                   document.getElementById('w_color').value.trim() || null,
             serie:                   document.getElementById('w_serie').value.trim() || null,
+            numero_motor:            document.getElementById('w_numero_motor').value.trim() || null,
             estado_fisico:           document.getElementById('w_estado_fisico').value,
             estado_operativo:        document.getElementById('w_estado_operativo').value,
             fk_ubicacion:            document.getElementById('w_fk_ubicacion').value,
@@ -257,13 +266,16 @@
             cerrarWizard();
             listar();
         } catch(error) {
-            const msg = error.message.includes('duplicate key') 
+            const msg = error.message.includes('duplicate key')
                 ? 'El número económico ya existe, usa uno diferente'
                 : error.message;
             Swal.fire({ icon:'error', title:'Error', text: msg });
         }
     };
 
+    // ─────────────────────────────────────────
+    // LISTAR ACTIVOS
+    // ─────────────────────────────────────────
     async function listar() {
         const tabla = document.getElementById('maqBody');
         if (!tabla) return;
@@ -282,21 +294,37 @@
     function renderTabla(data) {
         const tabla  = document.getElementById('maqBody');
         const footer = document.getElementById('footerInfo');
+        const info   = document.getElementById('info-registros');
+
         if (!data.length) {
             tabla.innerHTML = `
-                <tr><td colspan="11" class="text-center py-5 text-muted">
+                <tr><td colspan="13" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-tractor fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay maquinaria registrada
                 </td></tr>`;
-            if (footer) footer.textContent = 'Sin registros';
+            if (footer) footer.textContent = '';
+            if (info)   info.textContent   = 'Sin registros';
+            initPaginacion({ tbodyId: 'maqBody', filasPorPagina: 10 });
             return;
         }
-        if (footer) footer.textContent =
-            `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
+
+        if (footer) footer.textContent = '';
+        if (info)   info.textContent   = `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
 
         tabla.innerHTML = data.map((m, i) => `
             <tr>
-                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                <td class="px-2 text-center">
+                    ${m.foto_maquina
+                        ? `<img src="${m.foto_maquina}"
+                                style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`
+                        : `<div style="width:36px;height:36px;border-radius:50%;background:#e2e8f0;
+                                       display:flex;align-items:center;justify-content:center;
+                                       font-size:12px;color:#64748b;">
+                               <i class="fa-solid fa-image"></i>
+                           </div>`
+                    }
+                </td>
+                <td class="px-3 text-muted text-center" style="font-size:12px;">${i+1}</td>
                 <td class="px-3">
                     <span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">
                         ${m.numero_economico||'—'}
@@ -316,6 +344,9 @@
                 </td>
                 <td class="px-3 text-muted" style="font-size:12px;font-family:monospace;">
                     ${m.serie||'—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;font-family:monospace;">
+                    ${m.numero_motor||'—'}
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
                     ${m.fecha_factura
@@ -347,8 +378,14 @@
                     </button>
                 </td>
             </tr>`).join('');
+
+        // Paginación activos (sin sufijo → usa btn-anterior, btn-siguiente, etc.)
+        initPaginacion({ tbodyId: 'maqBody', filasPorPagina: 10 });
     }
 
+    // ─────────────────────────────────────────
+    // BADGES
+    // ─────────────────────────────────────────
     function badgeFisico(estado) {
         const map = {
             bueno:   ['bg-success',           'Bueno'],
@@ -363,24 +400,28 @@
         const map = {
             disponible:    ['bg-success',           'Disponible'],
             prestada:      ['bg-info text-dark',    'Prestada'],
-            en_uso:        ['bg-warning text-dark', 'En uso'],
             mantenimiento: ['bg-danger',            'Mantenimiento'],
-            revision:      ['bg-secondary',         'Revisión'],
             baja:          ['bg-dark',              'Baja']
         };
         const [cls, lbl] = map[estado] || ['bg-secondary', estado||'—'];
         return `<span class="badge ${cls}" style="font-size:11px;">${lbl}</span>`;
     }
 
+    // ─────────────────────────────────────────
+    // FILTRAR ACTIVOS
+    // ─────────────────────────────────────────
     window.filtrarTabla = function() {
         const q      = (document.getElementById('searchInput')?.value||'').toLowerCase();
         const estado = document.getElementById('filtroEstado')?.value||'';
         renderTabla(_registrosActivos.filter(m => {
-            const txt = `${m.numero_economico} ${m.numero_inventario_seder} ${m.tipo_nombre} ${m.marca} ${m.modelo} ${m.serie}`.toLowerCase();
+            const txt = `${m.numero_economico} ${m.numero_inventario_seder} ${m.tipo_nombre} ${m.marca} ${m.modelo} ${m.serie} ${m.numero_motor}`.toLowerCase();
             return (!q || txt.includes(q)) && (!estado || m.estado_operativo === estado);
         }));
     };
 
+    // ─────────────────────────────────────────
+    // TABS
+    // ─────────────────────────────────────────
     window.switchTab = function(tab) {
         const va = document.getElementById('vistaActivos');
         const vb = document.getElementById('vistaBajas');
@@ -396,51 +437,79 @@
         }
     };
 
+    // ─────────────────────────────────────────
+    // LISTAR BAJAS
+    // ─────────────────────────────────────────
     async function listarBajas() {
         const cuerpo = document.getElementById('bajasBody');
         if (!cuerpo) return;
         cuerpo.innerHTML = `<tr><td colspan="8" class="text-center py-4 text-muted">
             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
         try {
-            const data  = await fetchWithAuth('/maquinaria/bajas/registradas');
+            const data = await fetchWithAuth('/maquinaria/bajas/registradas');
+            _registrosBajas = Array.isArray(data) ? data : [];
             const badge = document.getElementById('badgeBajas');
-            if (badge) badge.textContent = data.length;
-            if (!data.length) {
-                cuerpo.innerHTML = `<tr><td colspan="8" class="text-center py-5 text-muted">
-                    <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
-                    No hay equipos dados de baja</td></tr>`;
-                return;
-            }
-            cuerpo.innerHTML = data.map((b, i) => `
-                <tr>
-                    <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
-                    <td class="px-3">
-                        <span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">
-                            ${b.numero_economico||'—'}
-                        </span>
-                    </td>
-                    <td class="px-3" style="font-size:13px;">${b.tipo_nombre||'—'}</td>
-                    <td class="px-3" style="font-size:13px;">
-                        ${b.marca||'—'}
-                        <span class="text-muted">${b.modelo ? '· '+b.modelo : ''}</span>
-                    </td>
-                    <td class="px-3 text-center">
-                        <span class="badge bg-dark" style="font-size:11px;">${b.tipo_baja||'—'}</span>
-                    </td>
-                    <td class="px-3 text-muted" style="font-size:13px;max-width:200px;">
-                        ${b.motivo||'—'}
-                    </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">
-                        ${b.autorizado_por_nombre || '—'}
-                    </td>
-                    <td class="px-3 text-center text-muted" style="font-size:12px;">
-                        ${b.fecha_baja
-                            ? new Date(b.fecha_baja).toLocaleDateString('es-MX') : '—'}
-                    </td>
-                </tr>`).join('');
+            if (badge) badge.textContent = _registrosBajas.length;
+            renderTablaBajas(_registrosBajas);
         } catch(e) { console.error('Error bajas:', e); }
     }
 
+    window.filtrarBajas = function() {
+        const q    = (document.getElementById('searchBajas')?.value||'').toLowerCase();
+        const tipo = document.getElementById('filtroTipoBaja')?.value||'';
+        renderTablaBajas(_registrosBajas.filter(b => {
+            const txt = `${b.numero_economico} ${b.tipo_nombre} ${b.marca} ${b.modelo} ${b.motivo}`.toLowerCase();
+            return (!q || txt.includes(q)) && (!tipo || b.tipo_baja === tipo);
+        }));
+    };
+
+    function renderTablaBajas(data) {
+        const cuerpo = document.getElementById('bajasBody');
+        const info   = document.getElementById('info-registros-bajas');
+
+        if (!data.length) {
+            cuerpo.innerHTML = `
+                <tr><td colspan="8" class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    No hay equipos dados de baja
+                </td></tr>`;
+            if (info) info.textContent = 'Sin registros';
+            initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'bajas' });
+            return;
+        }
+
+        if (info) info.textContent = `Mostrando ${data.length} de ${_registrosBajas.length} registros`;
+
+        cuerpo.innerHTML = data.map((b, i) => `
+            <tr>
+                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                <td class="px-3">
+                    <span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">
+                        ${b.numero_economico||'—'}
+                    </span>
+                </td>
+                <td class="px-3" style="font-size:13px;">${b.tipo_nombre||'—'}</td>
+                <td class="px-3" style="font-size:13px;">
+                    ${b.marca||'—'}
+                    <span class="text-muted">${b.modelo ? ' · '+b.modelo : ''}</span>
+                </td>
+                <td class="px-3 text-center">
+                    <span class="badge bg-dark" style="font-size:11px;">${b.tipo_baja||'—'}</span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;max-width:200px;">${b.motivo||'—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${b.autorizado_por_nombre||'—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${b.fecha_baja ? new Date(b.fecha_baja).toLocaleDateString('es-MX') : '—'}
+                </td>
+            </tr>`).join('');
+
+        // Paginación bajas (sufijo 'bajas' → usa btn-anterior-bajas, btn-siguiente-bajas, etc.)
+        initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'bajas' });
+    }
+
+    // ─────────────────────────────────────────
+    // VER DETALLE
+    // ─────────────────────────────────────────
     window.verDetalle = async function(id) {
         document.getElementById('detalleTitle').textContent = 'Cargando…';
         document.getElementById('detalleBody').innerHTML = `
@@ -486,6 +555,10 @@
                     <div class="col-md-4">
                         <p class="text-muted mb-1" style="font-size:11px;">SERIE</p>
                         <p class="mb-0" style="font-family:monospace;">${m.serie||'—'}</p>
+                    </div>
+                    <div class="col-md-4">
+                        <p class="text-muted mb-1" style="font-size:11px;">NÚMERO DE MOTOR</p>
+                        <p class="mb-0" style="font-family:monospace;">${m.numero_motor||'—'}</p>
                     </div>
                     <div class="col-md-4">
                         <p class="text-muted mb-1" style="font-size:11px;">UBICACIÓN</p>
@@ -550,6 +623,9 @@
         }
     };
 
+    // ─────────────────────────────────────────
+    // BAJA
+    // ─────────────────────────────────────────
     window.previsualizarDocBaja = function(input) {
         const file = input.files[0];
         if (!file) { _archivoBaja = null; return; }
@@ -561,24 +637,23 @@
     window.abrirBaja = function(id, numero, tipo, marca, modelo) {
         _idParaBaja  = id;
         _archivoBaja = null;
-        document.getElementById('bajaNumero').textContent       = numero;
-        document.getElementById('bajaEquipoDesc').textContent   =
-            `${tipo} · ${marca} ${modelo}`.trim();
-        document.getElementById('bajaTipoInput').value          = '';
-        document.getElementById('bajaMotivoInput').value        = '';
-        document.getElementById('bajaAutorizadoInput').value    = ''; // ← NUEVO
-        document.getElementById('bajaDocInput').value           = '';
-        document.getElementById('docBajaLabel').textContent     = 'Sin documento seleccionado';
+        document.getElementById('bajaNumero').textContent     = numero;
+        document.getElementById('bajaEquipoDesc').textContent = `${tipo} · ${marca} ${modelo}`.trim();
+        document.getElementById('bajaTipoInput').value        = '';
+        document.getElementById('bajaMotivoInput').value      = '';
+        document.getElementById('bajaAutorizadoInput').value  = '';
+        document.getElementById('bajaDocInput').value         = '';
+        document.getElementById('docBajaLabel').textContent   = 'Sin documento seleccionado';
         document.getElementById('err_baja_tipo').classList.add('d-none');
         document.getElementById('err_baja_motivo').classList.add('d-none');
         new bootstrap.Modal(document.getElementById('modalBaja')).show();
     };
 
     window.confirmarBajaModal = async function() {
-        const tipo      = document.getElementById('bajaTipoInput').value;
-        const motivo    = document.getElementById('bajaMotivoInput').value.trim();
-        const autorizado = document.getElementById('bajaAutorizadoInput').value.trim(); // ← NUEVO
-        let valido      = true;
+        const tipo       = document.getElementById('bajaTipoInput').value;
+        const motivo     = document.getElementById('bajaMotivoInput').value.trim();
+        const autorizado = document.getElementById('bajaAutorizadoInput').value.trim();
+        let valido       = true;
         if (!tipo)   { document.getElementById('err_baja_tipo').classList.remove('d-none');   valido = false; }
         if (!motivo) { document.getElementById('err_baja_motivo').classList.remove('d-none'); valido = false; }
         if (!valido) return;
@@ -605,11 +680,11 @@
             }
 
             await fetchWithAuth('/maquinaria/bajas', 'POST', {
-                fk_maquinaria:          _idParaBaja,
-                tipo_baja:              tipo,
+                fk_maquinaria:         _idParaBaja,
+                tipo_baja:             tipo,
                 motivo,
-                documento_respaldo:     urlDocumento,
-                autorizado_por_nombre:  autorizado || null // ← NUEVO
+                documento_respaldo:    urlDocumento,
+                autorizado_por_nombre: autorizado || null
             });
 
             bootstrap.Modal.getInstance(document.getElementById('modalBaja')).hide();

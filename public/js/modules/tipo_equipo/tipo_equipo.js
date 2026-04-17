@@ -1,7 +1,8 @@
 (function () {
     // quitar flag de inicialización
-    let _registrosActivos = [];
-    let _idParaDesactivar = null;
+    let _registrosActivos   = [];
+    let _registrosInactivos = [];
+    let _idParaDesactivar   = null;
 
     esperarElemento('teBody', async () => {
         listar();
@@ -29,21 +30,26 @@
     function renderTabla(data) {
         const tabla  = document.getElementById('teBody');
         const footer = document.getElementById('footerInfo');
+        const info   = document.getElementById('info-registros-te');
+
         if (!data.length) {
             tabla.innerHTML = `
                 <tr><td colspan="6" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-tags fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay tipos de equipo registrados
                 </td></tr>`;
-            if (footer) footer.textContent = 'Sin registros';
+            if (footer) footer.textContent = '';
+            if (info)   info.textContent   = 'Sin registros';
+            initPaginacion({ tbodyId: 'teBody', filasPorPagina: 10, sufijo: 'te' });
             return;
         }
-        if (footer) footer.textContent =
-            `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
+
+        if (footer) footer.textContent = '';
+        if (info)   info.textContent   = `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
 
         tabla.innerHTML = data.map((t, i) => `
             <tr>
-                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                <td class="px-3 text-muted text-center" style="font-size:12px;">${i+1}</td>
                 <td class="px-3">
                     <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
                         ${t.nombre||'—'}
@@ -71,6 +77,8 @@
                     </button>
                 </td>
             </tr>`).join('');
+
+        initPaginacion({ tbodyId: 'teBody', filasPorPagina: 10, sufijo: 'te' });
     }
 
     // ============================================
@@ -107,6 +115,7 @@
     // ============================================
     async function listarInactivos() {
         const cuerpo = document.getElementById('teBodyInactivos');
+        const info   = document.getElementById('info-registros-te-inactivos');
         if (!cuerpo) return;
         cuerpo.innerHTML = `
             <tr><td colspan="5" class="text-center py-4 text-muted">
@@ -114,17 +123,24 @@
             </td></tr>`;
         try {
             const data = await fetchWithAuth('/tipo-equipo/inactivos');
-            if (!data.length) {
+            _registrosInactivos = Array.isArray(data) ? data : [];
+
+            if (!_registrosInactivos.length) {
                 cuerpo.innerHTML = `
                     <tr><td colspan="5" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                         No hay tipos de equipo inactivos
                     </td></tr>`;
+                if (info) info.textContent = 'Sin registros';
+                initPaginacion({ tbodyId: 'teBodyInactivos', filasPorPagina: 10, sufijo: 'te-inactivos' });
                 return;
             }
-            cuerpo.innerHTML = data.map((t, i) => `
+
+            if (info) info.textContent = `Mostrando ${_registrosInactivos.length} registros`;
+
+            cuerpo.innerHTML = _registrosInactivos.map((t, i) => `
                 <tr>
-                    <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                    <td class="px-3 text-muted text-center" style="font-size:12px;">${i+1}</td>
                     <td class="px-3">
                         <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
                             ${t.nombre||'—'}
@@ -146,6 +162,8 @@
                         </button>
                     </td>
                 </tr>`).join('');
+
+            initPaginacion({ tbodyId: 'teBodyInactivos', filasPorPagina: 10, sufijo: 'te-inactivos' });
         } catch(e) { console.error('Error inactivos:', e); }
     }
 
@@ -153,10 +171,10 @@
     // ABRIR FORMULARIO (CREAR)
     // ============================================
     window.abrirFormulario = function() {
-        document.getElementById('f_pk_tipo_equipo').value = '';
-        document.getElementById('f_nombre').value         = '';
-        document.getElementById('formTitulo').textContent  = 'Registrar Tipo de Equipo';
-        document.getElementById('btnGuardarLabel').textContent = 'Guardar tipo';
+        document.getElementById('f_pk_tipo_equipo').value         = '';
+        document.getElementById('f_nombre').value                 = '';
+        document.getElementById('formTitulo').textContent         = 'Registrar Tipo de Equipo';
+        document.getElementById('btnGuardarLabel').textContent    = 'Guardar tipo';
         document.getElementById('err_nombre').classList.add('d-none');
 
         document.getElementById('vistaTabla').classList.add('d-none');
@@ -171,10 +189,10 @@
         const t = _registrosActivos.find(x => x.pk_tipo_equipo === id);
         if (!t) return;
 
-        document.getElementById('f_pk_tipo_equipo').value     = t.pk_tipo_equipo;
-        document.getElementById('f_nombre').value             = t.nombre||'';
-        document.getElementById('formTitulo').textContent      = `Editando: ${t.nombre}`;
-        document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
+        document.getElementById('f_pk_tipo_equipo').value         = t.pk_tipo_equipo;
+        document.getElementById('f_nombre').value                 = t.nombre||'';
+        document.getElementById('formTitulo').textContent         = `Editando: ${t.nombre}`;
+        document.getElementById('btnGuardarLabel').textContent    = 'Guardar cambios';
         document.getElementById('err_nombre').classList.add('d-none');
 
         document.getElementById('vistaTabla').classList.add('d-none');
@@ -270,7 +288,9 @@
             Swal.fire({ icon:'success', title:'Reactivado',
                 text:'Tipo de equipo reactivado exitosamente',
                 timer:2000, showConfirmButton:false });
-            listarInactivos();
+            await listar();
+            await listarInactivos();
+            switchTab('activos');
         } catch(error) {
             Swal.fire({ icon:'error', title:'Error', text:error.message });
         }
