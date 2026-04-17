@@ -1,17 +1,15 @@
 (function () {
-    if (window._empleadosInicializado) return;
-    window._empleadosInicializado = true;
-
+    // quitar flag de inicialización
     let _registrosActivos = [];
     let _idBaja           = null;
     let _empleadoCreado   = null;
     let _fotoFile         = null;
-    let _modoEdicion      = false; // bandera para saber si venimos de editar
+    let _modoEdicion      = false;
 
-    setTimeout(async () => {
+    esperarElemento('empBody', async () => {
         await cargarRolesSelect();
         listar();
-    }, 100);
+    });
 
     async function cargarRolesSelect() {
         try {
