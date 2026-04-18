@@ -1,74 +1,533 @@
 <!-- ============================================
-     VISTA: vehiculo.html
-     Descripción: Interfaz para gestionar vehiculo
+     VISTA: vehiculos.html
+     Descripción: Gestión de vehículos – wizard 3 pasos
      ============================================ -->
 
-<div class="alert alert-primary mt-4 container text-center">
-    <h2>Gestión de Vehiculo</h2>
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-truck me-2 fs-2"></i>Vehículos
+        </h4>
+        <p class="text-muted mb-0 fs-5">Gestión de vehículos e inventario</p>
+    </div>
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+        onclick="abrirWizard()">
+        <i class="fa-solid fa-plus me-1"></i>Registrar vehículo
+    </button>
 </div>
 
-<!-- Botones de acción -->
-<div class="container mb-3 text-end">
-    <button class="btn btn-success" onclick="mostrarFormulario()">Crear Vehiculo</button>
-    <button class="btn btn-secondary d-none" id="btnCancelar" onclick="mostrarTabla()">Cancelar</button>
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabActivos" onclick="switchTab('activos')">
+            <i class="fa-solid fa-circle-check"></i>
+            Activos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabBajas" onclick="switchTab('bajas')">
+            <i class="fa-solid fa-ban"></i>
+            Bajas
+        </button>
+    </li>
+</ul>
+
+<!-- ── VISTA ACTIVOS ── -->
+<div id="vistaActivos">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchInput"
+                placeholder="Buscar por número, tipo, marca…" oninput="filtrarTabla()">
+        </div>
+        <select class="form-select" style="width:auto;" id="filtroEstado"
+            onchange="filtrarTabla()">
+            <option value="">Todos los estados</option>
+            <option value="disponible">Disponible</option>
+            <option value="prestada">Prestada</option>
+            <option value="mantenimiento">Mantenimiento</option>
+        </select>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <!-- FILA 1 -->
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th rowspan="2" style="width:50px;">FOTO</th>
+                        <th rowspan="2" style="width:30px;white-space:nowrap;" class="text-center"># PROG</th>
+                        <th rowspan="2" style="width:30px;white-space:nowrap;"># ECO</th>
+                        <th rowspan="2" class="py-3 px-3">
+                            NÚM. INV.<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">GOB</span>
+                        </th>
+                        <th rowspan="2" style="width:220px;">
+                            DESCRIPCIÓN DEL VEHÍCULO<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">TIPO, MARCA, MODELO</span>
+                        </th>
+                        <th rowspan="2" style="width:130px;">VIN</th>
+                        <th rowspan="2" style="width:100px;">PLACAS</th>
+                        <th colspan="2" style="width:200px;" class="text-center">FACTURA</th>
+                        <th rowspan="2" style="width:100px;" class="text-center">
+                            ESTADO<br>
+                            <span style="font-size:10px;font-weight:400;opacity:.8;">B / R / M</span>
+                        </th>
+                        <th rowspan="2" style="width:100px;">UBICACIÓN</th>
+                        <th rowspan="2" style="width:100px;" class="text-center">ESTADO OP.</th>
+                        <th rowspan="2" style="width:110px;" class="text-center">ACCIONES</th>
+                    </tr>
+                    <!-- FILA 2 subcolumnas factura -->
+                    <tr style="font-size:11px;">
+                        <th class="py-2 text-center" style="width:100px;">FECHA</th>
+                        <th class="py-2 text-center" style="width:120px;">NÚMERO</th>
+                    </tr>
+                </thead>
+                <tbody id="vehBody" class="bg-white">
+                    <tr>
+                        <td colspan="13" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Footer activos: info + paginación -->
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <small class="text-muted d-block" id="footerInfo"></small>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="info-registros" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- FORMULARIO para crear/editar vehiculo -->
-<div class="container d-none" id="contenedorFormulario">
-    <form id="formVehiculo">
-        <!-- Campo oculto para el ID al editar -->
-        <input type="hidden" id="pk_vehiculo">
+<!-- ── VISTA BAJAS ── -->
+<div id="vistaBajas" class="d-none">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchBajas"
+                placeholder="Buscar por número, tipo, marca…" oninput="filtrarBajas()">
+        </div>
+        <select class="form-select" style="width:auto;" id="filtroTipoBaja"
+            onchange="filtrarBajas()">
+            <option value="">Todos los tipos</option>
+            <option value="venta">Venta</option>
+            <option value="donacion">Donación</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="baja_tecnica">Baja Técnica</option>
+            <option value="perdida">Pérdida</option>
+        </select>
+    </div>
 
-        <div class="mb-3">
-            <label class="form-label">Número Económico</label>
-            <input type="text" id="numero_economico" class="form-control" required>
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered" style="min-width:900px;">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:11.5px;font-weight:600;">
+                        <th class="py-3 px-3"># PRO</th>
+                        <th class="py-3 px-3">N° ECO</th>
+                        <th class="py-3 px-3">TIPO</th>
+                        <th class="py-3 px-3">MARCA / MODELO</th>
+                        <th class="py-3 px-3 text-center">TIPO BAJA</th>
+                        <th class="py-3 px-3">MOTIVO</th>
+                        <th class="py-3 px-3">AUTORIZADO POR</th>
+                        <th class="py-3 px-3 text-center">FECHA BAJA</th>
+                    </tr>
+                </thead>
+                <tbody id="bajasBody" class="bg-white">
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
 
-        <div class="mb-3">
-            <label class="form-label">Tipo de Vehiculo</label>
-            <input type="text" id="tipo_vehiculo" class="form-control" required>
+        <!-- Footer bajas: info + paginación -->
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-bajas" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-bajas" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-bajas"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-bajas" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
         </div>
-
-        <div class="mb-3">
-            <label class="form-label">Marca</label>
-            <input type="text" id="marca" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Modelo</label>
-            <input type="text" id="modelo" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Año</label>
-            <input type="number" id="anio" class="form-control">
-        </div>
-
-        <div class="mb-3">
-            <label class="form-label">Ubicación</label>
-            <input type="text" id="ubicacion" class="form-control" required>
-        </div>
-
-        <button type="submit" class="btn btn-success w-100">Guardar Vehiculo</button>
-    </form>
+    </div>
 </div>
 
-<!-- TABLA para listar vehiculo -->
-<div class="container mt-4" id="contenedorTabla">
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>N° Económico</th>
-                <th>Tipo</th>
-                <th>Marca</th>
-                <th>Modelo</th>
-                <th>Ubicación</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody id="tablaVehiculo"></tbody>
-    </table>
-    <!-- Contenedor para la paginación -->
-    <div id="footer-paginacion"></div>
+<!-- ══ MODAL WIZARD ══ -->
+<div class="modal fade" id="modalWizard" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+
+            <div class="modal-header py-3 px-4 text-white" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-truck me-2"></i>
+                    <span id="wizardTitulo">Registrar Vehículo</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                    onclick="cerrarWizard()"></button>
+            </div>
+
+            <!-- Indicador de pasos -->
+            <div class="px-4 pt-4 pb-2">
+                <div class="d-flex align-items-center">
+                    <div class="d-flex flex-column align-items-center" style="min-width:80px;">
+                        <div id="wCircle1"
+                            style="width:36px;height:36px;border-radius:50%;background:#1a3c5e;
+                                   color:#fff;display:flex;align-items:center;justify-content:center;
+                                   font-size:13px;font-weight:600;">1</div>
+                        <span style="font-size:11px;color:#1a3c5e;font-weight:500;margin-top:4px;">
+                            Identificación</span>
+                    </div>
+                    <div id="wLine1" style="flex:1;height:2px;background:#e2e8f0;margin:0 6px;margin-bottom:18px;"></div>
+                    <div class="d-flex flex-column align-items-center" style="min-width:80px;">
+                        <div id="wCircle2"
+                            style="width:36px;height:36px;border-radius:50%;background:#e2e8f0;
+                                   color:#94a3b8;display:flex;align-items:center;justify-content:center;
+                                   font-size:13px;font-weight:600;">2</div>
+                        <span id="wLabel2" style="font-size:11px;color:#94a3b8;font-weight:500;margin-top:4px;">
+                            Datos técnicos</span>
+                    </div>
+                    <div id="wLine2" style="flex:1;height:2px;background:#e2e8f0;margin:0 6px;margin-bottom:18px;"></div>
+                    <div class="d-flex flex-column align-items-center" style="min-width:80px;">
+                        <div id="wCircle3"
+                            style="width:36px;height:36px;border-radius:50%;background:#e2e8f0;
+                                   color:#94a3b8;display:flex;align-items:center;justify-content:center;
+                                   font-size:13px;font-weight:600;">3</div>
+                        <span id="wLabel3" style="font-size:11px;color:#94a3b8;font-weight:500;margin-top:4px;">
+                            Factura y uso</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-body px-4 pb-2" style="max-height:60vh;overflow-y:auto;">
+                <input type="hidden" id="w_pk_vehiculo">
+
+                <!-- PASO 1 -->
+                <div id="wPaso1">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div>
+                            <div id="wFotoPreview"
+                                style="width:72px;height:72px;border-radius:50%;background:#e8f0fe;
+                                       border:2px dashed #93c5fd;display:flex;align-items:center;
+                                       justify-content:center;flex-direction:column;gap:3px;
+                                       cursor:pointer;overflow:hidden;"
+                                onclick="document.getElementById('w_inputFoto').click()">
+                                <i class="fa-solid fa-camera" style="color:#3b82f6;font-size:16px;"></i>
+                                <span style="font-size:9px;color:#3b82f6;">Foto</span>
+                            </div>
+                            <input type="file" id="w_inputFoto" accept="image/*"
+                                style="display:none" onchange="wPrevisualizarFoto(this)">
+                        </div>
+                        <div class="flex-grow-1">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                        Número Económico <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="text" id="w_numero_economico" class="form-control"
+                                        placeholder="Ej: V001">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                        N° Inventario GOB
+                                    </label>
+                                    <input type="text" id="w_numero_inventario_gob" class="form-control"
+                                        placeholder="Ej: GOB-2024-001">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Tipo de Vehículo <span class="text-danger">*</span>
+                        </label>
+                        <select id="w_fk_tipo" class="form-select">
+                            <option value="">Seleccionar…</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- PASO 2 -->
+                <div id="wPaso2" class="d-none">
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Marca</label>
+                            <input type="text" id="w_marca" class="form-control" placeholder="Ej: Toyota">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Modelo</label>
+                            <input type="text" id="w_modelo" class="form-control" placeholder="Ej: Hilux">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Año</label>
+                            <input type="number" id="w_anio" class="form-control"
+                                placeholder="2024" min="1980" max="2099">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Color</label>
+                            <input type="text" id="w_color" class="form-control" placeholder="Ej: Blanco">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                VIN <span class="text-muted fw-normal">(opcional)</span>
+                            </label>
+                            <input type="text" id="w_vin" class="form-control"
+                                placeholder="Ej: 1HGBH41JXMN109186">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Placas <span class="text-muted fw-normal">(opcional)</span>
+                            </label>
+                            <input type="text" id="w_placas" class="form-control" placeholder="Ej: ABC-123">
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Estado Físico
+                            </label>
+                            <select id="w_estado_fisico" class="form-select">
+                                <option value="bueno">Bueno</option>
+                                <option value="regular">Regular</option>
+                                <option value="malo">Malo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Estado Operativo
+                            </label>
+                            <select id="w_estado_operativo" class="form-select">
+                                <option value="disponible">Disponible</option>
+                                <option value="prestada">Prestada</option>
+                                <option value="mantenimiento">Mantenimiento</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Ubicación <span class="text-danger">*</span>
+                            </label>
+                            <select id="w_fk_ubicacion" class="form-select">
+                                <option value="">Seleccionar…</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PASO 3 -->
+                <div id="wPaso3" class="d-none">
+                    <div class="p-3 rounded-3 mb-3"
+                        style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                        <p style="font-size:12px;color:#0369a1;margin:0;">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Selecciona una factura y garantía si aplica, y registra las lecturas actuales.
+                        </p>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Factura <span class="text-muted fw-normal">(opcional)</span>
+                            </label>
+                            <select id="w_fk_factura" class="form-select">
+                                <option value="">Sin factura</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Garantía <span class="text-muted fw-normal">(opcional)</span>
+                            </label>
+                            <select id="w_fk_garantia" class="form-select">
+                                <option value="">Sin garantía</option>
+                            </select>
+                        </div>
+                    </div>
+                    <p class="fw-semibold mb-3"
+                        style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                        <i class="fa-solid fa-gauge me-1"></i>Datos de uso previo
+                    </p>
+                    <div class="p-3 rounded-3 mb-3"
+                        style="background:#fefce8;border:0.5px solid #fde68a;">
+                        <p style="font-size:12px;color:#92400e;margin:0;">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Registra las lecturas al momento de ingreso al sistema.
+                        </p>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Kilometraje actual
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="w_kilometraje_actual" class="form-control"
+                                    placeholder="0" min="0" value="0">
+                                <span class="input-group-text text-muted" style="font-size:12px;">km</span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Gasolina en tanque
+                            </label>
+                            <div class="input-group">
+                                <input type="number" id="w_gasolina_litros" class="form-control"
+                                    placeholder="0" min="0" step="0.01" value="0">
+                                <span class="input-group-text text-muted" style="font-size:12px;">L</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light border-top justify-content-between px-4">
+                <button type="button" class="btn btn-secondary px-4" onclick="cerrarWizard()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <div class="d-flex gap-2 align-items-center">
+                    <span id="wPasoLabel" class="text-muted small">Paso 1 de 3</span>
+                    <button type="button" class="btn btn-outline-secondary px-4"
+                        id="wBtnAtras" style="display:none;" onclick="wAtras()">
+                        <i class="fa-solid fa-arrow-left me-1"></i>Atrás
+                    </button>
+                    <button type="button" class="btn px-4 text-white fw-semibold"
+                        style="background:#1a3c5e;" id="wBtnSiguiente" onclick="wSiguiente()">
+                        Siguiente <i class="fa-solid fa-arrow-right ms-1"></i>
+                    </button>
+                    <button type="button" class="btn btn-success px-4 d-none"
+                        id="wBtnGuardar" onclick="wGuardar()">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar vehículo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: DAR DE BAJA ── -->
+<div class="modal fade" id="modalBaja" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Dar de Baja – Vehículo
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-truck fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="bajaNumero">—</div>
+                        <div class="small text-muted" id="bajaVehiculoDesc">—</div>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo de Baja <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="bajaTipoInput">
+                        <option value="">Seleccionar…</option>
+                        <option value="venta">Venta</option>
+                        <option value="donacion">Donación</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="baja_tecnica">Baja Técnica</option>
+                        <option value="perdida">Pérdida</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_baja_tipo">Campo requerido</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Motivo <span class="text-danger">*</span>
+                    </label>
+                    <textarea class="form-control" id="bajaMotivoInput" rows="3"
+                        placeholder="Describe la razón de la baja…"></textarea>
+                    <div class="text-danger d-none small mt-1" id="err_baja_motivo">Campo requerido</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Autorizado por
+                        <span class="text-muted fw-normal ms-1">(opcional)</span>
+                    </label>
+                    <input type="text" id="bajaAutorizadoInput" class="form-control"
+                        placeholder="Ej: Ing. Roberto Flores">
+                </div>
+                <div>
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Documento de respaldo
+                        <span class="text-muted fw-normal ms-1">(opcional)</span>
+                    </label>
+                    <div class="d-flex align-items-center gap-2 p-3 rounded-3"
+                        style="background:#f8fafc;border:0.5px dashed #cbd5e1;">
+                        <i class="fa-solid fa-file-pdf text-danger"></i>
+                        <span class="text-muted small flex-grow-1" id="docBajaLabel">
+                            Sin documento seleccionado
+                        </span>
+                        <label class="btn btn-sm btn-outline-secondary mb-0" style="cursor:pointer;">
+                            <i class="fa-solid fa-upload me-1"></i>Seleccionar PDF
+                            <input type="file" id="bajaDocInput" accept=".pdf"
+                                style="display:none" onchange="previsualizarDocBaja(this)">
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarBajaModal()">
+                    <i class="fa-solid fa-ban me-1"></i>Confirmar Baja
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: VER DETALLE ── -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-truck me-2"></i>
+                    <span id="detalleTitle">Detalle de Vehículo</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="detalleBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

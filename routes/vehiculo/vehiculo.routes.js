@@ -1,80 +1,50 @@
 // ============================================
 // RUTAS: vehiculo.routes.js
-// Descripción: Define los endpoints para el módulo de vehículo
+// Descripción: Define los endpoints para el módulo de vehículos
 // ============================================
 
-const express = require('express');
-const router  = express.Router();
+const express    = require('express');
+const router     = express.Router();
 const controller = require('../../controllers/vehiculo/vehiculo.controller');
 const { verificarToken, verificarModulo } = require('../../middleware/auth.middleware');
-const {
-    validarCamposRequeridosCrear,
-    validarFKVehiculo,
-    validarCamposUnicosVehiculo,
-    validarNoBaja,
-    validarNoEnBaja,
-    validarRegistroBaja
-} = require('../../middleware/vehiculo.middleware');
 
 // Todas requieren autenticación
 router.use(verificarToken);
 
-// Todas requieren tener el módulo asignado
-router.use(verificarModulo('vehiculo/vehiculo'));
-
 // ============================================
-// RUTAS DE VEHÍCULO (SIN PARÁMETRO)
+// LECTURA — cualquier usuario autenticado
+// (bajas antes de /:id para evitar conflictos)
 // ============================================
 
-// GET /vehiculo - Listar todos activos
-router.get('/', controller.listar);
-
-// POST /vehiculo - Crear nuevo
-router.post('/',
-    validarCamposRequeridosCrear,
-    validarFKVehiculo,
-    validarCamposUnicosVehiculo,
-    controller.crear
-);
-
-// ============================================
-// RUTAS DE BAJAS (ANTES DE /:id)
-// ============================================
-
-// GET /vehiculo/bajas/registradas - Listar historial de bajas
+// GET /vehiculo/bajas/registradas - Historial de bajas registradas
 router.get('/bajas/registradas', controller.listarBajasRegistradas);
 
 // GET /vehiculo/bajas - Listar vehículos dados de baja
 router.get('/bajas', controller.listarBajas);
 
-// POST /vehiculo/bajas - Registrar una baja
-router.post('/bajas',
-    validarRegistroBaja,
-    controller.registrarBaja
-);
-
 // GET /vehiculo/bajas/:id - Obtener detalle de una baja
 router.get('/bajas/:id', controller.obtenerBajaPorId);
 
-// ============================================
-// RUTAS CON PARÁMETRO :id (AL FINAL)
-// ============================================
+// GET /vehiculo - Listar todos los activos
+router.get('/', controller.listar);
 
 // GET /vehiculo/:id - Obtener por ID
 router.get('/:id', controller.obtenerPorId);
 
-// PUT /vehiculo/:id - Actualizar
-router.put('/:id',
-    validarNoBaja,
-    validarCamposUnicosVehiculo,
-    validarFKVehiculo,
-    controller.actualizar
-);
+// ============================================
+// ESCRITURA — solo con módulo asignado
+// ============================================
 
-// PATCH /vehiculo/:id/desactivar - Dar de baja
-router.patch('/:id/desactivar',
-    validarNoEnBaja,
-    controller.desactivar
-);
+// POST /vehiculo - Crear nuevo vehículo
+router.post('/',      verificarModulo('vehiculo/vehiculo'), controller.crear);
+
+// POST /vehiculo/bajas - Registrar una baja en el historial
+router.post('/bajas', verificarModulo('vehiculo/vehiculo'), controller.registrarBaja);
+
+// PUT /vehiculo/:id - Actualizar vehículo
+router.put('/:id',    verificarModulo('vehiculo/vehiculo'), controller.actualizar);
+
+// PATCH /vehiculo/:id/desactivar - Dar de baja lógica
+router.patch('/:id/desactivar', verificarModulo('vehiculo/vehiculo'), controller.desactivar);
 
 module.exports = router;

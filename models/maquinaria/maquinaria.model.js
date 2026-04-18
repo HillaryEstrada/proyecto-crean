@@ -146,7 +146,7 @@ RETURNING *`,
         [id]
     ),
 
-    // ============================================
+       // ============================================
     // Listar maquinaria dada de baja
     // ============================================
     listarBajas: () => Conexion.query(
@@ -162,26 +162,25 @@ RETURNING *`,
         WHERE m.estado_operativo = 'baja'
         ORDER BY m.pk_maquinaria ASC`
     ),
-
+ 
     // ============================================
     // Registrar baja (inserta en historial)
     // ============================================
     registrarBaja: (data) => Conexion.query(
         `INSERT INTO baja_maquinaria
-        (fk_maquinaria, tipo_baja, motivo, documento_respaldo, autorizado_por, autorizado_por_nombre, registrado_por)
-        VALUES($1, $2, $3, $4, $5, $6, $7)
+        (fk_maquinaria, tipo_baja, motivo, documento_respaldo, autorizado_por_nombre, registrado_por)
+        VALUES($1, $2, $3, $4, $5, $6)
         RETURNING *`,
         [
             data.fk_maquinaria,
             data.tipo_baja,
-            data.motivo              || null,
-            data.documento_respaldo  || null,
-            data.autorizado_por      || null,
+            data.motivo                || null,
+            data.documento_respaldo    || null,
             data.autorizado_por_nombre || null,
             data.registrado_por
         ]
     ),
-
+ 
     // ============================================
     // Listar historial de bajas registradas
     // ============================================
@@ -192,17 +191,15 @@ RETURNING *`,
             m.marca,
             m.modelo,
             m.anio,
-            te.nombre as tipo_nombre,
-            u1.username as autorizado_por_usuario,
-            u2.username as registrado_por_usuario
+            te.nombre    as tipo_nombre,
+            usr.username as registrado_por_usuario
         FROM baja_maquinaria bm
-        LEFT JOIN maquinaria m ON bm.fk_maquinaria = m.pk_maquinaria
-        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
-        LEFT JOIN users u1 ON bm.autorizado_por = u1.pk_user
-        LEFT JOIN users u2 ON bm.registrado_por = u2.pk_user
+        LEFT JOIN maquinaria  m   ON bm.fk_maquinaria = m.pk_maquinaria
+        LEFT JOIN tipo_equipo te  ON m.fk_tipo         = te.pk_tipo_equipo
+        LEFT JOIN users       usr ON bm.registrado_por  = usr.pk_user
         ORDER BY bm.fecha_baja DESC`
     ),
-
+ 
     // ============================================
     // Obtener baja por ID (pk_baja)
     // ============================================
@@ -214,15 +211,13 @@ RETURNING *`,
             m.modelo,
             m.anio,
             te.nombre as tipo_nombre,
-            u.nombre as ubicacion_nombre,
-            u1.username as autorizado_por_usuario,
-            u2.username as registrado_por_usuario
+            u.nombre  as ubicacion_nombre,
+            usr.username as registrado_por_usuario
         FROM baja_maquinaria bm
-        LEFT JOIN maquinaria m ON bm.fk_maquinaria = m.pk_maquinaria
-        LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
-        LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
-        LEFT JOIN users u1 ON bm.autorizado_por = u1.pk_user
-        LEFT JOIN users u2 ON bm.registrado_por = u2.pk_user
+        LEFT JOIN maquinaria  m   ON bm.fk_maquinaria = m.pk_maquinaria
+        LEFT JOIN tipo_equipo te  ON m.fk_tipo         = te.pk_tipo_equipo
+        LEFT JOIN ubicacion   u   ON m.fk_ubicacion    = u.pk_ubicacion
+        LEFT JOIN users       usr ON bm.registrado_por  = usr.pk_user
         WHERE bm.pk_baja = $1`,
         [id]
     ),
