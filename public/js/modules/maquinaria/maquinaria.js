@@ -214,8 +214,25 @@
         if (_wPasoActual > 1) wIrPaso(_wPasoActual - 1);
     };
 
-    window.wGuardar = async function() {
+   window.wGuardar = async function() {
         const id   = document.getElementById('w_pk_maquinaria').value;
+
+        try {
+            // Subir foto primero si hay una nueva
+            let foto_maquina = null;
+            if (_wFotoFile) {
+                const formData = new FormData();
+                formData.append('archivo', _wFotoFile);
+                const res = await fetch('/archivo/temporal', {
+                    method:  'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body:    formData
+                });
+                if (!res.ok) throw new Error('Error al subir la foto');
+                const resData = await res.json();
+                foto_maquina = resData.url;
+            }
+
         const data = {
             numero_economico:        document.getElementById('w_numero_economico').value.trim(),
             numero_inventario_seder: document.getElementById('w_numero_inventario_seder').value.trim() || null,
@@ -235,34 +252,24 @@
             fk_factura:              document.getElementById('w_fk_factura').value || null,
             fk_garantia:             document.getElementById('w_fk_garantia').value || null,
         };
-        try {
-            let maqId = id;
+
+            // Agregar foto al payload solo si se subió una nueva
+            if (foto_maquina) {
+                data.foto_maquina = foto_maquina;
+            }
+
             if (id) {
                 await fetchWithAuth(`/maquinaria/${id}`, 'PUT', data);
                 Swal.fire({ icon:'success', title:'Actualizado',
                     text:'Maquinaria actualizada exitosamente',
                     timer:2000, showConfirmButton:false });
             } else {
-                const res = await fetchWithAuth('/maquinaria', 'POST', data);
-                maqId = res.data?.pk_maquinaria;
+                await fetchWithAuth('/maquinaria', 'POST', data);
                 Swal.fire({ icon:'success', title:'Registrado',
                     text:'Maquinaria creada exitosamente',
                     timer:2000, showConfirmButton:false });
             }
-            if (_wFotoFile && maqId) {
-                try {
-                    const formData = new FormData();
-                    formData.append('archivo',     _wFotoFile);
-                    formData.append('modulo',      'maquinaria');
-                    formData.append('fk_registro', maqId);
-                    formData.append('categoria',   'foto_maquina');
-                    await fetch('/archivo', {
-                        method:  'POST',
-                        headers: { 'Authorization': `Bearer ${getToken()}` },
-                        body:    formData
-                    });
-                } catch(ef) { console.warn('Foto no subida:', ef); }
-            }
+
             cerrarWizard();
             listar();
         } catch(error) {
@@ -272,7 +279,7 @@
             Swal.fire({ icon:'error', title:'Error', text: msg });
         }
     };
-
+    
     // ─────────────────────────────────────────
     // LISTAR ACTIVOS
     // ─────────────────────────────────────────
