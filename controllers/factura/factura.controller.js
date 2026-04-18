@@ -8,20 +8,20 @@ const factura = require('../../models/factura/factura.model');
 // Crear una nueva factura
 exports.crear = async (req, res) => {
     try {
-        const resultado = await factura.crear(req.body);
+        const resultado = await factura.crear({
+            ...req.body,
+            registrado_por: req.user.id
+        });
         res.json({
             mensaje: 'Factura creada exitosamente',
             data: resultado.rows[0]
         });
     } catch (error) {
-
-        
         if (error.code === '23505') {
             return res.status(400).json({
                 error: 'El número de factura ya existe'
             });
         }
-
         res.status(500).json({ error: error.message });
     }
 };

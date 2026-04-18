@@ -8,5 +8,5 @@ const { verificarToken } = require('../../middleware/auth.middleware');
 router.use(verificarToken);
 
 router.post('/', upload.single('archivo'), controller.subirArchivo);
-
+router.post('/temporal', upload.single('archivo'), controller.subirTemporal);
 module.exports = router;

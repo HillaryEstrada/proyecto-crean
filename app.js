@@ -1,3 +1,4 @@
+process.env.TZ = 'America/Mexico_City'; // <-- primera línea
 require('dotenv').config();
 const express = require('express');
 const path = require('path');

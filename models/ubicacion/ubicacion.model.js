@@ -10,14 +10,12 @@ module.exports = {
     // Crear ubicación
     crear: (data) => Conexion.query(
         `INSERT INTO ubicacion
-        (nombre, descripcion, fk_categoria, estado, registrado_por)
-        VALUES($1, $2, $3, $4, $5)
+        (nombre, descripcion, registrado_por)
+        VALUES($1, $2, $3)
         RETURNING *`,
         [
             data.nombre,
             data.descripcion || null,
-            data.fk_categoria || null,
-            data.estado || 1,
             data.registrado_por
         ]
     ),
@@ -26,10 +24,8 @@ module.exports = {
     listar: () => Conexion.query(
         `SELECT
             u.*,
-            cu.nombre as categoria_nombre,
             us.username as registrado_por_usuario
         FROM ubicacion u
-        LEFT JOIN categoria_ubicacion cu ON u.fk_categoria = cu.pk_categoria
         LEFT JOIN users us ON u.registrado_por = us.pk_user
         WHERE u.estado = 1
         ORDER BY u.nombre ASC`
@@ -39,10 +35,8 @@ module.exports = {
     listarTodas: () => Conexion.query(
         `SELECT
             u.*,
-            cu.nombre as categoria_nombre,
             us.username as registrado_por_usuario
         FROM ubicacion u
-        LEFT JOIN categoria_ubicacion cu ON u.fk_categoria = cu.pk_categoria
         LEFT JOIN users us ON u.registrado_por = us.pk_user
         ORDER BY u.nombre ASC`
     ),
@@ -51,10 +45,8 @@ module.exports = {
     obtenerPorId: (id) => Conexion.query(
         `SELECT
             u.*,
-            cu.nombre as categoria_nombre,
             us.username as registrado_por_usuario
         FROM ubicacion u
-        LEFT JOIN categoria_ubicacion cu ON u.fk_categoria = cu.pk_categoria
         LEFT JOIN users us ON u.registrado_por = us.pk_user
         WHERE u.pk_ubicacion = $1`,
         [id]
@@ -63,14 +55,12 @@ module.exports = {
     // Actualizar ubicación
     actualizar: (id, data) => Conexion.query(
         `UPDATE ubicacion
-         SET nombre=$1, descripcion=$2, fk_categoria=$3, estado=$4
-         WHERE pk_ubicacion=$5
-         RETURNING *`,
+        SET nombre=$1, descripcion=$2
+        WHERE pk_ubicacion=$3
+        RETURNING *`,
         [
             data.nombre,
-            data.descripcion,
-            data.fk_categoria,
-            data.estado,
+            data.descripcion || null,
             id
         ]
     ),

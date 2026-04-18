@@ -9,7 +9,10 @@ const ubicacion = require('../../models/ubicacion/ubicacion.model');
 // Crear una nueva ubicación
 exports.crear = async (req, res) => {
     try {
-        const resultado = await ubicacion.crear(req.body);
+        const resultado = await ubicacion.crear({
+            ...req.body,
+            registrado_por: req.user.id  // <-- esto faltaba
+        });
         res.json({ mensaje: 'Ubicación creada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });

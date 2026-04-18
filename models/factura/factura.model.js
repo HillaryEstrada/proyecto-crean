@@ -72,16 +72,15 @@ module.exports = {
     // Actualizar factura
     actualizar: (id, data) => Conexion.query(
         `UPDATE factura
-         SET numero_factura=$1, fecha_factura=$2, costo_adquisicion=$3, pdf_factura=$4, fk_proveedor=$5, estado=$6
-         WHERE pk_factura=$7
-         RETURNING *`,
+        SET numero_factura=$1, fecha_factura=$2, costo_adquisicion=$3, pdf_factura=$4, fk_proveedor=$5
+        WHERE pk_factura=$6
+        RETURNING *`,
         [
             data.numero_factura,
             data.fecha_factura,
-            data.costo_adquisicion,
-            data.pdf_factura,
-            data.fk_proveedor,
-            data.estado,
+            data.costo_adquisicion || null,
+            data.pdf_factura || null,
+            data.fk_proveedor || null,
             id
         ]
     ),
