@@ -9,7 +9,10 @@ const garantia = require('../../models/garantia/garantia.model');
 // Crear una nueva garantía
 exports.crear = async (req, res) => {
     try {
-        const resultado = await garantia.crear(req.body);
+        const resultado = await garantia.crear({
+            ...req.body,
+            registrado_por: req.user.id
+        });
         res.json({ mensaje: 'Garantía creada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });

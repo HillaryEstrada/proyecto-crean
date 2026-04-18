@@ -1,13 +1,7 @@
-// ============================================
-// MODELO: proveedor.model.js
-// Descripción: Consultas SQL para proveedor
-// ============================================
-
 const Conexion = require('../../config/database');
 
 module.exports = {
 
-    // Crear proveedor
     crear: (data) => Conexion.query(
         `INSERT INTO proveedor
         (nombre, direccion, telefono, correo, estado, registrado_por)
@@ -23,7 +17,6 @@ module.exports = {
         ]
     ),
 
-    // Listar proveedores activos
     listar: () => Conexion.query(
         `SELECT
             p.*,
@@ -34,7 +27,6 @@ module.exports = {
         ORDER BY p.nombre ASC`
     ),
 
-    // Listar todos (activos e inactivos)
     listarTodos: () => Conexion.query(
         `SELECT
             p.*,
@@ -44,7 +36,6 @@ module.exports = {
         ORDER BY p.nombre ASC`
     ),
 
-    // Obtener por ID
     obtenerPorId: (id) => Conexion.query(
         `SELECT
             p.*,
@@ -55,34 +46,38 @@ module.exports = {
         [id]
     ),
 
-    // Actualizar proveedor
     actualizar: (id, data) => Conexion.query(
         `UPDATE proveedor
-         SET nombre=$1, direccion=$2, telefono=$3, correo=$4, estado=$5
-         WHERE pk_proveedor=$6
+         SET nombre=$1, direccion=$2, telefono=$3, correo=$4
+         WHERE pk_proveedor=$5
          RETURNING *`,
         [
             data.nombre,
-            data.direccion,
-            data.telefono,
-            data.correo,
-            data.estado,
+            data.direccion || null,
+            data.telefono || null,
+            data.correo || null,
             id
         ]
     ),
 
-    // Verificar si existe
-    existe: (id) => Conexion.query(
-        `SELECT pk_proveedor FROM proveedor
-         WHERE pk_proveedor = $1`,
+    desactivar: (id) => Conexion.query(
+        `UPDATE proveedor SET estado=0 WHERE pk_proveedor=$1 RETURNING *`,
         [id]
     ),
 
-    // Verificar si el nombre ya existe
+    reactivar: (id) => Conexion.query(
+        `UPDATE proveedor SET estado=1 WHERE pk_proveedor=$1 RETURNING *`,
+        [id]
+    ),
+
+    existe: (id) => Conexion.query(
+        `SELECT pk_proveedor FROM proveedor WHERE pk_proveedor=$1`,
+        [id]
+    ),
+
     existePorNombre: (nombre, idActual = null) => Conexion.query(
         `SELECT pk_proveedor FROM proveedor
          WHERE nombre = $1 ${idActual ? `AND pk_proveedor != $2` : ''}`,
         idActual ? [nombre, idActual] : [nombre]
     )
-
 };

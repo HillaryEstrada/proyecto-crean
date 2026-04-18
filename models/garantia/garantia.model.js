@@ -59,16 +59,15 @@ module.exports = {
     // Actualizar garantía
     actualizar: (id, data) => Conexion.query(
         `UPDATE garantia
-         SET fecha_inicio=$1, fecha_fin=$2, limite_horas=$3, limite_km=$4, garantia_pdf=$5, estado=$6
-         WHERE pk_garantia=$7
-         RETURNING *`,
+        SET fecha_inicio=$1, fecha_fin=$2, limite_horas=$3, limite_km=$4, garantia_pdf=$5
+        WHERE pk_garantia=$6
+        RETURNING *`,
         [
-            data.fecha_inicio,
-            data.fecha_fin,
-            data.limite_horas,
-            data.limite_km,
-            data.garantia_pdf,
-            data.estado,
+            data.fecha_inicio || null,
+            data.fecha_fin || null,
+            data.limite_horas || null,
+            data.limite_km || null,
+            data.garantia_pdf || null,
             id
         ]
     ),
