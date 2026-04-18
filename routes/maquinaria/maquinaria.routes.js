@@ -1,6 +1,5 @@
 // ============================================
 // RUTAS: maquinaria.routes.js
-// Descripción: Define los endpoints para el módulo de maquinaria
 // ============================================
 
 const express    = require('express');
@@ -8,49 +7,19 @@ const router     = express.Router();
 const controller = require('../../controllers/maquinaria/maquinaria.controller');
 const { verificarToken, verificarModulo } = require('../../middleware/auth.middleware');
 
-// Todas requieren autenticación
 router.use(verificarToken);
 
-// Todas requieren tener el módulo asignado
-router.use(verificarModulo('maquinaria/maquinaria'));
-
-// ============================================
-// RUTAS DE BAJAS (ANTES DE /:id para evitar conflictos)
-// ============================================
-
-// GET /maquinaria/bajas/registradas - Historial de bajas registradas
+// ── LECTURA — cualquier usuario autenticado ──
 router.get('/bajas/registradas', controller.listarBajasRegistradas);
+router.get('/bajas',             controller.listarBajas);
+router.get('/bajas/:id',         controller.obtenerBajaPorId);
+router.get('/',                  controller.listar);
+router.get('/:id',               controller.obtenerPorId);
 
-// GET /maquinaria/bajas - Listar maquinaria dada de baja
-router.get('/bajas', controller.listarBajas);
-
-// POST /maquinaria/bajas - Registrar una baja en el historial
-router.post('/bajas', controller.registrarBaja);
-
-// GET /maquinaria/bajas/:id - Obtener detalle de una baja
-router.get('/bajas/:id', controller.obtenerBajaPorId);
-
-// ============================================
-// RUTAS DE MAQUINARIA SIN PARÁMETRO
-// ============================================
-
-// GET /maquinaria - Listar todas las activas
-router.get('/', controller.listar);
-
-// POST /maquinaria - Crear nueva maquinaria
-router.post('/', controller.crear);
-
-// ============================================
-// RUTAS CON PARÁMETRO :id (AL FINAL)
-// ============================================
-
-// GET /maquinaria/:id - Obtener por ID
-router.get('/:id', controller.obtenerPorId);
-
-// PUT /maquinaria/:id - Actualizar maquinaria
-router.put('/:id', controller.actualizar);
-
-// PATCH /maquinaria/:id/desactivar - Dar de baja lógica
-router.patch('/:id/desactivar', controller.desactivar);
+// ── ESCRITURA — solo con módulo asignado ──
+router.post('/',                verificarModulo('maquinaria/maquinaria'), controller.crear);
+router.post('/bajas',           verificarModulo('maquinaria/maquinaria'), controller.registrarBaja);
+router.put('/:id',              verificarModulo('maquinaria/maquinaria'), controller.actualizar);
+router.patch('/:id/desactivar', verificarModulo('maquinaria/maquinaria'), controller.desactivar);
 
 module.exports = router;
