@@ -1,0 +1,159 @@
+<!-- ============================================
+     VISTA: factura.html
+     Descripción: Gestión de facturas
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-file-invoice me-2 fs-2"></i>Facturas
+        </h4>
+        <p class="text-muted mb-0 fs-5">Gestión de facturas de adquisición</p>
+    </div>
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+        onclick="abrirFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Registrar factura
+    </button>
+</div>
+
+<!-- ── VISTA TABLA ── -->
+<div id="vistaTabla">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchInput"
+                placeholder="Buscar por número de factura o proveedor…" oninput="filtrarTabla()">
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:50px;">#</th>
+                        <th class="py-3 px-3">N° FACTURA</th>
+                        <th class="py-3 px-3">PROVEEDOR</th>
+                        <th class="py-3 px-3 text-center">COSTO</th>
+                        <th class="py-3 px-3 text-center">FECHA FACTURA</th>
+                        <th class="py-3 px-3 text-center">PDF</th>
+                        <th class="py-3 px-3 text-center">ESTADO</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="facBody" class="bg-white">
+                    <tr>
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="info-registros-fac" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-fac" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-fac"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── VISTA FORMULARIO (oculta por defecto) ── -->
+<div id="vistaFormulario" class="d-none">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+
+        <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between"
+            style="background:#1a3c5e;">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fa-solid fa-file-invoice me-2"></i>
+                <span id="formTitulo">Registrar Factura</span>
+            </h6>
+        </div>
+
+        <div class="p-4">
+            <input type="hidden" id="f_pk_factura">
+            <input type="hidden" id="f_pdf_actual">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Número de Factura <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_numero_factura" class="form-control"
+                        placeholder="Ej: FAC-2024-001">
+                    <div class="text-danger d-none small mt-1" id="err_numero">Campo requerido</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Fecha de Factura <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" id="f_fecha_factura" class="form-control">
+                    <div class="text-danger d-none small mt-1" id="err_fecha">Campo requerido</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Costo de Adquisición
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input type="number" id="f_costo_adquisicion" class="form-control"
+                            placeholder="0.00" min="0" step="0.01">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Proveedor
+                    </label>
+                    <select id="f_fk_proveedor" class="form-select">
+                        <option value="">— Sin proveedor —</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        PDF de Factura
+                    </label>
+                    <input type="file" id="f_pdf_factura" class="form-control" accept=".pdf">
+                    <div class="mt-2 d-none" id="pdfActualContainer">
+                        <small class="text-muted">PDF actual: </small>
+                        <a id="pdfActualLink" href="#" target="_blank" class="small">
+                            <i class="fa-solid fa-file-pdf text-danger me-1"></i>Ver PDF actual
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="px-4 pb-4 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary px-4"
+                onclick="cancelarFormulario()">
+                <i class="fa-solid fa-xmark me-1"></i>Cancelar
+            </button>
+            <button type="button" class="btn text-white fw-semibold px-4"
+                style="background:#1a3c5e;" onclick="guardarFactura()">
+                <i class="fa-solid fa-floppy-disk me-1"></i>
+                <span id="btnGuardarLabel">Guardar factura</span>
+            </button>
+        </div>
+
+    </div>
+</div>

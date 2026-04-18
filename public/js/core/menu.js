@@ -22,6 +22,7 @@ const modulosJS = {
     'proveedor/proveedor':            'modules/proveedor/proveedor',
     'garantia/garantia':              'modules/garantia/garantia',
     'tipo_equipo/tipo_equipo':        'modules/tipo_equipo/tipo_equipo',
+    'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
 
     // ====== ADMINISTRACIÓN ======
         'admin/empleados':  'modules/admin/empleados',

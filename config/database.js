@@ -1,11 +1,8 @@
-
 const { Pool } = require('pg');
 require('dotenv').config();
 
 class Conexion {
     constructor() {
-
-        // Verificar que las variables de entorno estén definidas
         if (!process.env.DB_HOST || !process.env.DB_PASSWORD) {
             throw new Error('Faltan variables de entorno de base de datos. Revisa tu archivo .env');
         }
@@ -25,6 +22,10 @@ class Conexion {
         }
 
         this.pool = new Pool(config);
+
+        this.pool.on('connect', (client) => {
+            client.query("SET timezone = 'America/Mexico_City'");
+        });
     }
 
     static conectar() {
