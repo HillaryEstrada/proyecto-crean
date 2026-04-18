@@ -74,10 +74,12 @@ module.exports = {
             f.numero_factura,
             f.fecha_factura,
             f.costo_adquisicion,
+            f.pdf_factura,
             g.fecha_inicio,
             g.fecha_fin,
             g.limite_horas,
             g.limite_km,
+            g.garantia_pdf,
             usr.username as registrado_por_usuario
         FROM maquinaria m
         LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
@@ -202,7 +204,7 @@ RETURNING *`,
         LEFT JOIN users       usr ON bm.registrado_por  = usr.pk_user
         ORDER BY bm.fecha_baja DESC`
     ),
- 
+
     // ============================================
     // Obtener baja por ID (pk_baja)
     // ============================================
@@ -223,6 +225,23 @@ RETURNING *`,
         LEFT JOIN users       usr ON bm.registrado_por  = usr.pk_user
         WHERE bm.pk_baja = $1`,
         [id]
+    ),
+
+    // ============================================
+    // Actualizar baja
+    // ============================================
+    actualizarBaja: (id, data) => Conexion.query(
+        `UPDATE baja_maquinaria
+        SET tipo_baja=$1, motivo=$2, autorizado_por_nombre=$3, documento_respaldo=$4
+        WHERE pk_baja=$5
+        RETURNING *`,
+        [
+            data.tipo_baja,
+            data.motivo || null,
+            data.autorizado_por_nombre || null,
+            data.documento_respaldo || null,
+            id
+        ]
     ),
 
     // ============================================

@@ -19,6 +19,7 @@ router.get('/:id',               controller.obtenerPorId);
 // ── ESCRITURA — solo con módulo asignado ──
 router.post('/',                verificarModulo('maquinaria/maquinaria'), controller.crear);
 router.post('/bajas',           verificarModulo('maquinaria/maquinaria'), controller.registrarBaja);
+router.put('/bajas/:id', verificarModulo('maquinaria/maquinaria'), controller.actualizarBaja);
 router.put('/:id',              verificarModulo('maquinaria/maquinaria'), controller.actualizar);
 router.patch('/:id/desactivar', verificarModulo('maquinaria/maquinaria'), controller.desactivar);
 
