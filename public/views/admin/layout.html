@@ -4,195 +4,452 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema JS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <style>
+        /* ====== LAYOUT PRINCIPAL ====== */
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: #f3f4f6;
+        }
+        .layout-wrapper {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ====== SIDEBAR ====== */
+        #sidebar {
+            width: 260px;
+            min-width: 260px;
+            background-color: #1f2937;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease, min-width 0.3s ease;
+            overflow: hidden;
+        }
+        #sidebar.collapsed {
+            width: 64px;
+            min-width: 64px;
+        }
+
+        /* Header del sidebar */
+        .sidebar-header {
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #374151;
+            flex-shrink: 0;
+        }
+        .sidebar-brand {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            color: #fff;
+            white-space: nowrap;
+        }
+        #collapse-btn {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #collapse-btn:hover { background-color: #374151; }
+        #collapse-btn svg {
+            width: 24px;
+            height: 24px;
+            transition: transform 0.2s ease;
+        }
+        #collapse-btn.rotated svg { transform: rotate(180deg); }
+
+        /* Navegación */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0.75rem 0.5rem;
+        }
+        .sidebar-nav::-webkit-scrollbar { width: 4px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+        /* Enlace de inicio */
+        .nav-inicio {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            border-radius: 6px;
+            background-color: #111827;
+            color: #fff;
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+        }
+        .nav-inicio i { margin-right: 0.75rem; width: 20px; text-align: center; color: #d1d5db; }
+        .nav-inicio:hover { color: #fff; }
+
+        /* Botones de submenú */
+        .sidebar-submenu-btn {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            padding: 0.5rem 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #d1d5db;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: left;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .sidebar-submenu-btn i.menu-icon { margin-right: 0.75rem; width: 20px; text-align: center; color: #9ca3af; }
+        .sidebar-submenu-btn:hover { background-color: #374151; color: #fff; }
+        .sidebar-submenu-btn .chevron {
+            margin-left: auto;
+            font-size: 0.65rem;
+            opacity: 0.6;
+            transition: transform 0.2s ease;
+        }
+        .sidebar-submenu-btn[aria-expanded="true"] .chevron { transform: rotate(180deg); }
+
+        /* Hijos del submenú — sin línea lateral */
+        .sidebar-submenu-children { padding-left: 0.5rem; }
+        .sidebar-submenu-children a {
+            display: flex;
+            align-items: center;
+            padding: 0.45rem 0.5rem 0.45rem 1rem;
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: #9ca3af;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: background 0.15s;
+        }
+        .sidebar-submenu-children a i { margin-right: 0.65rem; width: 18px; text-align: center; color: #6b7280; }
+        .sidebar-submenu-children a:hover { background-color: #374151; color: #e5e7eb; }
+
+        /* Footer del sidebar */
+        .sidebar-footer {
+            padding: 1rem;
+            border-top: 1px solid #374151;
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #3b82f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 600;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .user-info { margin-left: 0.75rem; overflow: hidden; }
+        #displayUsername {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #fff;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #displayRole { font-size: 0.75rem; color: #9ca3af; margin: 0; }
+        .btn-logout {
+            margin-left: auto;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            color: #f87171;
+            flex-shrink: 0;
+            display: flex;
+        }
+        .btn-logout:hover { background-color: #374151; }
+
+        /* Ocultar textos al colapsar */
+        #sidebar.collapsed .sidebar-text { display: none !important; }
+        #sidebar.collapsed .sidebar-text-container { display: none !important; }
+
+        /* ====== MAIN CONTENT ====== */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header móvil */
+        .mobile-header {
+            background-color: #fff;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: none;
+        }
+        .mobile-header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .mobile-header h1 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0; }
+        #mobile-menu-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 6px;
+            color: #4b5563;
+        }
+        #mobile-menu-btn:hover { background-color: #f3f4f6; }
+
+        @media (max-width: 768px) {
+            .mobile-header { display: block; }
+            #sidebar {
+                position: fixed;
+                top: 0; left: 0;
+                height: 100vh;
+                z-index: 1000;
+                transition: transform 0.3s ease;
+            }
+            #sidebar.mobile-hidden { transform: translateX(-100%); }
+        }
+
+        /* Clase usada por construirMenu() para ocultar items sin permiso */
+        .hidden { display: none !important; }
+
+        /* Contenido dinámico */
+        #contenido { padding: 1.5rem; flex: 1; }
+        .welcome-card {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 1.5rem;
+        }
+        .welcome-card h2 { font-size: 1.5rem; font-weight: 600; color: #111827; margin-bottom: 0.5rem; }
+        .welcome-card p { color: #6b7280; margin: 0; }
+    </style>
 </head>
-<body class="bg-gray-100">
-<div class="flex h-screen">
+<body>
+<div class="layout-wrapper">
 
     <!-- ===== SIDEBAR ===== -->
-    <aside id="sidebar" class="w-64 bg-gray-800 text-white transition-all duration-300 flex flex-col">
+    <aside id="sidebar">
 
         <!-- Header -->
-        <div class="p-4 flex justify-between items-center border-b border-gray-700">
-            <div class="flex items-center">
-                <svg class="h-8 w-8 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/>
-                </svg>
-                <span class="ml-2 text-xl font-semibold sidebar-text">Sistema JS</span>
-            </div>
-            <button id="collapse-btn" class="p-1 rounded-md hover:bg-gray-700 focus:outline-none">
-                <svg class="h-6 w-6 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div class="sidebar-header">
+            <span class="sidebar-brand sidebar-text">CREAN</span>
+            <button id="collapse-btn" title="Colapsar menú">
+                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/>
                 </svg>
             </button>
         </div>
 
         <!-- Navegación -->
-        <nav class="mt-4 px-2 flex-1 overflow-y-auto">
+        <nav class="sidebar-nav">
 
-            <!-- Inicio (siempre visible) -->
-            <a href="#" data-clave="admin/inicio" onclick="cargarVista('admin/inicio')"
-               class="group flex items-center px-2 py-2 text-base font-medium rounded-md bg-gray-900 text-white mb-2">
-                <i class="fa-solid fa-house mr-3 w-5 text-center text-gray-300"></i>
+            <!-- Inicio -->
+            <a href="#" data-clave="admin/inicio" onclick="cargarVista('admin/inicio')" class="nav-inicio">
+                <i class="fa-solid fa-house"></i>
                 <span class="sidebar-text">Inicio</span>
             </a>
 
             <!-- ============================== -->
-            <!-- GRUPO: OPERACIÓN               -->
+            <!-- GRUPO: INVENTARIO DE ACTIVOS   -->
             <!-- ============================== -->
             <div class="dropdown-section">
-                <p class="sidebar-text px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Operación</p>
-
-                <!-- Maquinaria -->
-                <a href="#" data-clave="maquinaria/maquinaria" onclick="cargarVista('maquinaria/maquinaria')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-tractor mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Maquinaria</span>
-                </a>
-
-                <!-- Vehículos -->
-                <a href="#" data-clave="vehiculo/vehiculo" onclick="cargarVista('vehiculo/vehiculo')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-truck mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Vehículos</span>
-                </a>
-
-                <!-- Mantenimiento -->
-                <a href="#" data-clave="mantenimiento/mantenimiento" onclick="cargarVista('mantenimiento/mantenimiento')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-wrench mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Mantenimiento</span>
-                </a>
-
-                <!-- Reporte de Fallas -->
-                <a href="#" data-clave="falla/falla" onclick="cargarVista('falla/falla')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-exclamation-triangle mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Reporte de Fallas</span>
-                </a>
-
-                <!-- Inspección Diaria -->
-                <a href="#" data-clave="checklist/checklist" onclick="cargarVista('checklist/checklist')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-clipboard-check mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Inspección Diaria</span>
-                </a>
-
-                <!-- Alertas -->
-                <a href="#" data-clave="alertas/alertas" onclick="cargarVista('alertas/alertas')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-bell mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Alertas</span>
-                </a>
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseInventarioActivos"
+                        aria-expanded="false"
+                        aria-controls="collapseInventarioActivos">
+                    <i class="fa-solid fa-boxes-stacked menu-icon"></i>
+                    <span class="sidebar-text">Inventario de Activos</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseInventarioActivos">
+                    <a href="#" data-clave="maquinaria/maquinaria" onclick="cargarVista('maquinaria/maquinaria')">
+                        <i class="fa-solid fa-tractor"></i>
+                        <span class="sidebar-text">Maquinaria</span>
+                    </a>
+                    <a href="#" data-clave="vehiculo/vehiculo" onclick="cargarVista('vehiculo/vehiculo')">
+                        <i class="fa-solid fa-truck"></i>
+                        <span class="sidebar-text">Vehículos</span>
+                    </a>
+                </div>
             </div>
 
-            <!-- Separador -->
-            <div class="my-3 border-t border-gray-700"></div>
+            <!-- ============================== -->
+            <!-- GRUPO: CONTROL DE MANTENIMIENTOS -->
+            <!-- ============================== -->
+            <div class="dropdown-section">
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseControlMant"
+                        aria-expanded="false"
+                        aria-controls="collapseControlMant">
+                    <i class="fa-solid fa-wrench menu-icon"></i>
+                    <span class="sidebar-text">Control de Mantenimientos</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseControlMant">
+                    <a href="#" data-clave="mantenimiento/mantenimiento" onclick="cargarVista('mantenimiento/mantenimiento')">
+                        <i class="fa-solid fa-wrench"></i>
+                        <span class="sidebar-text">Mantenimiento</span>
+                    </a>
+                    <a href="#" data-clave="falla/falla" onclick="cargarVista('falla/falla')">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        <span class="sidebar-text">Reporte de Fallas</span>
+                    </a>
+                    <a href="#" data-clave="checklist/checklist" onclick="cargarVista('checklist/checklist')">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <span class="sidebar-text">Inspección Diaria</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ============================== -->
+            <!-- GRUPO: INVENTARIOS             -->
+            <!-- ============================== -->
+            <div class="dropdown-section">
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseInventarios"
+                        aria-expanded="false"
+                        aria-controls="collapseInventarios">
+                    <i class="fa-solid fa-warehouse menu-icon"></i>
+                    <span class="sidebar-text">Inventarios</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseInventarios">
+                    <a href="#" data-clave="inventario/consumibles" onclick="cargarVista('inventario/consumibles')">
+                        <i class="fa-solid fa-flask"></i>
+                        <span class="sidebar-text">Consumibles</span>
+                    </a>
+                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span class="sidebar-text">Bodega</span>
+                    </a>
+                    <a href="#" data-clave="inventario/mobiliario" onclick="cargarVista('inventario/mobiliario')">
+                        <i class="fa-solid fa-chair"></i>
+                        <span class="sidebar-text">Mobiliario</span>
+                    </a>
+                </div>
+            </div>
 
             <!-- ============================== -->
             <!-- GRUPO: CATÁLOGOS              -->
             <!-- ============================== -->
             <div class="dropdown-section">
-                <p class="sidebar-text px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Catálogos</p>
-
-                <!-- Factura -->
-                <a href="#" data-clave="factura/factura" onclick="cargarVista('factura/factura')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-file-invoice mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Factura</span>
-                </a>
-
-                <!-- Ubicación -->
-                <a href="#" data-clave="ubicacion/ubicacion" onclick="cargarVista('ubicacion/ubicacion')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-map-marker-alt mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Ubicación</span>
-                </a>
-
-                <!-- Proveedor -->
-                <a href="#" data-clave="proveedor/proveedor" onclick="cargarVista('proveedor/proveedor')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-truck-loading mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Proveedor</span>
-                </a>
-
-                <!-- Garantía -->
-                <a href="#" data-clave="garantia/garantia" onclick="cargarVista('garantia/garantia')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-shield-alt mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Garantía</span>
-                </a>
-
-                <!-- Tipo Equipo -->
-                <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="cargarVista('tipo_equipo/tipo_equipo')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-cogs mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Tipo Equipo</span>
-                </a>
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseCatalogos"
+                        aria-expanded="false"
+                        aria-controls="collapseCatalogos">
+                    <i class="fa-solid fa-book menu-icon"></i>
+                    <span class="sidebar-text">Catálogos</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseCatalogos">
+                    <a href="#" data-clave="factura/factura" onclick="cargarVista('factura/factura')">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span class="sidebar-text">Factura</span>
+                    </a>
+                    <a href="#" data-clave="ubicacion/ubicacion" onclick="cargarVista('ubicacion/ubicacion')">
+                        <i class="fa-solid fa-map-marker-alt"></i>
+                        <span class="sidebar-text">Ubicación</span>
+                    </a>
+                    <a href="#" data-clave="proveedor/proveedor" onclick="cargarVista('proveedor/proveedor')">
+                        <i class="fa-solid fa-truck-loading"></i>
+                        <span class="sidebar-text">Proveedor</span>
+                    </a>
+                    <a href="#" data-clave="garantia/garantia" onclick="cargarVista('garantia/garantia')">
+                        <i class="fa-solid fa-shield-alt"></i>
+                        <span class="sidebar-text">Garantía</span>
+                    </a>
+                    <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="cargarVista('tipo_equipo/tipo_equipo')">
+                        <i class="fa-solid fa-cogs"></i>
+                        <span class="sidebar-text">Tipo Equipo</span>
+                    </a>
+                </div>
             </div>
-
-            <!-- Separador -->
-            <div class="my-3 border-t border-gray-700"></div>
 
             <!-- ============================== -->
             <!-- GRUPO: ADMINISTRACIÓN          -->
             <!-- ============================== -->
             <div class="dropdown-section">
-                <p class="sidebar-text px-2 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Administración</p>
-
-                <!-- Empleados -->
-                <a href="#" data-clave="admin/empleados" onclick="cargarVista('admin/empleados')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-user mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Empleados</span>
-                </a>
-
-                <!-- Usuarios -->
-                <a href="#" data-clave="admin/users" onclick="cargarVista('admin/users')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-users mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Usuarios</span>
-                </a>
-
-                <!-- Módulos -->
-                <a href="#" data-clave="admin/modulos" onclick="cargarVista('admin/modulos')"
-                   class="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-                    <i class="fa-solid fa-th mr-3 w-5 text-center text-gray-400"></i>
-                    <span class="sidebar-text">Módulos</span>
-                </a>
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseAdmin"
+                        aria-expanded="false"
+                        aria-controls="collapseAdmin">
+                    <i class="fa-solid fa-user-shield menu-icon"></i>
+                    <span class="sidebar-text">Administración</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseAdmin">
+                    <a href="#" data-clave="admin/empleados" onclick="cargarVista('admin/empleados')">
+                        <i class="fa-solid fa-user"></i>
+                        <span class="sidebar-text">Empleados</span>
+                    </a>
+                    <a href="#" data-clave="admin/users" onclick="cargarVista('admin/users')">
+                        <i class="fa-solid fa-users"></i>
+                        <span class="sidebar-text">Usuarios</span>
+                    </a>
+                    <a href="#" data-clave="admin/modulos" onclick="cargarVista('admin/modulos')">
+                        <i class="fa-solid fa-th"></i>
+                        <span class="sidebar-text">Módulos</span>
+                    </a>
+                </div>
             </div>
 
         </nav>
 
         <!-- Footer: info del usuario -->
-        <div class="mt-auto p-4 border-t border-gray-700">
-            <div class="flex items-center">
-                <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
-                    <span id="userInitials">U</span>
-                </div>
-                <div class="ml-3 sidebar-text-container overflow-hidden">
-                    <p class="text-sm font-medium text-white sidebar-text truncate" id="displayUsername">Usuario</p>
-                    <p class="text-xs font-medium text-gray-400 sidebar-text" id="displayRole">Rol</p>
-                </div>
-                <button onclick="cerrarSesion()" class="ml-auto p-2 rounded-md hover:bg-gray-700 focus:outline-none flex-shrink-0 sidebar-text-container" title="Cerrar sesión">
-                    <svg class="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
-                    </svg>
-                </button>
+        <div class="sidebar-footer">
+            <div class="user-avatar">
+                <span id="userInitials">U</span>
             </div>
+            <div class="user-info sidebar-text-container">
+                <p id="displayUsername">Usuario</p>
+                <p id="displayRole">Rol</p>
+            </div>
+            <button onclick="cerrarSesion()" class="btn-logout sidebar-text-container" title="Cerrar sesión">
+                <svg style="width:20px;height:20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                </svg>
+            </button>
         </div>
     </aside>
 
     <!-- ===== MAIN CONTENT ===== -->
-    <main class="flex-1 overflow-y-auto">
+    <main class="main-content">
+
         <!-- Header móvil -->
-        <div class="bg-white shadow-sm p-4 md:hidden">
-            <div class="flex justify-between items-center">
-                <h1 class="text-xl font-semibold text-gray-900">Sistema JS</h1>
-                <button id="mobile-menu-btn" class="p-2 rounded-md text-gray-600 hover:bg-gray-100">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="mobile-header">
+            <div class="mobile-header-inner">
+                <h1>CREAN</h1>
+                <button id="mobile-menu-btn">
+                    <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                     </svg>
                 </button>
@@ -200,16 +457,17 @@
         </div>
 
         <!-- Contenido dinámico -->
-        <div id="contenido" class="p-6">
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Bienvenido al Sistema</h2>
-                <p class="text-gray-600">Selecciona una opción del menú para comenzar.</p>
+        <div id="contenido">
+            <div class="welcome-card">
+                <h2>Bienvenido al Sistema</h2>
+                <p>Selecciona una opción del menú para comenzar.</p>
             </div>
         </div>
+
     </main>
 </div>
 
-<!-- Scripts -->
+<!-- Scripts — SIN CAMBIOS en orden ni rutas -->
 <script src="/js/core/auth.js"></script>
 <script src="/js/core/menu.js"></script>
 <script src="/js/components/paginacion.js"></script>
@@ -219,15 +477,12 @@
 
 <script>
     // ====== SIDEBAR COLLAPSE ======
-    const sidebar    = document.getElementById('sidebar');
+    const sidebar     = document.getElementById('sidebar');
     const collapseBtn = document.getElementById('collapse-btn');
 
     collapseBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('w-64');
-        sidebar.classList.toggle('w-16');
-        collapseBtn.querySelector('svg').classList.toggle('rotate-180');
-        document.querySelectorAll('.sidebar-text').forEach(el => el.classList.toggle('hidden'));
-        document.querySelectorAll('.sidebar-text-container').forEach(el => el.classList.toggle('hidden'));
+        sidebar.classList.toggle('collapsed');
+        collapseBtn.classList.toggle('rotated');
     });
 
     // ====== INFO DEL USUARIO ======
@@ -264,7 +519,7 @@
     // ====== MENÚ MÓVIL ======
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+        mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-hidden'));
     }
 </script>
 </body>

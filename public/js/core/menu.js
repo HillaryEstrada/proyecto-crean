@@ -16,6 +16,11 @@ const modulosJS = {
     'checklist/checklist':            'modules/checklist/checklist',
     'alertas/alertas':                'modules/alertas/alertas',
 
+    // ====== INVENTARIOS ======
+    'inventario/consumibles':         'modules/inventario/consumibles',
+    'inventario/bodega':              'modules/inventario/bodega',
+    'inventario/mobiliario':          'modules/inventario/mobiliario',
+
     // ====== CATÁLOGOS ======
     'factura/factura':                'modules/factura/factura',
     'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
