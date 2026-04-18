@@ -11,33 +11,34 @@ module.exports = {
     // Crear maquinaria
     // ============================================
     crear: (data) => Conexion.query(
-        `INSERT INTO maquinaria 
-        (numero_economico, numero_inventario_seder, fk_tipo, descripcion, marca, modelo, anio, 
-         color, serie, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
-         fk_ubicacion, fk_factura, fk_garantia, foto_maquina, registrado_por) 
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-        RETURNING *`,
-        [
-            data.numero_economico,
-            data.numero_inventario_seder || null,
-            data.fk_tipo,
-            data.descripcion,
-            data.marca,
-            data.modelo,
-            data.anio,
-            data.color || null,
-            data.serie,
-            data.horas_actuales || 0,
-            data.combustible_litros || 0,
-            data.estado_fisico || 'bueno',
-            data.estado_operativo || 'disponible',
-            data.fk_ubicacion,
-            data.fk_factura || null,
-            data.fk_garantia || null,
-            data.foto_maquina || null,
-            data.registrado_por
-        ]
-    ),
+    `INSERT INTO maquinaria 
+    (numero_economico, numero_inventario_seder, fk_tipo, descripcion, marca, modelo, anio, 
+     color, serie, numero_motor, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
+     fk_ubicacion, fk_factura, fk_garantia, foto_maquina, registrado_por) 
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+    RETURNING *`,
+    [
+        data.numero_economico,
+        data.numero_inventario_seder || null,
+        data.fk_tipo,
+        data.descripcion,
+        data.marca,
+        data.modelo,
+        data.anio,
+        data.color || null,
+        data.serie,
+        data.numero_motor || null,      // $10
+        data.horas_actuales || 0,       // $11
+        data.combustible_litros || 0,   // $12
+        data.estado_fisico || 'bueno',  // $13
+        data.estado_operativo || 'disponible', // $14
+        data.fk_ubicacion,              // $15
+        data.fk_factura || null,        // $16
+        data.fk_garantia || null,       // $17
+        data.foto_maquina || null,      // $18
+        data.registrado_por             // $19
+    ]
+),
 
     // ============================================
     // Listar maquinaria activa (NO en baja)
@@ -91,8 +92,8 @@ module.exports = {
     // ============================================
     // Actualizar maquinaria
     // ============================================
-    actualizar: (id, data) => Conexion.query(
-        `UPDATE maquinaria 
+   actualizar: (id, data) => Conexion.query(
+    `UPDATE maquinaria 
 SET 
     numero_economico = COALESCE($1, numero_economico),
     numero_inventario_seder = COALESCE($2, numero_inventario_seder),
@@ -103,37 +104,39 @@ SET
     anio = COALESCE($7, anio),
     color = COALESCE($8, color),
     serie = COALESCE($9, serie),
-    horas_actuales = COALESCE($10, horas_actuales),
-    combustible_litros = COALESCE($11, combustible_litros),
-    estado_fisico = COALESCE($12, estado_fisico),
-    estado_operativo = COALESCE($13, estado_operativo),
-    fk_ubicacion = COALESCE($14, fk_ubicacion),
-    fk_factura = COALESCE($15, fk_factura),
-    fk_garantia = COALESCE($16, fk_garantia),
-    foto_maquina = COALESCE($17, foto_maquina)
-WHERE pk_maquinaria = $18
+    numero_motor = COALESCE($10, numero_motor),
+    horas_actuales = COALESCE($11, horas_actuales),
+    combustible_litros = COALESCE($12, combustible_litros),
+    estado_fisico = COALESCE($13, estado_fisico),
+    estado_operativo = COALESCE($14, estado_operativo),
+    fk_ubicacion = COALESCE($15, fk_ubicacion),
+    fk_factura = COALESCE($16, fk_factura),
+    fk_garantia = COALESCE($17, fk_garantia),
+    foto_maquina = COALESCE($18, foto_maquina)
+WHERE pk_maquinaria = $19
 RETURNING *`,
-        [
-            data.numero_economico,
-            data.numero_inventario_seder,
-            data.fk_tipo,
-            data.descripcion,
-            data.marca,
-            data.modelo,
-            data.anio,
-            data.color,
-            data.serie,
-            data.horas_actuales,
-            data.combustible_litros,
-            data.estado_fisico,
-            data.estado_operativo,
-            data.fk_ubicacion,
-            data.fk_factura,
-            data.fk_garantia,
-            data.foto_maquina,
-            id
-        ]
-    ),
+    [
+        data.numero_economico,
+        data.numero_inventario_seder,
+        data.fk_tipo,
+        data.descripcion,
+        data.marca,
+        data.modelo,
+        data.anio,
+        data.color,
+        data.serie,
+        data.numero_motor,        // $10
+        data.horas_actuales,      // $11
+        data.combustible_litros,  // $12
+        data.estado_fisico,       // $13
+        data.estado_operativo,    // $14
+        data.fk_ubicacion,        // $15
+        data.fk_factura,          // $16
+        data.fk_garantia,         // $17
+        data.foto_maquina,        // $18
+        id                        // $19
+    ]
+),
 
     // ============================================
     // Desactivar (Baja lógica)
