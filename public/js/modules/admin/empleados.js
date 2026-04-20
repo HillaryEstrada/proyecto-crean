@@ -193,17 +193,14 @@
         }
     };
 
-    async function subirFoto(fk_registro) {
+   async function subirFoto(fk_registro) {
         if (!_fotoFile) return;
         const formData = new FormData();
-        formData.append('archivo',     _fotoFile);
-        formData.append('modulo',      'empleado');
-        formData.append('fk_registro', fk_registro);
-        formData.append('categoria',   'foto_perfil');
-        const res  = await fetch('/archivo', {
-            method: 'POST',
+        formData.append('archivo', _fotoFile);
+        const res = await fetch('/archivo/temporal', {
+            method:  'POST',
             headers: { 'Authorization': `Bearer ${getToken()}` },
-            body: formData
+            body:    formData
         });
         const data = await res.json();
         if (data.url) {
@@ -267,11 +264,13 @@
             const tieneCuenta = e.pk_user !== null && e.pk_user !== undefined;
             const fotoHtml = e.foto_perfil
                 ? `<img src="${e.foto_perfil}"
-                       style="width:32px;height:32px;border-radius:50%;object-fit:cover;">`
+                    style="width:32px;height:32px;border-radius:50%;object-fit:cover;cursor:pointer;"
+                    onclick="verFotoGrande('${e.foto_perfil}')"
+                    title="Ver foto">`
                 : `<div style="width:32px;height:32px;border-radius:50%;background:#e2e8f0;
-                               display:flex;align-items:center;justify-content:center;
-                               font-size:11px;color:#94a3b8;">
-                       ${(e.nombre||'?').charAt(0).toUpperCase()}</div>`;
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:11px;color:#94a3b8;">
+                    ${(e.nombre||'?').charAt(0).toUpperCase()}</div>`;
             return `
             <tr>
                 <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
@@ -445,6 +444,11 @@
         } catch (error) {
             Swal.fire({ icon:'error', title:'Error', text:error.message });
         }
+    };
+
+    window.verFotoGrande = function(url) {
+        document.getElementById('fotoGrande').src = url;
+        new bootstrap.Modal(document.getElementById('modalFoto')).show();
     };
 
 })();
