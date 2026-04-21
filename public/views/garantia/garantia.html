@@ -54,6 +54,7 @@
                     <thead class="text-white text-center" style="background-color:#1a3c5e;">
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">FOLIO</th>
                             <th class="py-3 px-3">FECHA INICIO</th>
                             <th class="py-3 px-3">FECHA FIN</th>
                             <th class="py-3 px-3 text-center">LÍMITE HORAS</th>
@@ -97,6 +98,7 @@
                     <thead class="text-white text-center" style="background-color:#1a3c5e;">
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">FOLIO</th>
                             <th class="py-3 px-3">FECHA INICIO</th>
                             <th class="py-3 px-3">FECHA FIN</th>
                             <th class="py-3 px-3 text-center">LÍMITE HORAS</th>
@@ -149,6 +151,15 @@
             <input type="hidden" id="f_pdf_actual">
 
             <div class="row g-3">
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Folio <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_folio" class="form-control"
+                        placeholder="Ej: GAR-2024-001">
+                    <div class="text-danger d-none small mt-1" id="err_folio">Campo requerido</div>
+                </div>
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">

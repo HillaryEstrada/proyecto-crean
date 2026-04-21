@@ -66,8 +66,15 @@
             data.forEach(g => {
                 const opt = document.createElement('option');
                 opt.value = g.pk_garantia;
-                opt.textContent = `Garantía #${g.pk_garantia} — ${g.fecha_inicio ? g.fecha_inicio.split('T')[0] : ''}`;
+                opt.textContent = `${g.folio || 'Garantía #'+g.pk_garantia} — ${g.fecha_inicio ? g.fecha_inicio.split('T')[0] : ''}`;
                 sel.appendChild(opt);
+            });
+            // Activar Select2
+            $('#w_fk_garantia').select2({
+                placeholder: 'Buscar garantía...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#modalWizard')
             });
         } catch(e) { console.error('Error garantías:', e); }
     }
@@ -637,6 +644,7 @@
                     <div class="col-md-6">
                         <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA</p>
                         <p class="mb-0">
+                            ${m.garantia_folio ? `<span class="fw-semibold">${m.garantia_folio}</span> — ` : ''}
                             ${m.fecha_inicio.split('T')[0]}
                             ${m.fecha_fin ? ' → '+m.fecha_fin.split('T')[0] : ''}
                             ${m.garantia_pdf
