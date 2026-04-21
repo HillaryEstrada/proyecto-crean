@@ -9,16 +9,17 @@ module.exports = {
 
     // Listar todos los empleados activos con info de cuenta
     listar: () => Conexion.query(
-        `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
-                e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
-                e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
-                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
-                u.pk_user, u.username
-        FROM empleado e
-        LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
-        WHERE (e.estado = 'activo' OR e.estado IS NULL)
-        ORDER BY e.nombre ASC`
-    ),
+    `SELECT DISTINCT ON (e.pk_empleado)
+            e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
+            e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
+            e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
+            CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
+            u.pk_user, u.username, u.estado as estado_user
+    FROM empleado e
+    LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
+    WHERE (e.estado = 'activo' OR e.estado IS NULL)
+    ORDER BY e.pk_empleado, u.estado DESC NULLS LAST`
+),
 
     // Obtener empleado por ID con info de cuenta
     obtenerPorId: (id) => Conexion.query(
@@ -26,7 +27,7 @@ module.exports = {
                 e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion,
                 e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
-                u.pk_user, u.username
+                u.pk_user, u.username, u.estado as estado_user
          FROM empleado e
          LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
          WHERE e.pk_empleado = $1`,

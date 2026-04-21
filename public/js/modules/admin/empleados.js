@@ -262,7 +262,7 @@
         if (footer) footer.textContent =
             `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
         tabla.innerHTML = data.map((e, i) => {
-            const tieneCuenta = e.pk_user !== null && e.pk_user !== undefined;
+            const tieneCuenta = e.pk_user !== null && e.pk_user !== undefined && e.estado_user == 1;
             const fotoHtml = e.foto_perfil
                 ? `<img src="${e.foto_perfil}"
                     style="width:32px;height:32px;border-radius:50%;object-fit:cover;cursor:pointer;"
@@ -400,7 +400,7 @@
 
         // Aplicar estado de cuenta usando setTimeout para
         // ejecutarse DESPUÉS de cualquier otro código que pueda interferir
-        const tieneCuenta = emp.pk_user !== null && emp.pk_user !== undefined;
+        const tieneCuenta = emp.pk_user !== null && emp.pk_user !== undefined && emp.estado_user == 1;
 
         setTimeout(() => {
             const avisoCuenta     = document.getElementById('avisoCuentaExistente');

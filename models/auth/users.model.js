@@ -70,10 +70,10 @@ module.exports = {
 
     // Verificar si un username ya existe
     existeUsername: (username, excludeId = null) => {
-        const query = excludeId
-            ? 'SELECT pk_user FROM users WHERE username=$1 AND pk_user != $2'
-            : 'SELECT pk_user FROM users WHERE username=$1';
-        const params = excludeId ? [username, excludeId] : [username];
-        return Conexion.query(query, params);
-    }
+    const query = excludeId
+        ? 'SELECT pk_user FROM users WHERE username=$1 AND pk_user != $2 AND estado = 1'
+        : 'SELECT pk_user FROM users WHERE username=$1 AND estado = 1';
+    const params = excludeId ? [username, excludeId] : [username];
+    return Conexion.query(query, params);
+},
 };
