@@ -9,7 +9,7 @@
     esperarElemento('empBody', async () => {
         await cargarRolesSelect();
         listar();
-    });
+     }, 20, 'admin/empleados');
 
     async function cargarRolesSelect() {
         try {

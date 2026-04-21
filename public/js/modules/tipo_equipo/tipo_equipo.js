@@ -6,8 +6,7 @@
 
     esperarElemento('teBody', async () => {
         listar();
-    });
-
+    }, 20, 'tipo_equipo/tipo_equipo');
     // ============================================
     // LISTAR ACTIVOS
     // ============================================

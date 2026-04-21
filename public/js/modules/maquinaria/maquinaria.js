@@ -15,7 +15,7 @@
             cargarGarantias()
         ]);
         listar();
-    });
+        }, 20, 'maquinaria/maquinaria');
 
     // ─────────────────────────────────────────
     // CARGAR CATÁLOGOS

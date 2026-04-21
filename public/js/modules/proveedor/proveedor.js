@@ -5,7 +5,7 @@
 
     esperarElemento('provBody', async () => {
         listar();
-    });
+    }, 20, 'proveedor/proveedor');
 
     // ============================================
     // LISTAR ACTIVOS

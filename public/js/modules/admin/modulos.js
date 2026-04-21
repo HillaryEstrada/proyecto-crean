@@ -36,7 +36,7 @@ function filtrarSeccion() {
     // ── Inicializar ──────────────────────────────
     esperarElemento('roles-container', async () => {
         await cargarRoles();
-    });
+    }, 20, 'admin/modulos');
 
     // ── Cargar roles en los pills ────────────────
     async function cargarRoles() {

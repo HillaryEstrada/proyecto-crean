@@ -11,7 +11,7 @@
         await cargarRolesSelect();
         await cargarEmpleadosSelect();
         listar();
-    });
+   }, 20, 'admin/users');
 
     // ── Cargar roles ─────────────────────────────
     async function cargarRolesSelect() {
