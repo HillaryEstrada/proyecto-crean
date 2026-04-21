@@ -233,6 +233,24 @@
 
     window.wGuardar = async function() {
         const id   = document.getElementById('w_pk_vehiculo').value;
+
+        // ── NUEVO: subir foto a Cloudinary antes del POST/PUT ──
+        let foto_vehiculo = null;
+        if (_wFotoFile) {
+            try {
+                const formData = new FormData();
+                formData.append('archivo', _wFotoFile);
+                const resF = await fetch('/archivo/temporal', {
+                    method:  'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body:    formData
+                });
+                const dataF = await resF.json();
+                if (dataF.url) foto_vehiculo = dataF.url;
+            } catch(ef) { console.warn('Foto no subida:', ef); }
+        }
+        // ──────────────────────────────────────────────────────
+
         const data = {
             numero_economico:      document.getElementById('w_numero_economico').value.trim(),
             numero_inventario_gob: document.getElementById('w_numero_inventario_gob').value.trim() || null,
@@ -252,34 +270,21 @@
             gasolina_litros:       document.getElementById('w_gasolina_litros').value    || 0,
             fk_factura:            document.getElementById('w_fk_factura').value  || null,
             fk_garantia:           document.getElementById('w_fk_garantia').value || null,
+            // ── NUEVO: incluir URL en el body ──
+            ...(foto_vehiculo && { foto_vehiculo }),
+            // ──────────────────────────────────
         };
         try {
-            let vehId = id;
             if (id) {
                 await fetchWithAuth(`/vehiculo/${id}`, 'PUT', data);
                 Swal.fire({ icon:'success', title:'Actualizado',
                     text:'Vehículo actualizado exitosamente',
                     timer:2000, showConfirmButton:false });
             } else {
-                const res = await fetchWithAuth('/vehiculo', 'POST', data);
-                vehId = res.data?.pk_vehiculo;
+                await fetchWithAuth('/vehiculo', 'POST', data);
                 Swal.fire({ icon:'success', title:'Registrado',
                     text:'Vehículo creado exitosamente',
                     timer:2000, showConfirmButton:false });
-            }
-            if (_wFotoFile && vehId) {
-                try {
-                    const formData = new FormData();
-                    formData.append('archivo',     _wFotoFile);
-                    formData.append('modulo',      'vehiculo');
-                    formData.append('fk_registro', vehId);
-                    formData.append('categoria',   'foto_vehiculo');
-                    await fetch('/archivo', {
-                        method:  'POST',
-                        headers: { 'Authorization': `Bearer ${getToken()}` },
-                        body:    formData
-                    });
-                } catch(ef) { console.warn('Foto no subida:', ef); }
             }
             cerrarWizard();
             listar();
@@ -523,116 +528,139 @@
         initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'bajas' });
     }
 
-    // ─────────────────────────────────────────
-    // VER DETALLE
-    // ─────────────────────────────────────────
-    window.verDetalle = async function(id) {
-        document.getElementById('detalleTitle').textContent = 'Cargando…';
+   // ─────────────────────────────────────────
+// VER DETALLE
+// ─────────────────────────────────────────
+window.verDetalle = async function(id) {
+    document.getElementById('detalleTitle').textContent = 'Cargando…';
+    document.getElementById('detalleBody').innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
+        </div>`;
+    new bootstrap.Modal(document.getElementById('modalDetalle')).show();
+    try {
+        const v = await fetchWithAuth(`/vehiculo/${id}`);
+        document.getElementById('detalleTitle').textContent =
+            `${v.numero_economico} — ${v.tipo_nombre||''}`;
         document.getElementById('detalleBody').innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
+            ${v.foto_vehiculo ? `
+            <div class="text-center mb-3">
+                <a href="${v.foto_vehiculo}" target="_blank" title="Ver foto completa">
+                    <img src="${v.foto_vehiculo}"
+                        style="width:90px;height:90px;border-radius:50%;object-fit:cover;
+                            border:3px solid #1a3c5e;cursor:pointer;
+                            transition:opacity .2s;"
+                        onmouseover="this.style.opacity='.8'"
+                        onmouseout="this.style.opacity='1'">
+                </a>
+            </div>` : ''}
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">N° ECONÓMICO</p>
+                    <p class="fw-bold mb-0" style="font-family:monospace;color:#1a3c5e;">
+                        ${v.numero_economico||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">N° INVENTARIO GOB</p>
+                    <p class="mb-0">${v.numero_inventario_gob||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">TIPO</p>
+                    <p class="mb-0">${v.tipo_nombre||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">MARCA</p>
+                    <p class="mb-0">${v.marca||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">MODELO</p>
+                    <p class="mb-0">${v.modelo||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">AÑO</p>
+                    <p class="mb-0">${v.anio||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">COLOR</p>
+                    <p class="mb-0">${v.color||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">VIN</p>
+                    <p class="mb-0" style="font-family:monospace;">${v.vin||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">PLACAS</p>
+                    <p class="mb-0">${v.placas||'—'}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="text-muted mb-1" style="font-size:11px;">UBICACIÓN</p>
+                    <p class="mb-0">${v.ubicacion_nombre||'—'}</p>
+                </div>
+                <div class="col-md-3">
+                    <p class="text-muted mb-1" style="font-size:11px;">KILOMETRAJE</p>
+                    <p class="mb-0">${v.kilometraje_actual ?? '—'} km</p>
+                </div>
+                <div class="col-md-3">
+                    <p class="text-muted mb-1" style="font-size:11px;">GASOLINA (L)</p>
+                    <p class="mb-0">${v.gasolina_litros ?? '—'}</p>
+                </div>
+                <div class="col-md-3">
+                    <p class="text-muted mb-1" style="font-size:11px;">ESTADO FÍSICO</p>
+                    <p class="mb-0">${badgeFisico(v.estado_fisico)}</p>
+                </div>
+                <div class="col-md-3">
+                    <p class="text-muted mb-1" style="font-size:11px;">ESTADO OPERATIVO</p>
+                    <p class="mb-0">${badgeOperativo(v.estado_operativo)}</p>
+                </div>
+               ${v.numero_factura ? `
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:11px;">FACTURA</p>
+                    <p class="mb-0">${v.numero_factura}
+                        ${v.fecha_factura
+                            ? ` — ${new Date(v.fecha_factura).toLocaleDateString('es-MX')}`
+                            : ''}
+                        ${v.costo_adquisicion
+                            ? ` — $${parseFloat(v.costo_adquisicion).toLocaleString('es-MX')}`
+                            : ''}
+                        ${v.pdf_factura
+                            ? `<a href="${v.pdf_factura}" target="_blank" class="ms-2 btn btn-sm btn-outline-danger py-0">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                               </a>`
+                            : ''}
+                    </p>
+                </div>` : ''}
+                ${v.fecha_inicio ? `
+                <div class="col-md-6">
+                    <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA</p>
+                    <p class="mb-0">
+                        ${v.garantia_folio ? `<span class="fw-semibold">${v.garantia_folio}</span> — ` : ''}
+                        ${v.fecha_inicio.split('T')[0]}
+                        ${v.fecha_fin ? ' → '+v.fecha_fin.split('T')[0] : ''}
+                        ${v.garantia_pdf
+                            ? `<a href="${v.garantia_pdf}" target="_blank" class="ms-2 btn btn-sm btn-outline-danger py-0">
+                                <i class="fa-solid fa-file-pdf"></i> PDF
+                               </a>`
+                            : ''}
+                    </p>
+                </div>` : ''}
+                <div class="col-12">
+                    <p class="text-muted mb-1" style="font-size:11px;">REGISTRADO POR</p>
+                    <p class="mb-0">${v.registrado_por_usuario||'—'}
+                        <span class="text-muted ms-2" style="font-size:11px;">
+                            ${v.fecha_registro
+                                ? new Date(v.fecha_registro).toLocaleDateString('es-MX') : ''}
+                        </span>
+                    </p>
+                </div>
             </div>`;
-        new bootstrap.Modal(document.getElementById('modalDetalle')).show();
-        try {
-            const v = await fetchWithAuth(`/vehiculo/${id}`);
-            document.getElementById('detalleTitle').textContent =
-                `${v.numero_economico} — ${v.tipo_nombre||''}`;
-            document.getElementById('detalleBody').innerHTML = `
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">N° ECONÓMICO</p>
-                        <p class="fw-bold mb-0" style="font-family:monospace;color:#1a3c5e;">
-                            ${v.numero_economico||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">N° INVENTARIO GOB</p>
-                        <p class="mb-0">${v.numero_inventario_gob||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">TIPO</p>
-                        <p class="mb-0">${v.tipo_nombre||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">MARCA</p>
-                        <p class="mb-0">${v.marca||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">MODELO</p>
-                        <p class="mb-0">${v.modelo||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">AÑO</p>
-                        <p class="mb-0">${v.anio||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">COLOR</p>
-                        <p class="mb-0">${v.color||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">VIN</p>
-                        <p class="mb-0" style="font-family:monospace;font-size:12px;">${v.vin||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">PLACAS</p>
-                        <p class="mb-0">${v.placas||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">UBICACIÓN</p>
-                        <p class="mb-0">${v.ubicacion_nombre||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">KILOMETRAJE</p>
-                        <p class="mb-0">${v.kilometraje_actual ?? '—'} km</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">GASOLINA (L)</p>
-                        <p class="mb-0">${v.gasolina_litros ?? '—'}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="text-muted mb-1" style="font-size:11px;">ESTADO FÍSICO</p>
-                        <p class="mb-0">${badgeFisico(v.estado_fisico)}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="text-muted mb-1" style="font-size:11px;">ESTADO OPERATIVO</p>
-                        <p class="mb-0">${badgeOperativo(v.estado_operativo)}</p>
-                    </div>
-                    ${v.numero_factura ? `
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1" style="font-size:11px;">FACTURA</p>
-                        <p class="mb-0">${v.numero_factura}
-                            ${v.fecha_factura
-                                ? ` — ${new Date(v.fecha_factura).toLocaleDateString('es-MX')}`
-                                : ''}
-                            ${v.costo_adquisicion
-                                ? ` — $${parseFloat(v.costo_adquisicion).toLocaleString('es-MX')}`
-                                : ''}</p>
-                    </div>` : ''}
-                    ${v.fecha_inicio ? `
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA</p>
-                        <p class="mb-0">
-                            ${v.fecha_inicio.split('T')[0]}
-                            ${v.fecha_fin ? ' → '+v.fecha_fin.split('T')[0] : ''}
-                        </p>
-                    </div>` : ''}
-                    <div class="col-12">
-                        <p class="text-muted mb-1" style="font-size:11px;">REGISTRADO POR</p>
-                        <p class="mb-0">${v.registrado_por_usuario||'—'}
-                            <span class="text-muted ms-2" style="font-size:11px;">
-                                ${v.fecha_registro
-                                    ? new Date(v.fecha_registro).toLocaleDateString('es-MX') : ''}
-                            </span>
-                        </p>
-                    </div>
-                </div>`;
-        } catch(e) {
-            document.getElementById('detalleBody').innerHTML = `
-                <div class="text-center text-danger py-4">
-                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                    Error al cargar el detalle
-                </div>`;
-        }
-    };
+    } catch(e) {
+        document.getElementById('detalleBody').innerHTML = `
+            <div class="text-center text-danger py-4">
+                <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                Error al cargar el detalle
+            </div>`;
+    }
+};
 
     // ─────────────────────────────────────────
     // BAJA

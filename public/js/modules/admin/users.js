@@ -166,7 +166,7 @@
         try {
             const data = await fetchWithAuth('/users');
             _registros = data;
-            renderTabla(data);
+            renderTabla(data.filter(u => u.estado == 1)); // ← filtrar solo activos
         } catch (e) {
             console.error('Error al listar usuarios:', e);
         }
@@ -186,11 +186,12 @@
                     </td>
                 </tr>`;
             if (footer) footer.textContent = 'Sin registros';
+            initPaginacion({ tbodyId: 'usersBody', filasPorPagina: 10, sufijo: 'usr' }); // ← AGREGAR
             return;
         }
 
         if (footer) footer.textContent =
-            `Mostrando ${data.length} de ${_registros.length} registros`;
+             `Mostrando ${data.length} de ${_registros.filter(u => u.estado == 1).length} registros`;
 
         tabla.innerHTML = data.map((u, i) => `
             <tr>
@@ -214,11 +215,6 @@
                         ${u.rol_nombre}
                     </span>
                 </td>
-                <td class="px-3 text-center">
-                    ${u.estado == 1
-                        ? '<span class="badge bg-success">Activo</span>'
-                        : '<span class="badge bg-secondary">Inactivo</span>'}
-                </td>
                 <td class="px-3 text-muted" style="font-size:12px;">
                     ${u.ultimo_acceso
                         ? new Date(u.ultimo_acceso).toLocaleString('es-MX')
@@ -236,17 +232,68 @@
                 </td>
             </tr>
         `).join('');
+             const badgeA = document.getElementById('badgeActivos');
+        const badgeD = document.getElementById('badgeDesactivados');
+        if (badgeA) badgeA.textContent = _registros.filter(u => u.estado == 1).length;
+        if (badgeD) badgeD.textContent = _registros.filter(u => u.estado == 0).length;
+        initPaginacion({ tbodyId: 'usersBody', filasPorPagina: 10, sufijo: 'usr' });
     }
 
     // ── Filtrar tabla ────────────────────────────
     window.filtrarTabla = function () {
-        const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        const filtrado = _registros.filter(u =>
-            `${u.username} ${u.rol_nombre}`.toLowerCase().includes(q)
-        );
-        renderTabla(filtrado);
+    const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const filtrado = _registros
+        .filter(u => u.estado == 1) // ← AGREGAR esta línea
+        .filter(u => `${u.username} ${u.rol_nombre}`.toLowerCase().includes(q));
+    renderTabla(filtrado);
     };
 
+  window.filtrarBajas = function () {
+        const q = (document.getElementById('searchInputBajas')?.value || '').toLowerCase();
+        const cuerpo = document.getElementById('usersBodyDesactivados');
+        const footer = document.getElementById('footerInfoDesactivados');
+        const data = _registros
+            .filter(u => u.estado == 0)
+            .filter(u => `${u.username} ${u.rol_nombre}`.toLowerCase().includes(q));
+
+        if (!data.length) {
+            cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                No se encontraron resultados</td></tr>`;
+            if (footer) footer.textContent = 'Sin registros';
+            initPaginacion({ tbodyId: 'usersBodyDesactivados', filasPorPagina: 10, sufijo: 'usrd' });
+            return;
+        }
+        if (footer) footer.textContent = `Mostrando ${data.length} registros`;
+        cuerpo.innerHTML = data.map((u, i) => `
+            <tr>
+                <td class="px-3 text-muted" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#94a3b8;
+                                    display:flex;align-items:center;justify-content:center;
+                                    color:#fff;font-size:11px;font-weight:600;flex-shrink:0;">
+                            ${u.username.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span style="font-size:13px;font-weight:500;">${u.username}</span>
+                    </div>
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">${u.nombre_completo || '—'}</td>
+                <td class="px-3">
+                    <span class="badge fw-normal" style="background:#e8f0fe;color:#1a3c5e;font-size:12px;">
+                        ${u.rol_nombre}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;">
+                    ${u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString('es-MX') : 'Nunca'}
+                </td>
+                <td class="px-3 text-center">
+                    <span class="badge bg-secondary" style="font-size:11px;">Inactivo</span>
+                </td>
+            </tr>`).join('');
+        initPaginacion({ tbodyId: 'usersBodyDesactivados', filasPorPagina: 10, sufijo: 'usrd' });
+    };
+    
     // ── Submit formulario ────────────────────────
     const form = document.getElementById('formUser');
     if (form) {
@@ -367,6 +414,64 @@
             Swal.fire({ icon: 'error', title: 'Error', text: error.message });
         }
     };
+
+    // ── Switch tabs ──────────────────────────────
+    window.switchTabUsers = function(tab) {
+        const va = document.getElementById('vistaActivos');
+        const vd = document.getElementById('vistaDesactivados');
+        const ta = document.getElementById('tabActivos');
+        const td = document.getElementById('tabDesactivados');
+        if (tab === 'activos') {
+            va.classList.remove('d-none'); vd.classList.add('d-none');
+            ta.classList.add('active');    td.classList.remove('active');
+        } else {
+            va.classList.add('d-none');    vd.classList.remove('d-none');
+            ta.classList.remove('active'); td.classList.add('active');
+            renderDesactivados();
+        }
+    };
+
+    function renderDesactivados() {
+        const cuerpo = document.getElementById('usersBodyDesactivados');
+        const footer = document.getElementById('footerInfoDesactivados');
+        const data   = _registros.filter(u => u.estado == 0);
+        if (!data.length) {
+            cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+                <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                No hay usuarios desactivados</td></tr>`;
+            if (footer) footer.textContent = 'Sin registros';
+            initPaginacion({ tbodyId: 'usersBodyDesactivados', filasPorPagina: 10, sufijo: 'usrd' });
+            return;
+        }
+        if (footer) footer.textContent = `Mostrando ${data.length} registros`;
+        cuerpo.innerHTML = data.map((u, i) => `
+            <tr>
+                <td class="px-3 text-muted" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="width:32px;height:32px;border-radius:50%;background:#94a3b8;
+                                    display:flex;align-items:center;justify-content:center;
+                                    color:#fff;font-size:11px;font-weight:600;flex-shrink:0;">
+                            ${u.username.substring(0, 2).toUpperCase()}
+                        </div>
+                        <span style="font-size:13px;font-weight:500;">${u.username}</span>
+                    </div>
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">${u.nombre_completo || '—'}</td>
+                <td class="px-3">
+                    <span class="badge fw-normal" style="background:#e8f0fe;color:#1a3c5e;font-size:12px;">
+                        ${u.rol_nombre}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;">
+                    ${u.ultimo_acceso ? new Date(u.ultimo_acceso).toLocaleString('es-MX') : 'Nunca'}
+                </td>
+                <td class="px-3 text-center">
+                    <span class="badge bg-secondary" style="font-size:11px;">Inactivo</span>
+                </td>
+            </tr>`).join('');
+        initPaginacion({ tbodyId: 'usersBodyDesactivados', filasPorPagina: 10, sufijo: 'usrd' });
+    }
 
 })();
 

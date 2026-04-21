@@ -12,9 +12,6 @@
         </h4>
         <p class="text-muted mb-0 fs-5">Gestión de cuentas y accesos del sistema</p>
     </div>
-    <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
-        <i class="fa-solid fa-plus me-1"></i>Nuevo usuario
-    </button>
 </div>
 
 <!-- ── FORMULARIO ── -->
@@ -121,51 +118,116 @@
 <!-- ── TABLA ── -->
 <div id="contenedorTabla">
 
+    <ul class="nav nav-tabs mb-3">
+        <li class="nav-item">
+            <button class="nav-link active d-flex align-items-center gap-2"
+                id="tabActivos" onclick="switchTabUsers('activos')">
+                <i class="fa-solid fa-user-check"></i>
+                Activos
+            </button>
+        </li>
+        <li class="nav-item">
+            <button class="nav-link d-flex align-items-center gap-2"
+                id="tabDesactivados" onclick="switchTabUsers('desactivados')">
+                <i class="fa-solid fa-ban"></i>
+                Bajas
+            </button>
+        </li>
+    </ul>
+
+    <!-- Vista Activos -->
+    <div id="vistaActivos">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute; left:10px; top:50%; transform:translateY(-50%);
+                           font-size:12px; pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInput"
+                    placeholder="Buscar por username o rol…" oninput="filtrarTabla()">
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px; font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">USERNAME</th>
+                            <th class="py-3 px-3">EMPLEADO</th>
+                            <th class="py-3 px-3">ROL</th>
+                            <th class="py-3 px-3">ÚLTIMO ACCESO</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBody" class="bg-white"></tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="footerInfo" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-usr" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-usr"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vista Desactivados -->
+    <div id="vistaDesactivados" class="d-none">
+        <!-- ← AGREGAR ESTO -->
     <div class="d-flex gap-2 mb-3 flex-wrap">
         <div class="flex-grow-1 position-relative" style="min-width:200px;">
             <i class="fa-solid fa-magnifying-glass text-muted"
                 style="position:absolute; left:10px; top:50%; transform:translateY(-50%);
                        font-size:12px; pointer-events:none;"></i>
-            <input type="text" class="form-control ps-4" id="searchInput"
-                placeholder="Buscar por username o rol…" oninput="filtrarTabla()">
+            <input type="text" class="form-control ps-4" id="searchInputBajas"
+                placeholder="Buscar por username o rol…" oninput="filtrarBajas()">
         </div>
     </div>
-
-    <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 table-bordered">
-                <thead class="text-white text-center" style="background-color:#1a3c5e;">
-                    <tr style="font-size:12px; font-weight:600;">
-                        <th class="py-3 px-3" style="width:50px;">#</th>
-                        <th class="py-3 px-3">USERNAME</th>
-                        <th class="py-3 px-3">EMPLEADO</th>
-                        <th class="py-3 px-3">ROL</th>
-                        <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
-                        <th class="py-3 px-3">ÚLTIMO ACCESO</th>
-                        <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody id="usersBody" class="bg-white"></tbody>
-            </table>
-        </div>
-
-        <!-- Footer: info + paginación -->
-        <div class="px-3 pt-3 pb-3 bg-light border-top">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
-                <div id="footerInfo" class="small text-muted"></div>
-                <div class="d-flex align-items-center gap-2">
-                    <button id="btn-primero-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
-                    <button id="btn-anterior-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
-                    <span id="pagina-info-usr" class="small text-muted">Página 1 de 1</span>
-                    <input type="number" id="pagina-input-usr"
-                        class="form-control form-control-sm text-center"
-                        style="width:60px;" min="1" value="1">
-                    <button id="btn-siguiente-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
-                    <button id="btn-ultimo-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+    
+        <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px; font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">USERNAME</th>
+                            <th class="py-3 px-3">EMPLEADO</th>
+                            <th class="py-3 px-3">ROL</th>
+                            <th class="py-3 px-3">ÚLTIMO ACCESO</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersBodyDesactivados" class="bg-white"></tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="footerInfoDesactivados" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-usrd" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-usrd" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-usrd" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-usrd"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-usrd" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-usrd" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+
 </div>
 
 <!-- ── MODAL DESACTIVAR ── -->
