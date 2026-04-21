@@ -7,10 +7,10 @@
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-users me-2"></i>Empleados
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-users me-2 fs-2"></i>Empleados
         </h4>
-        <p class="text-muted small mb-0">Gestión del personal del sistema</p>
+        <p class="text-muted mb-0 fs-5">Gestión del personal del sistema</p>
     </div>
     <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
         <i class="fa-solid fa-plus me-1"></i>Registrar empleado
@@ -49,7 +49,7 @@
 
             <!-- ══ PASO 1 ══ -->
             <div id="paso1">
-                <input type="hidden" id="pk_empleado"> 
+                <input type="hidden" id="pk_empleado">
                 <!-- Foto + numero + fecha ingreso -->
                 <div class="d-flex align-items-start gap-3 mb-3">
                     <div>
@@ -270,7 +270,6 @@
                 id="tabActivos" onclick="switchTab('activos')">
                 <i class="fa-solid fa-user-check"></i>
                 Activos
-                <span class="badge rounded-pill" style="background:#1a3c5e;" id="badgeActivos">0</span>
             </button>
         </li>
         <li class="nav-item">
@@ -278,11 +277,11 @@
                 id="tabBajas" onclick="switchTab('bajas')">
                 <i class="fa-solid fa-user-slash"></i>
                 Bajas
-                <span class="badge bg-secondary rounded-pill" id="badgeBajas">0</span>
             </button>
         </li>
     </ul>
 
+    <!-- ── Vista Activos ── -->
     <div id="vistaActivos">
         <div class="d-flex gap-2 mb-3 flex-wrap">
             <div class="flex-grow-1 position-relative" style="min-width:200px;">
@@ -296,44 +295,76 @@
 
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">FOTO</th>
                             <th class="py-3 px-3">N° EMP</th>
                             <th class="py-3 px-3">NOMBRE COMPLETO</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
                             <th class="py-3 px-3 text-center">CUENTA</th>
-                            <th class="py-3 px-3 text-center">ACCIONES</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                         </tr>
                     </thead>
-                    <tbody id="empBody"></tbody>
+                    <tbody id="empBody" class="bg-white"></tbody>
                 </table>
             </div>
-            <div class="px-3 py-2 bg-light border-top">
-                <small class="text-muted" id="footerInfo">Cargando…</small>
+
+            <!-- Footer: info + paginación -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="footerInfo" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-emp" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-emp" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-emp" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-emp"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-emp" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-emp" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- ── Vista Bajas ── -->
     <div id="vistaBajas" class="d-none">
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead style="background:#1a3c5e;">
-                        <tr class="text-white" style="font-size:11.5px;font-weight:600;letter-spacing:.3px;">
-                            <th class="py-3 px-3">#</th>
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">N° EMP</th>
                             <th class="py-3 px-3">NOMBRE COMPLETO</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
-                            <th class="py-3 px-3 text-center">ESTADO</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
                         </tr>
                     </thead>
-                    <tbody id="bajasBody"></tbody>
+                    <tbody id="bajasBody" class="bg-white"></tbody>
                 </table>
+            </div>
+
+            <!-- Footer bajas -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="footerInfoBajas" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-baj" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-baj" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-baj" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-baj"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-baj" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-baj" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

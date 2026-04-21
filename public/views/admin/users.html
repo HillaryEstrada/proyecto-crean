@@ -7,10 +7,10 @@
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
-        <h4 class="fw-bold mb-1" style="color:#1a3c5e;">
-            <i class="fa-solid fa-users me-2"></i>Usuarios
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-users me-2 fs-2"></i>Usuarios
         </h4>
-        <p class="text-muted small mb-0">Gestión de cuentas y accesos del sistema</p>
+        <p class="text-muted mb-0 fs-5">Gestión de cuentas y accesos del sistema</p>
     </div>
     <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="mostrarFormulario()">
         <i class="fa-solid fa-plus me-1"></i>Nuevo usuario
@@ -133,23 +133,37 @@
 
     <div class="card border-0 shadow-sm" style="border-radius:12px; overflow:hidden;">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead style="background:#1a3c5e;">
-                    <tr class="text-white" style="font-size:11.5px; font-weight:600; letter-spacing:.3px;">
-                        <th class="py-3 px-3">#</th>
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px; font-weight:600;">
+                        <th class="py-3 px-3" style="width:50px;">#</th>
                         <th class="py-3 px-3">USERNAME</th>
                         <th class="py-3 px-3">EMPLEADO</th>
                         <th class="py-3 px-3">ROL</th>
-                        <th class="py-3 px-3 text-center">ESTADO</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
                         <th class="py-3 px-3">ÚLTIMO ACCESO</th>
-                        <th class="py-3 px-3 text-center">ACCIONES</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                     </tr>
                 </thead>
-                <tbody id="usersBody"></tbody>
+                <tbody id="usersBody" class="bg-white"></tbody>
             </table>
         </div>
-        <div class="px-3 py-2 bg-light border-top">
-            <small class="text-muted" id="footerInfo">Cargando…</small>
+
+        <!-- Footer: info + paginación -->
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="footerInfo" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-usr" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-usr"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-usr" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
