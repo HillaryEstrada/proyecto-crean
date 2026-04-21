@@ -14,7 +14,7 @@
             cargarGarantias()
         ]);
         listar();
-    });
+    }, 20, 'vehiculo/vehiculo');
 
     // ─────────────────────────────────────────
     // CARGAR CATÁLOGOS

@@ -5,7 +5,7 @@
     esperarElemento('facBody', async () => {
         await cargarProveedores();
         listar();
-    });
+    }, 20, 'factura/factura');
 
     // ============================================
     // CARGAR PROVEEDORES PARA SELECT

@@ -3,7 +3,7 @@
 
     esperarElemento('ubBody', async () => {
         listar();
-    });
+    }, 20, 'ubicacion/ubicacion');
 
     // ============================================
     // LISTAR

@@ -39,7 +39,10 @@ const modulosJS = {
 // UTILIDAD: Esperar a que un elemento exista en el DOM
 // Definida en window para ser accesible desde módulos dinámicos
 // ============================================
-window.esperarElemento = function(id, callback, intentos = 20) {
+window.esperarElemento = function(id, callback, intentos = 20, moduloOrigen) {
+    // Si ya cambió de módulo, cancelar
+    if (moduloOrigen && window._moduloActivo !== moduloOrigen) return;
+
     if (document.getElementById(id)) {
         callback();
         return;
@@ -48,9 +51,8 @@ window.esperarElemento = function(id, callback, intentos = 20) {
         console.warn(`Elemento #${id} no encontrado`);
         return;
     }
-    setTimeout(() => window.esperarElemento(id, callback, intentos - 1), 100);
+    setTimeout(() => window.esperarElemento(id, callback, intentos - 1, moduloOrigen), 100);
 };
-
 // ============================================
 // OBTENER MÓDULOS PERMITIDOS DEL USUARIO
 // ============================================
@@ -155,6 +157,8 @@ async function cargarVista(vista) {
 
         // ====== LIMPIAR SCRIPTS ANTERIORES ======
         document.querySelectorAll('script[data-modulo]').forEach(s => s.remove());
+
+        window._moduloActivo = vista;
 
         // ====== CARGAR JS DEL MÓDULO ======
         const moduloRuta = modulosJS[vista];

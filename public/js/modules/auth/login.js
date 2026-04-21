@@ -68,6 +68,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Guardar datos del usuario
                 localStorage.setItem('user', JSON.stringify(data.user));
 
+                localStorage.removeItem('vista');
+
                 // Mostrar mensaje de éxito
                 mostrarMensaje(`¡Bienvenido ${data.user.nombre}!`, 'success');
 

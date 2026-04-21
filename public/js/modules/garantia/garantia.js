@@ -5,7 +5,7 @@
 
     esperarElemento('garBody', async () => {
         listar();
-    });
+    }, 20, 'garantia/garantia');
 
     // ============================================
     // LISTAR ACTIVOS
