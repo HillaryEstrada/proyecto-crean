@@ -256,6 +256,7 @@
                     <i class="fa-solid fa-users fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay empleados registrados</td></tr>`;
             if (footer) footer.textContent = 'Sin registros';
+             initPaginacion({ tbodyId: 'empBody', filasPorPagina: 10, sufijo: 'emp' });
             return;
         }
         if (footer) footer.textContent =
@@ -300,6 +301,7 @@
                 </td>
             </tr>`;
         }).join('');
+        initPaginacion({ tbodyId: 'empBody', filasPorPagina: 10, sufijo: 'emp' });
     }
 
     window.filtrarTabla = function() {
@@ -337,6 +339,7 @@
                 cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-user-slash fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay empleados dados de baja</td></tr>`;
+                    initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
                 return;
             }
             cuerpo.innerHTML = data.map((e,i) => `
@@ -348,6 +351,7 @@
                     <td class="px-3 text-muted" style="font-size:13px;">${e.correo||'—'}</td>
                     <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
                 </tr>`).join('');
+                initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
         } catch(e) { console.error('Error bajas:', e); }
     }
 
@@ -451,6 +455,12 @@
         new bootstrap.Modal(document.getElementById('modalFoto')).show();
     };
 
+    window._resetearVariablesEmpleado = function() {
+        _fotoFile       = null;
+        _empleadoCreado = null;
+        _modoEdicion    = false;
+    };
+
 })();
 
 // ── UI Global ─────────────────────────────────
@@ -510,8 +520,21 @@ window.mostrarFormulario = function() {
     const form = document.getElementById('formEmpleado');
     if (form) form.reset();
 
+    document.getElementById('pk_empleado').value       = '';
+    document.getElementById('numero_empleado').value   = '';
+    document.getElementById('nombre').value            = '';
+    document.getElementById('apellido_paterno').value  = '';
+    document.getElementById('apellido_materno').value  = '';
+    document.getElementById('sexo').value              = '';
+    document.getElementById('fecha_nacimiento').value  = '';
+    document.getElementById('telefono').value          = '';
+    document.getElementById('correo').value            = '';
+    document.getElementById('direccion').value         = '';
+    document.getElementById('fecha_ingreso').value     = '';
+
     window._fotoFile       = null;
     window._empleadoCreado = null;
+    window._modoEdicion    = false;
 };
 
 window.mostrarTabla = function() {
