@@ -10,11 +10,12 @@ module.exports = {
     // Crear garantía
     crear: (data) => Conexion.query(
         `INSERT INTO garantia
-        (fecha_inicio, fecha_fin, limite_horas, limite_km, garantia_pdf, estado, registrado_por)
-        VALUES($1, $2, $3, $4, $5, $6, $7)
+        (folio, fecha_inicio, fecha_fin, limite_horas, limite_km, garantia_pdf, estado, registrado_por)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *`,
         [
-            data.fecha_inicio,
+            data.folio,
+            data.fecha_inicio || null,
             data.fecha_fin || null,
             data.limite_horas || null,
             data.limite_km || null,
@@ -59,10 +60,11 @@ module.exports = {
     // Actualizar garantía
     actualizar: (id, data) => Conexion.query(
         `UPDATE garantia
-        SET fecha_inicio=$1, fecha_fin=$2, limite_horas=$3, limite_km=$4, garantia_pdf=$5
-        WHERE pk_garantia=$6
+        SET folio=$1, fecha_inicio=$2, fecha_fin=$3, limite_horas=$4, limite_km=$5, garantia_pdf=$6
+        WHERE pk_garantia=$7
         RETURNING *`,
         [
+            data.folio,
             data.fecha_inicio || null,
             data.fecha_fin || null,
             data.limite_horas || null,

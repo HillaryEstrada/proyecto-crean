@@ -33,7 +33,7 @@
 
         if (!data.length) {
             tabla.innerHTML = `
-                <tr><td colspan="9" class="text-center py-5 text-muted">
+                <tr><td colspan="10" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-shield-halved fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay garantías registradas
                 </td></tr>`;
@@ -47,6 +47,7 @@
         tabla.innerHTML = data.map((g, i) => `
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${g.folio || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">
                     ${g.fecha_inicio ? new Date(g.fecha_inicio).toLocaleDateString('es-MX') : '—'}
                 </td>
@@ -78,7 +79,7 @@
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" title="Desactivar"
-                        onclick="abrirDesactivar(${g.pk_garantia}, '${g.fecha_inicio ? g.fecha_inicio.slice(0,10) : 'Sin fecha'}')">
+                        onclick="abrirDesactivar(${g.pk_garantia}, '${g.folio || 'Sin folio'}')">
                         <i class="fa-solid fa-ban" style="font-size:11px;"></i>
                     </button>
                 </td>
@@ -93,7 +94,7 @@
     window.filtrarTabla = function () {
         const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
         renderTabla(_registrosActivos.filter(g => {
-            const txt = `${g.fecha_inicio || ''} ${g.fecha_fin || ''} ${g.registrado_por_usuario || ''}`.toLowerCase();
+            const txt = `${g.folio || ''} ${g.fecha_inicio || ''} ${g.fecha_fin || ''} ${g.registrado_por_usuario || ''}`.toLowerCase();
             return !q || txt.includes(q);
         }));
     };
@@ -124,7 +125,7 @@
         const info   = document.getElementById('info-registros-gar-inactivos');
         if (!cuerpo) return;
         cuerpo.innerHTML = `
-            <tr><td colspan="8" class="text-center py-4 text-muted">
+            <tr><td colspan="9" class="text-center py-4 text-muted">
                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
             </td></tr>`;
         try {
@@ -133,7 +134,7 @@
 
             if (!_registrosInactivos.length) {
                 cuerpo.innerHTML = `
-                    <tr><td colspan="8" class="text-center py-5 text-muted">
+                    <tr><td colspan="9" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                         No hay garantías inactivas
                     </td></tr>`;
@@ -147,6 +148,7 @@
             cuerpo.innerHTML = _registrosInactivos.map((g, i) => `
                 <tr>
                     <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                    <td class="px-3 text-muted" style="font-size:13px;">${g.folio || '—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">
                         ${g.fecha_inicio ? new Date(g.fecha_inicio).toLocaleDateString('es-MX') : '—'}
                     </td>
@@ -187,6 +189,7 @@
     // ============================================
     window.abrirFormulario = function () {
         document.getElementById('f_pk_garantia').value        = '';
+        document.getElementById('f_folio').value              = '';
         document.getElementById('f_pdf_actual').value         = '';
         document.getElementById('f_fecha_inicio').value       = '';
         document.getElementById('f_fecha_fin').value          = '';
@@ -199,7 +202,7 @@
 
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
-        document.getElementById('f_fecha_inicio').focus();
+        document.getElementById('f_folio').focus();
     };
 
     // ============================================
@@ -210,13 +213,14 @@
         if (!g) return;
 
         document.getElementById('f_pk_garantia').value        = g.pk_garantia;
+        document.getElementById('f_folio').value              = g.folio || '';
         document.getElementById('f_pdf_actual').value         = g.garantia_pdf || '';
         document.getElementById('f_fecha_inicio').value       = g.fecha_inicio ? g.fecha_inicio.slice(0, 10) : '';
         document.getElementById('f_fecha_fin').value          = g.fecha_fin ? g.fecha_fin.slice(0, 10) : '';
         document.getElementById('f_limite_horas').value       = g.limite_horas || '';
         document.getElementById('f_limite_km').value          = g.limite_km || '';
         document.getElementById('f_garantia_pdf').value       = '';
-        document.getElementById('formTitulo').textContent     = `Editando garantía #${g.pk_garantia}`;
+        document.getElementById('formTitulo').textContent     = `Editando: ${g.folio || 'garantía #'+g.pk_garantia}`;
         document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
 
         const pdfContainer = document.getElementById('pdfActualContainer');
@@ -230,6 +234,7 @@
 
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
+        document.getElementById('f_folio').focus();
     };
 
     // ============================================
@@ -239,6 +244,7 @@
         document.getElementById('vistaFormulario').classList.add('d-none');
         document.getElementById('vistaTabla').classList.remove('d-none');
         document.getElementById('f_pk_garantia').value  = '';
+        document.getElementById('f_folio').value        = '';
         document.getElementById('f_pdf_actual').value   = '';
         document.getElementById('f_fecha_inicio').value = '';
         document.getElementById('f_fecha_fin').value    = '';
@@ -268,13 +274,21 @@
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
     window.guardarGarantia = async function () {
-        const id          = document.getElementById('f_pk_garantia').value;
+        const id           = document.getElementById('f_pk_garantia').value;
+        const folio        = document.getElementById('f_folio').value.trim();
         const fecha_inicio = document.getElementById('f_fecha_inicio').value;
-        const fecha_fin   = document.getElementById('f_fecha_fin').value;
+        const fecha_fin    = document.getElementById('f_fecha_fin').value;
         const limite_horas = document.getElementById('f_limite_horas').value;
-        const limite_km   = document.getElementById('f_limite_km').value;
-        const archivoPDF  = document.getElementById('f_garantia_pdf').files[0];
-        const pdfActual   = document.getElementById('f_pdf_actual').value;
+        const limite_km    = document.getElementById('f_limite_km').value;
+        const archivoPDF   = document.getElementById('f_garantia_pdf').files[0];
+        const pdfActual    = document.getElementById('f_pdf_actual').value;
+
+        if (!folio) {
+            document.getElementById('err_folio').classList.remove('d-none');
+            document.getElementById('f_folio').focus();
+            return;
+        }
+        document.getElementById('err_folio').classList.add('d-none');
 
         try {
             let garantia_pdf = pdfActual || null;
@@ -283,6 +297,7 @@
             }
 
             const payload = {
+                folio,
                 fecha_inicio:  fecha_inicio  || null,
                 fecha_fin:     fecha_fin     || null,
                 limite_horas:  limite_horas  || null,
@@ -314,7 +329,7 @@
     // ============================================
     window.abrirDesactivar = function (id, label) {
         _idParaDesactivar = id;
-        document.getElementById('desactivarNombre').textContent = `Garantía desde: ${label}`;
+        document.getElementById('desactivarNombre').textContent = `Garantía: ${label}`;
         new bootstrap.Modal(document.getElementById('modalDesactivar')).show();
     };
 

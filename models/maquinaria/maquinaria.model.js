@@ -75,6 +75,7 @@ module.exports = {
             f.fecha_factura,
             f.costo_adquisicion,
             f.pdf_factura,
+            g.folio as garantia_folio,
             g.fecha_inicio,
             g.fecha_fin,
             g.limite_horas,
