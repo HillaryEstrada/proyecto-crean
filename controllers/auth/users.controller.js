@@ -25,11 +25,11 @@ exports.crear = async (req, res) => {
         }
 
         const usernameExiste = await User.existeUsername(username);
-        if (usernameExiste.rows.length > 0) {
-            return res.status(400).json({ 
-                error: 'El nombre de usuario ya está en uso' 
-            });
-        }
+    if (usernameExiste.rows.length > 0) {
+        return res.status(400).json({ 
+            error: 'El nombre de usuario ya está en uso' 
+        });
+    }
 
         const passwordHash = await bcrypt.hash(password, config.bcrypt.saltRounds);
 
