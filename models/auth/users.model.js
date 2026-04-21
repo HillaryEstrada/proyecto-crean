@@ -22,8 +22,7 @@ module.exports = {
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo
          FROM users u 
          INNER JOIN roles r ON u.fk_rol = r.pk_rol
-         INNER JOIN empleado e ON u.fk_empleado = e.pk_empleado
-         WHERE u.estado = 1 
+         INNER JOIN empleado e ON u.fk_empleado = e.pk_empleado 
          ORDER BY u.pk_user ASC`
     ),
 
