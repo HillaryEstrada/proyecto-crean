@@ -104,8 +104,8 @@
             const el = document.getElementById(id);
             if (el) el.value = '';
         });
-        document.getElementById('w_horas_actuales').value     = 0;
-        document.getElementById('w_combustible_litros').value = 0;
+        document.getElementById('w_horas_actuales').value     = '';
+        document.getElementById('w_combustible_litros').value = '';
         document.getElementById('w_estado_fisico').value      = 'bueno';
         document.getElementById('w_estado_operativo').value   = 'disponible';
         document.getElementById('w_fk_tipo').value            = '';

@@ -33,7 +33,7 @@
 
         if (!data.length) {
             tabla.innerHTML = `
-                <tr><td colspan="6" class="text-center py-5 text-muted">
+                <tr><td colspan="5" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-tags fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay tipos de equipo registrados
                 </td></tr>`;
@@ -62,9 +62,6 @@
                         ? new Date(t.fecha_registro).toLocaleDateString('es-MX')
                         : '—'}
                 </td>
-                <td class="px-3 text-center">
-                    <span class="badge bg-success" style="font-size:11px;">Activo</span>
-                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarTipo(${t.pk_tipo_equipo})">
@@ -91,24 +88,65 @@
         }));
     };
 
-    // ============================================
-    // SWITCH TABS
-    // ============================================
-    window.switchTab = function(tab) {
-        const va = document.getElementById('vistaActivos');
-        const vi = document.getElementById('vistaInactivos');
-        const ta = document.getElementById('tabActivos');
-        const ti = document.getElementById('tabInactivos');
-        if (tab === 'activos') {
-            va.classList.remove('d-none'); vi.classList.add('d-none');
-            ta.classList.add('active');    ti.classList.remove('active');
-        } else {
-            va.classList.add('d-none');    vi.classList.remove('d-none');
-            ta.classList.remove('active'); ti.classList.add('active');
-            listarInactivos();
-        }
-    };
+        // ============================================
+        // SWITCH TABS
+        // ============================================
+        window.switchTab = function(tab) {
+            const va = document.getElementById('vistaActivos');
+            const vi = document.getElementById('vistaInactivos');
+            const ta = document.getElementById('tabActivos');
+            const ti = document.getElementById('tabInactivos');
+            if (tab === 'activos') {
+                va.classList.remove('d-none'); vi.classList.add('d-none');
+                ta.classList.add('active');    ti.classList.remove('active');
+            } else {
+                va.classList.add('d-none');    vi.classList.remove('d-none');
+                ta.classList.remove('active'); ti.classList.add('active');
+                listarInactivos();
+            }
+        };
 
+        // ============================================
+        // FILTRAR TABLA INACTIVOS
+        // ============================================
+        window.filtrarTablaInactivos = function() {
+            const q = (document.getElementById('searchInputInactivos')?.value || '').toLowerCase();
+            const cuerpo = document.getElementById('teBodyInactivos');
+            const info   = document.getElementById('info-registros-te-inactivos');
+            const filtrados = _registrosInactivos.filter(t => {
+                const txt = `${t.nombre} ${t.registrado_por_usuario || ''}`.toLowerCase();
+                return !q || txt.includes(q);
+            });
+
+            if (info) info.textContent = `Mostrando ${filtrados.length} de ${_registrosInactivos.length} registros`;
+
+            cuerpo.innerHTML = filtrados.map((t, i) => `
+                <tr>
+                    <td class="px-3 text-muted text-center" style="font-size:12px;">${i+1}</td>
+                    <td class="px-3">
+                        <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                            ${t.nombre||'—'}
+                        </span>
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:13px;">
+                        ${t.registrado_por_usuario||'—'}
+                    </td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                        ${t.fecha_registro
+                            ? (() => { const s = String(t.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; })()
+                            : '—'}
+                    </td>
+                    <td class="px-3 text-center" style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                            onclick="reactivarTipo(${t.pk_tipo_equipo}, '${(t.nombre||'').replace(/'/g,"\\'")}')">
+                            <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                            Reactivar
+                        </button>
+                    </td>
+                </tr>`).join('');
+
+            initPaginacion({ tbodyId: 'teBodyInactivos', filasPorPagina: 10, sufijo: 'te-inactivos' });
+        };
     // ============================================
     // LISTAR INACTIVOS
     // ============================================

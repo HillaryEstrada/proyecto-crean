@@ -304,6 +304,10 @@
                             <th class="py-3 px-3">NOMBRE COMPLETO</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
+                            <th class="py-3 px-3 text-center">SEXO</th>
+                            <th class="py-3 px-3 text-center">EDAD</th>
+                            <th class="py-3 px-3">DIRECCIÓN</th>
+                             <th class="py-3 px-3 text-center">F. INGRESO</th>
                             <th class="py-3 px-3 text-center">CUENTA</th>
                             <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                         </tr>
@@ -333,17 +337,30 @@
 
     <!-- ── Vista Bajas ── -->
     <div id="vistaBajas" class="d-none">
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                    <i class="fa-solid fa-magnifying-glass text-muted"
+                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                            font-size:12px;pointer-events:none;"></i>
+                    <input type="text" class="form-control ps-4" id="searchInputBajas"
+                        placeholder="Buscar por nombre, número, correo…" oninput="filtrarTablaBajas()">
+                </div>
+            </div>
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 table-bordered">
                     <thead class="text-white text-center" style="background-color:#1a3c5e;">
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:50px;">#</th>
-                            <th class="py-3 px-3">N° EMP</th>
-                            <th class="py-3 px-3">NOMBRE COMPLETO</th>
-                            <th class="py-3 px-3">TELÉFONO</th>
-                            <th class="py-3 px-3">CORREO</th>
-                            <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
+                                <th class="py-3 px-3">N° EMP</th>
+                                <th class="py-3 px-3">NOMBRE COMPLETO</th>
+                                <th class="py-3 px-3">TELÉFONO</th>
+                                <th class="py-3 px-3">CORREO</th>
+                                <th class="py-3 px-3 text-center">SEXO</th>
+                                <th class="py-3 px-3 text-center">EDAD</th>
+                                <th class="py-3 px-3">DIRECCIÓN</th>
+                                <th class="py-3 px-3 text-center">F. INGRESO</th>
+                                <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
                         </tr>
                     </thead>
                     <tbody id="bajasBody" class="bg-white"></tbody>

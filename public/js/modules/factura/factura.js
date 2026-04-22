@@ -79,9 +79,14 @@
                         : '—'}
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
-                    ${f.fecha_factura
-                        ? new Date(f.fecha_factura).toLocaleDateString('es-MX')
-                        : '—'}
+                  ${f.fecha_factura
+                    ? (() => {
+                        // Tomar solo la parte de fecha YYYY-MM-DD sin importar el formato
+                        const soloFecha = String(f.fecha_factura).slice(0, 10);
+                        const [y, m, d] = soloFecha.split('-');
+                        return `${d}/${m}/${y}`;
+                    })()
+                    : '—'}
                 </td>
                 <td class="px-3 text-center" style="font-size:12px;">
                     ${f.pdf_factura
