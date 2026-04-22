@@ -1,6 +1,7 @@
 (function () {
     // quitar flag de inicialización
     let _registrosActivos = [];
+    let _registrosBajas = [];
     let _idBaja           = null;
     let _empleadoCreado   = null;
     let _fotoFile         = null;
@@ -283,6 +284,31 @@
                     ${e.nombre} ${e.apellido_paterno} ${e.apellido_materno||''}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.telefono||'—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.correo||'—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                ${e.sexo
+                    ? e.sexo.charAt(0).toUpperCase() + e.sexo.slice(1)
+                    : '—'}
+            </td>
+            <td class="px-3 text-center text-muted" style="font-size:13px;">
+                ${e.fecha_nacimiento
+                    ? (() => {
+                        const [y, m, d] = String(e.fecha_nacimiento).slice(0,10).split('-');
+                        const hoy = new Date();
+                        let edad = hoy.getFullYear() - parseInt(y);
+                        if (hoy.getMonth()+1 < parseInt(m) ||
+                        (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
+                        return edad + ' años';
+                    })()
+                    : '—'}
+            </td>
+             <td class="px-3 text-muted" style="font-size:13px;">
+                ${e.direccion || '—'}
+            </td>
+            <td class="px-3 text-center text-muted" style="font-size:13px;">
+                ${e.fecha_ingreso
+                    ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })()
+                    : '—'}
+            </td>
                 <td class="px-3 text-center">
                     ${tieneCuenta
                         ? `<span class="badge bg-success" style="font-size:11px;">
@@ -326,17 +352,19 @@
         }
     };
 
+
     async function listarBajas() {
         const cuerpo = document.getElementById('bajasBody');
         if (!cuerpo) return;
-        cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">
+        cuerpo.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">
             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
         try {
             const data  = await fetchWithAuth('/empleados/bajas');
+            _registrosBajas = Array.isArray(data) ? data : [];
             const badge = document.getElementById('badgeBajas');
             if (badge) badge.textContent = data.length;
             if (!data.length) {
-                cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-5 text-muted">
+                cuerpo.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-user-slash fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay empleados dados de baja</td></tr>`;
                     initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
@@ -349,8 +377,29 @@
                     <td class="px-3" style="font-size:13px;">${e.nombre} ${e.apellido_paterno} ${e.apellido_materno||''}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${e.telefono||'—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${e.correo||'—'}</td>
-                    <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
-                </tr>`).join('');
+                    <td class="px-3 text-center text-muted" style="font-size:13px;">
+            ${e.sexo ? e.sexo.charAt(0).toUpperCase() + e.sexo.slice(1) : '—'}
+        </td>
+        <td class="px-3 text-center text-muted" style="font-size:13px;">
+            ${e.fecha_nacimiento
+                ? (() => {
+                    const [y,m,d] = String(e.fecha_nacimiento).slice(0,10).split('-');
+                    const hoy = new Date();
+                    let edad = hoy.getFullYear() - parseInt(y);
+                    if (hoy.getMonth()+1 < parseInt(m) ||
+                       (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
+                    return edad + ' años';
+                  })()
+                : '—'}
+        </td>
+        <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
+        <td class="px-3 text-center text-muted" style="font-size:13px;">
+            ${e.fecha_ingreso
+                ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })()
+                : '—'}
+        </td>
+        <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
+    </tr>`).join('');
                 initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
         } catch(e) { console.error('Error bajas:', e); }
     }
@@ -461,6 +510,42 @@
         _modoEdicion    = false;
     };
 
+        window.filtrarTablaBajas = function() {
+        const q = (document.getElementById('searchInputBajas')?.value || '').toLowerCase();
+        const filtrados = _registrosBajas.filter(e =>
+            `${e.numero_empleado} ${e.nombre} ${e.apellido_paterno} ${e.correo||''}`.toLowerCase().includes(q)
+        );
+        const cuerpo = document.getElementById('bajasBody');
+        const info   = document.getElementById('footerInfoBajas');
+        if (info) info.textContent = `Mostrando ${filtrados.length} de ${_registrosBajas.length} registros`;
+        cuerpo.innerHTML = filtrados.map((e, i) => `
+            <tr>
+                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+                <td class="px-3"><span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">${e.numero_empleado||'—'}</span></td>
+                <td class="px-3" style="font-size:13px;">${e.nombre} ${e.apellido_paterno} ${e.apellido_materno||''}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.telefono||'—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.correo||'—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${e.sexo ? e.sexo.charAt(0).toUpperCase() + e.sexo.slice(1) : '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${e.fecha_nacimiento ? (() => {
+                        const [y,m,d] = String(e.fecha_nacimiento).slice(0,10).split('-');
+                        const hoy = new Date();
+                        let edad = hoy.getFullYear() - parseInt(y);
+                        if (hoy.getMonth()+1 < parseInt(m) ||
+                        (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
+                        return edad + ' años';
+                    })() : '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${e.fecha_ingreso ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })() : '—'}
+                </td>
+                <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
+            </tr>`).join('');
+        initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
+    };
 })();
 
 // ── UI Global ─────────────────────────────────
