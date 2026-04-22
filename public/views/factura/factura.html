@@ -1,9 +1,7 @@
 <!-- ============================================
      VISTA: factura.html
-     Descripción: Gestión de facturas
      ============================================ -->
 
-<!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
@@ -11,8 +9,7 @@
         </h4>
         <p class="text-muted mb-0 fs-5">Gestión de facturas de adquisición</p>
     </div>
-    <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
-        onclick="abrirFormulario()">
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;" onclick="abrirFormulario()">
         <i class="fa-solid fa-plus me-1"></i>Registrar factura
     </button>
 </div>
@@ -25,8 +22,13 @@
                 style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
                        font-size:12px;pointer-events:none;"></i>
             <input type="text" class="form-control ps-4" id="searchInput"
-                placeholder="Buscar por número de factura o proveedor…" oninput="filtrarTabla()">
+                placeholder="Buscar por número, proveedor, marca o modelo…" oninput="filtrarTabla()">
         </div>
+        <select class="form-select" style="width:auto;" id="filtroTipoActivo" onchange="filtrarTabla()">
+            <option value="">Todos los tipos</option>
+            <option value="maquinaria">Maquinaria</option>
+            <option value="vehiculo">Vehículo</option>
+        </select>
     </div>
 
     <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
@@ -34,19 +36,21 @@
             <table class="table table-hover align-middle mb-0 table-bordered">
                 <thead class="text-white text-center" style="background-color:#1a3c5e;">
                     <tr style="font-size:12px;font-weight:600;">
-                        <th class="py-3 px-3" style="width:50px;">#</th>
+                        <th class="py-3 px-3" style="width:40px;">#</th>
                         <th class="py-3 px-3">N° FACTURA</th>
                         <th class="py-3 px-3">PROVEEDOR</th>
-                        <th class="py-3 px-3 text-center">COSTO</th>
-                        <th class="py-3 px-3 text-center">FECHA FACTURA</th>
+                        <th class="py-3 px-3">TIPO ACTIVO</th>
+                        <th class="py-3 px-3">MODELO</th>
+                        <th class="py-3 px-3 text-center">VALOR FACTURA</th>
+                        <th class="py-3 px-3 text-center">FECHA</th>
+                        <th class="py-3 px-3 text-center">GARANTÍA</th>
                         <th class="py-3 px-3 text-center">PDF</th>
-                        <th class="py-3 px-3 text-center">ESTADO</th>
-                        <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
+                        <th class="py-3 px-3 text-center" style="width:80px;">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody id="facBody" class="bg-white">
                     <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
+                        <td colspan="10" class="text-center py-4 text-muted">
                             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                         </td>
                     </tr>
@@ -61,8 +65,7 @@
                     <button id="btn-primero-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
                     <button id="btn-anterior-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
                     <span id="pagina-info-fac" class="small text-muted">Página 1 de 1</span>
-                    <input type="number" id="pagina-input-fac"
-                        class="form-control form-control-sm text-center"
+                    <input type="number" id="pagina-input-fac" class="form-control form-control-sm text-center"
                         style="width:60px;" min="1" value="1">
                     <button id="btn-siguiente-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
                     <button id="btn-ultimo-fac" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
@@ -72,7 +75,7 @@
     </div>
 </div>
 
-<!-- ── VISTA FORMULARIO (oculta por defecto) ── -->
+<!-- ── VISTA FORMULARIO ── -->
 <div id="vistaFormulario" class="d-none">
     <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
 
@@ -88,14 +91,18 @@
             <input type="hidden" id="f_pk_factura">
             <input type="hidden" id="f_pdf_actual">
 
-            <div class="row g-3">
+            <!-- SECCIÓN: Datos generales -->
+            <p class="fw-semibold mb-3"
+                style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                <i class="fa-solid fa-receipt me-1"></i>Datos de la factura
+            </p>
 
+            <div class="row g-3 mb-4">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Número de Factura <span class="text-danger">*</span>
                     </label>
-                    <input type="text" id="f_numero_factura" class="form-control"
-                        placeholder="Ej: FAC-2024-001">
+                    <input type="text" id="f_numero_factura" class="form-control" placeholder="Ej: FAC-2024-001">
                     <div class="text-danger d-none small mt-1" id="err_numero">Campo requerido</div>
                 </div>
 
@@ -109,7 +116,7 @@
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Costo de Adquisición
+                        Valor de Adquisición
                     </label>
                     <div class="input-group">
                         <span class="input-group-text">$</span>
@@ -139,13 +146,103 @@
                         </a>
                     </div>
                 </div>
-
             </div>
+
+            <hr class="my-3">
+
+            <!-- SECCIÓN: Tipo de activo -->
+            <p class="fw-semibold mb-3"
+                style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                <i class="fa-solid fa-tractor me-1"></i>Activo asociado
+            </p>
+
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo de Activo <span class="text-danger">*</span>
+                    </label>
+                    <select id="f_tipo_activo" class="form-select" onchange="onTipoActivoChange()">
+                        <option value="">Seleccionar…</option>
+                        <option value="maquinaria">Maquinaria</option>
+                        <option value="vehiculo">Vehículo</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_tipo_activo">Campo requerido</div>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Modelo de referencia
+                    </label>
+                    <input type="text" id="f_modelo_referencia" class="form-control"
+                        placeholder="Ej: 5075E">
+                </div>
+            </div>
+
+            <hr class="my-3">
+
+            <!-- SECCIÓN: Garantía (dinámica) -->
+            <div id="seccionGarantia" class="d-none">
+                <p class="fw-semibold mb-3"
+                    style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                    <i class="fa-solid fa-shield-halved me-1"></i>Garantía
+                    <span class="text-muted fw-normal" style="text-transform:none;letter-spacing:0;">
+                        (lo que ocurra primero)
+                    </span>
+                </p>
+
+                <div class="p-3 rounded-3 mb-3" style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                    <p style="font-size:12px;color:#0369a1;margin:0;">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Al menos una condición es obligatoria. La garantía vence cuando se cumpla la primera.
+                    </p>
+                </div>
+                <div class="text-danger d-none small mb-2" id="err_garantia">
+                    Debes indicar al menos una condición de garantía
+                </div>
+
+                <div class="row g-3">
+                    <!-- Duración en días — siempre visible -->
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Duración (dias)
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="f_garantia_duracion_dias" class="form-control"
+                                placeholder="Ej: 365" min="1">
+                            <span class="input-group-text text-muted" style="font-size:12px;">días</span>
+                        </div>
+                    </div>
+
+                    <!-- Solo maquinaria -->
+                    <div class="col-md-4 d-none" id="campoLimiteHoras">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Límite de horas
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="f_garantia_limite_horas" class="form-control"
+                                placeholder="Ej: 1000" min="1">
+                            <span class="input-group-text text-muted" style="font-size:12px;">hrs</span>
+                        </div>
+                    </div>
+
+                    <!-- Solo vehículo -->
+                    <div class="col-md-4 d-none" id="campoLimiteKm">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Límite de kilometraje
+                        </label>
+                        <div class="input-group">
+                            <input type="number" id="f_garantia_limite_km" class="form-control"
+                                placeholder="Ej: 50000" min="1">
+                            <span class="input-group-text text-muted" style="font-size:12px;">km</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="px-4 pb-4 d-flex justify-content-between">
-            <button type="button" class="btn btn-secondary px-4"
-                onclick="cancelarFormulario()">
+            <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
                 <i class="fa-solid fa-xmark me-1"></i>Cancelar
             </button>
             <button type="button" class="btn text-white fw-semibold px-4"

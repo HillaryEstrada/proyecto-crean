@@ -14,8 +14,8 @@ module.exports = {
     `INSERT INTO maquinaria 
     (numero_economico, numero_inventario_seder, fk_tipo, descripcion, marca, modelo, anio, 
      color, serie, numero_motor, horas_actuales, combustible_litros, estado_fisico, estado_operativo, 
-     fk_ubicacion, fk_factura, fk_garantia, foto_maquina, registrado_por) 
-    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+     fk_ubicacion, fk_factura, foto_maquina, registrado_por) 
+    VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
     RETURNING *`,
     [
         data.numero_economico,
@@ -34,9 +34,8 @@ module.exports = {
         data.estado_operativo || 'disponible', // $14
         data.fk_ubicacion,              // $15
         data.fk_factura || null,        // $16
-        data.fk_garantia || null,       // $17
-        data.foto_maquina || null,      // $18
-        data.registrado_por             // $19
+        data.foto_maquina || null,      // $17
+        data.registrado_por             // $18
     ]
 ),
 
@@ -50,14 +49,13 @@ module.exports = {
             u.nombre as ubicacion_nombre,
             f.numero_factura,
             f.fecha_factura,
-            g.fecha_inicio,
-            g.fecha_fin,
+            f.garantia_duracion_dias,
+            f.garantia_limite_horas,
             usr.username as registrado_por_usuario
         FROM maquinaria m
         LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
         LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
         LEFT JOIN factura f ON m.fk_factura = f.pk_factura
-        LEFT JOIN garantia g ON m.fk_garantia = g.pk_garantia
         LEFT JOIN users usr ON m.registrado_por = usr.pk_user
         WHERE m.estado_operativo != 'baja'
         ORDER BY m.pk_maquinaria ASC`
@@ -75,18 +73,13 @@ module.exports = {
             f.fecha_factura,
             f.costo_adquisicion,
             f.pdf_factura,
-            g.folio as garantia_folio,
-            g.fecha_inicio,
-            g.fecha_fin,
-            g.limite_horas,
-            g.limite_km,
-            g.garantia_pdf,
+            f.garantia_duracion_dias,
+            f.garantia_limite_horas,
             usr.username as registrado_por_usuario
         FROM maquinaria m
         LEFT JOIN tipo_equipo te ON m.fk_tipo = te.pk_tipo_equipo
         LEFT JOIN ubicacion u ON m.fk_ubicacion = u.pk_ubicacion
         LEFT JOIN factura f ON m.fk_factura = f.pk_factura
-        LEFT JOIN garantia g ON m.fk_garantia = g.pk_garantia
         LEFT JOIN users usr ON m.registrado_por = usr.pk_user
         WHERE m.pk_maquinaria = $1`,
         [id]
@@ -95,7 +88,7 @@ module.exports = {
     // ============================================
     // Actualizar maquinaria
     // ============================================
-   actualizar: (id, data) => Conexion.query(
+    actualizar: (id, data) => Conexion.query(
     `UPDATE maquinaria 
 SET 
     numero_economico = COALESCE($1, numero_economico),
@@ -114,9 +107,8 @@ SET
     estado_operativo = COALESCE($14, estado_operativo),
     fk_ubicacion = COALESCE($15, fk_ubicacion),
     fk_factura = COALESCE($16, fk_factura),
-    fk_garantia = COALESCE($17, fk_garantia),
-    foto_maquina = COALESCE($18, foto_maquina)
-WHERE pk_maquinaria = $19
+    foto_maquina = COALESCE($17, foto_maquina)
+WHERE pk_maquinaria = $18
 RETURNING *`,
     [
         data.numero_economico,
@@ -135,9 +127,8 @@ RETURNING *`,
         data.estado_operativo,    // $14
         data.fk_ubicacion,        // $15
         data.fk_factura,          // $16
-        data.fk_garantia,         // $17
-        data.foto_maquina,        // $18
-        id                        // $19
+        data.foto_maquina,        // $17
+        id                        // $18
     ]
 ),
 
@@ -152,7 +143,7 @@ RETURNING *`,
         [id]
     ),
 
-       // ============================================
+    // ============================================
     // Listar maquinaria dada de baja
     // ============================================
     listarBajas: () => Conexion.query(
@@ -168,7 +159,7 @@ RETURNING *`,
         WHERE m.estado_operativo = 'baja'
         ORDER BY m.pk_maquinaria ASC`
     ),
- 
+
     // ============================================
     // Registrar baja (inserta en historial)
     // ============================================
@@ -186,7 +177,7 @@ RETURNING *`,
             data.registrado_por
         ]
     ),
- 
+
     // ============================================
     // Listar historial de bajas registradas
     // ============================================

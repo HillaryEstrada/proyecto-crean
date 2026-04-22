@@ -12,7 +12,6 @@
             cargarTipos(),
             cargarUbicaciones(),
             cargarFacturas(),
-            cargarGarantias()
         ]);
         listar();
         }, 20, 'maquinaria/maquinaria');
@@ -46,38 +45,26 @@
         } catch(e) { console.error('Error ubicaciones:', e); }
     }
 
-    async function cargarFacturas() {
-        try {
-            const data = await fetchWithAuth('/factura');
-            const sel  = document.getElementById('w_fk_factura');
-            data.forEach(f => {
-                const opt = document.createElement('option');
-                opt.value = f.pk_factura;
-                opt.textContent = `${f.numero_factura}${f.proveedor_nombre ? ' — '+f.proveedor_nombre : ''}`;
-                sel.appendChild(opt);
-            });
-        } catch(e) { console.error('Error facturas:', e); }
-    }
-
-    async function cargarGarantias() {
-        try {
-            const data = await fetchWithAuth('/garantia');
-            const sel  = document.getElementById('w_fk_garantia');
-            data.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.pk_garantia;
-                opt.textContent = `${g.folio || 'Garantía #'+g.pk_garantia} — ${g.fecha_inicio ? g.fecha_inicio.split('T')[0] : ''}`;
-                sel.appendChild(opt);
-            });
-            // Activar Select2
-            $('#w_fk_garantia').select2({
-                placeholder: 'Buscar garantía...',
-                allowClear: true,
-                width: '100%',
-                dropdownParent: $('#modalWizard')
-            });
-        } catch(e) { console.error('Error garantías:', e); }
-    }
+        async function cargarFacturas() {
+            try {
+                const data = await fetchWithAuth('/factura');
+                const sel  = document.getElementById('w_fk_factura');
+                data.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f.pk_factura;
+                    const detalle = f.modelo_referencia ? ` — ${f.modelo_referencia}` : '';
+                    opt.textContent = `${f.numero_factura}${detalle}`;
+                    sel.appendChild(opt);
+                });
+                // Activar Select2
+                $('#w_fk_factura').select2({
+                    placeholder: 'Buscar factura...',
+                    allowClear: true,
+                    width: '100%',
+                    dropdownParent: $('#modalWizard')
+                });
+            } catch(e) { console.error('Error facturas:', e); }
+        }
 
     // ─────────────────────────────────────────
     // WIZARD
@@ -110,8 +97,7 @@
         document.getElementById('w_estado_operativo').value   = 'disponible';
         document.getElementById('w_fk_tipo').value            = '';
         document.getElementById('w_fk_ubicacion').value       = '';
-        document.getElementById('w_fk_factura').value         = '';
-        document.getElementById('w_fk_garantia').value        = '';
+        $('#w_fk_factura').val('').trigger('change');
         document.getElementById('wFotoPreview').innerHTML =
             `<i class="fa-solid fa-camera" style="color:#3b82f6;font-size:16px;"></i>
              <span style="font-size:9px;color:#3b82f6;">Foto</span>`;
@@ -150,72 +136,72 @@
         setTimeout(() => {
             document.getElementById('w_fk_tipo').value      = m.fk_tipo||'';
             document.getElementById('w_fk_ubicacion').value = m.fk_ubicacion||'';
-            document.getElementById('w_fk_factura').value   = m.fk_factura||'';
-            document.getElementById('w_fk_garantia').value  = m.fk_garantia||'';
+            $('#w_fk_factura').val(m.fk_factura||'').trigger('change');
         }, 50);
         wIrPaso(1);
-        new bootstrap.Modal(document.getElementById('modalWizard')).show();
+        const elW = document.getElementById('modalWizard');
+        (bootstrap.Modal.getInstance(elW) || new bootstrap.Modal(elW)).show();
     };
 
     window.cerrarWizard = function() {
         bootstrap.Modal.getInstance(document.getElementById('modalWizard'))?.hide();
     };
 
-    function wIrPaso(paso) {
-        _wPasoActual = paso;
-        [1,2,3,4].forEach(p => {
-            document.getElementById(`wPaso${p}`).classList.add('d-none');
-        });
-        document.getElementById(`wPaso${paso}`).classList.remove('d-none');
-        [1,2,3,4].forEach(p => {
-            const circle = document.getElementById(`wCircle${p}`);
-            const label  = document.getElementById(`wLabel${p}`);
-            const line   = document.getElementById(`wLine${p}`);
-            if (p < paso) {
-                circle.style.background = '#16a34a';
-                circle.style.color      = '#fff';
-                circle.textContent      = '✓';
-                if (label) label.style.color = '#16a34a';
-                if (line)  line.style.background = '#16a34a';
-            } else if (p === paso) {
-                circle.style.background = '#1a3c5e';
-                circle.style.color      = '#fff';
-                circle.textContent      = p;
-                if (label) label.style.color = '#1a3c5e';
-            } else {
-                circle.style.background = '#e2e8f0';
-                circle.style.color      = '#94a3b8';
-                circle.textContent      = p;
-                if (label) label.style.color = '#94a3b8';
-                if (line)  line.style.background = '#e2e8f0';
+                function wIrPaso(paso) {
+                _wPasoActual = paso;
+                [1,2,3].forEach(p => {
+                    document.getElementById(`wPaso${p}`).classList.add('d-none');
+                });
+                document.getElementById(`wPaso${paso}`).classList.remove('d-none');
+                [1,2,3].forEach(p => {
+                    const circle = document.getElementById(`wCircle${p}`);
+                    const label  = document.getElementById(`wLabel${p}`);
+                    const line   = document.getElementById(`wLine${p}`);
+                    if (p < paso) {
+                        circle.style.background = '#16a34a';
+                        circle.style.color      = '#fff';
+                        circle.textContent      = '✓';
+                        if (label) label.style.color = '#16a34a';
+                        if (line)  line.style.background = '#16a34a';
+                    } else if (p === paso) {
+                        circle.style.background = '#1a3c5e';
+                        circle.style.color      = '#fff';
+                        circle.textContent      = p;
+                        if (label) label.style.color = '#1a3c5e';
+                    } else {
+                        circle.style.background = '#e2e8f0';
+                        circle.style.color      = '#94a3b8';
+                        circle.textContent      = p;
+                        if (label) label.style.color = '#94a3b8';
+                        if (line)  line.style.background = '#e2e8f0';
+                    }
+                });
+                document.getElementById('wPasoLabel').textContent = `Paso ${paso} de 3`;
+                document.getElementById('wBtnAtras').style.display = paso > 1 ? '' : 'none';
+                document.getElementById('wBtnSiguiente').classList.toggle('d-none', paso === 3);
+                document.getElementById('wBtnGuardar').classList.toggle('d-none', paso !== 3);
             }
-        });
-        document.getElementById('wPasoLabel').textContent = `Paso ${paso} de 4`;
-        document.getElementById('wBtnAtras').style.display = paso > 1 ? '' : 'none';
-        document.getElementById('wBtnSiguiente').classList.toggle('d-none', paso === 4);
-        document.getElementById('wBtnGuardar').classList.toggle('d-none', paso !== 4);
-    }
 
-    window.wSiguiente = function() {
-        if (_wPasoActual === 1) {
-            const num  = document.getElementById('w_numero_economico').value.trim();
-            const tipo = document.getElementById('w_fk_tipo').value;
-            if (!num || !tipo) {
-                Swal.fire({ icon:'warning', title:'Campos requeridos',
-                    text:'Número económico y tipo de equipo son obligatorios' });
-                return;
+            window.wSiguiente = function() {
+            if (_wPasoActual === 1) {
+                const num  = document.getElementById('w_numero_economico').value.trim();
+                const tipo = document.getElementById('w_fk_tipo').value;
+                if (!num || !tipo) {
+                    Swal.fire({ icon:'warning', title:'Campos requeridos',
+                        text:'Número económico y tipo de equipo son obligatorios' });
+                    return;
+                }
             }
-        }
-        if (_wPasoActual === 2) {
-            const ubic = document.getElementById('w_fk_ubicacion').value;
-            if (!ubic) {
-                Swal.fire({ icon:'warning', title:'Campo requerido',
-                    text:'Selecciona una ubicación' });
-                return;
+            if (_wPasoActual === 2) {
+                const ubic = document.getElementById('w_fk_ubicacion').value;
+                if (!ubic) {
+                    Swal.fire({ icon:'warning', title:'Campo requerido',
+                        text:'Selecciona una ubicación' });
+                    return;
+                }
             }
-        }
-        if (_wPasoActual < 4) wIrPaso(_wPasoActual + 1);
-    };
+            if (_wPasoActual < 3) wIrPaso(_wPasoActual + 1);
+        };
 
     window.wAtras = function() {
         if (_wPasoActual > 1) wIrPaso(_wPasoActual - 1);
@@ -257,7 +243,6 @@
             horas_actuales:          document.getElementById('w_horas_actuales').value || 0,
             combustible_litros:      document.getElementById('w_combustible_litros').value || 0,
             fk_factura:              document.getElementById('w_fk_factura').value || null,
-            fk_garantia:             document.getElementById('w_fk_garantia').value || null,
         };
 
             // Agregar foto al payload solo si se subió una nueva
@@ -640,18 +625,12 @@
                                 : ''}
                         </p>
                     </div>` : ''}
-                    ${m.fecha_inicio ? `
+                    ${(m.garantia_duracion_dias || m.garantia_limite_horas) ? `
                     <div class="col-md-6">
-                        <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA</p>
+                        <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA (FACTURA)</p>
                         <p class="mb-0">
-                            ${m.garantia_folio ? `<span class="fw-semibold">${m.garantia_folio}</span> — ` : ''}
-                            ${m.fecha_inicio.split('T')[0]}
-                            ${m.fecha_fin ? ' → '+m.fecha_fin.split('T')[0] : ''}
-                            ${m.garantia_pdf
-                                ? `<a href="${m.garantia_pdf}" target="_blank" class="ms-2 btn btn-sm btn-outline-danger py-0">
-                                    <i class="fa-solid fa-file-pdf"></i> PDF
-                                </a>`
-                                : ''}
+                            ${m.garantia_duracion_dias ? `<span class="me-2">${m.garantia_duracion_dias} días</span>` : ''}
+                            ${m.garantia_limite_horas  ? `<span>${m.garantia_limite_horas} hrs</span>` : ''}
                         </p>
                     </div>` : ''}
                     <div class="col-12">
@@ -684,20 +663,28 @@
         if (label) label.textContent = file.name;
     };
 
-    window.abrirBaja = function(id, numero, tipo, marca, modelo) {
-        _idParaBaja  = id;
-        _archivoBaja = null;
-        document.getElementById('bajaNumero').textContent     = numero;
-        document.getElementById('bajaEquipoDesc').textContent = `${tipo} · ${marca} ${modelo}`.trim();
-        document.getElementById('bajaTipoInput').value        = '';
-        document.getElementById('bajaMotivoInput').value      = '';
-        document.getElementById('bajaAutorizadoInput').value  = '';
-        document.getElementById('bajaDocInput').value         = '';
-        document.getElementById('docBajaLabel').textContent   = 'Sin documento seleccionado';
-        document.getElementById('err_baja_tipo').classList.add('d-none');
-        document.getElementById('err_baja_motivo').classList.add('d-none');
-        new bootstrap.Modal(document.getElementById('modalBaja')).show();
-    };
+        window.abrirBaja = function(id, numero, tipo, marca, modelo) {
+            _idParaBaja  = id;
+            _archivoBaja = null;
+            document.getElementById('bajaNumero').textContent     = numero;
+            document.getElementById('bajaEquipoDesc').textContent = `${tipo} · ${marca} ${modelo}`.trim();
+            document.getElementById('bajaTipoInput').value        = '';
+            document.getElementById('bajaMotivoInput').value      = '';
+            document.getElementById('bajaAutorizadoInput').value  = '';
+            document.getElementById('bajaDocInput').value         = '';
+            document.getElementById('docBajaLabel').textContent   = 'Sin documento seleccionado';
+            document.getElementById('err_baja_tipo').classList.add('d-none');
+            document.getElementById('err_baja_motivo').classList.add('d-none');
+
+            // ── CORRECCIÓN: reusar instancia si ya existe ──
+            const el = document.getElementById('modalBaja');
+            const instancia = bootstrap.Modal.getInstance(el);
+            if (instancia) {
+                instancia.show();
+            } else {
+                new bootstrap.Modal(el).show();
+            }
+        };
 
     window.confirmarBajaModal = async function() {
         const tipo       = document.getElementById('bajaTipoInput').value;

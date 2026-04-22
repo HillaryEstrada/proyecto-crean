@@ -38,7 +38,6 @@ app.use('/empleados', require('./routes/auth/empleado.routes'));
 app.use('/tipo-equipo', require('./routes/tipo_equipo/tipo_equipo.routes'));
 app.use('/ubicacion', require('./routes/ubicacion/ubicacion.routes'));
 app.use('/factura', require('./routes/factura/factura.routes'));
-app.use('/garantia', require('./routes/garantia/garantia.routes'));
 app.use('/proveedor', require('./routes/proveedor/proveedor.routes'));
 
 // --- MÓDULO CREAN ---
