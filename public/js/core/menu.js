@@ -25,7 +25,6 @@ const modulosJS = {
     'factura/factura':                'modules/factura/factura',
     'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
     'proveedor/proveedor':            'modules/proveedor/proveedor',
-    'garantia/garantia':              'modules/garantia/garantia',
     'tipo_equipo/tipo_equipo':        'modules/tipo_equipo/tipo_equipo',
     'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
 

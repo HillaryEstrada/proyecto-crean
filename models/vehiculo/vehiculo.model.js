@@ -15,8 +15,8 @@ module.exports = {
         (numero_economico, numero_inventario_gob, fk_tipo, marca, modelo, anio,
          vin, placas, color,
          kilometraje_actual, gasolina_litros, estado_fisico, estado_operativo, 
-         fk_ubicacion, fk_factura, fk_garantia, foto_vehiculo, registrado_por) 
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+         fk_ubicacion, fk_factura, foto_vehiculo, registrado_por) 
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *`,
         [
             data.numero_economico,
@@ -34,7 +34,6 @@ module.exports = {
             data.estado_operativo      || 'disponible',
             data.fk_ubicacion,
             data.fk_factura            || null,
-            data.fk_garantia           || null,
             data.foto_vehiculo         || null,
             data.registrado_por
         ]
@@ -50,14 +49,13 @@ module.exports = {
             u.nombre  as ubicacion_nombre,
             f.numero_factura,
             f.fecha_factura,
-            g.fecha_inicio,
-            g.fecha_fin,
+            f.garantia_duracion_dias,
+            f.garantia_limite_km,
             usr.username as registrado_por_usuario
         FROM vehiculo v
         LEFT JOIN tipo_equipo te ON v.fk_tipo      = te.pk_tipo_equipo
         LEFT JOIN ubicacion   u  ON v.fk_ubicacion  = u.pk_ubicacion
         LEFT JOIN factura     f  ON v.fk_factura    = f.pk_factura
-        LEFT JOIN garantia    g  ON v.fk_garantia   = g.pk_garantia
         LEFT JOIN users      usr ON v.registrado_por = usr.pk_user
         WHERE v.estado_operativo != 'baja'
         ORDER BY v.pk_vehiculo ASC`
@@ -74,22 +72,20 @@ module.exports = {
             f.numero_factura,
             f.fecha_factura,
             f.costo_adquisicion,
-            g.fecha_inicio,
-            g.fecha_fin,
-            g.limite_horas,
-            g.limite_km,
+            f.pdf_factura,
+            f.garantia_duracion_dias,
+            f.garantia_limite_km,
             usr.username as registrado_por_usuario
         FROM vehiculo v
         LEFT JOIN tipo_equipo te ON v.fk_tipo      = te.pk_tipo_equipo
         LEFT JOIN ubicacion   u  ON v.fk_ubicacion  = u.pk_ubicacion
         LEFT JOIN factura     f  ON v.fk_factura    = f.pk_factura
-        LEFT JOIN garantia    g  ON v.fk_garantia   = g.pk_garantia
         LEFT JOIN users      usr ON v.registrado_por = usr.pk_user
         WHERE v.pk_vehiculo = $1`,
         [id]
     ),
 
-    // ============================================
+     // ============================================
     // Actualizar vehículo
     // ============================================
     actualizar: (id, data) => Conexion.query(
@@ -110,9 +106,8 @@ SET
     estado_operativo      = COALESCE($13, estado_operativo),
     fk_ubicacion          = COALESCE($14, fk_ubicacion),
     fk_factura            = COALESCE($15, fk_factura),
-    fk_garantia           = COALESCE($16, fk_garantia),
-    foto_vehiculo         = COALESCE($17, foto_vehiculo)
-WHERE pk_vehiculo = $18
+    foto_vehiculo         = COALESCE($16, foto_vehiculo)
+WHERE pk_vehiculo = $17
 RETURNING *`,
         [
             data.numero_economico,
@@ -130,12 +125,11 @@ RETURNING *`,
             data.estado_operativo,
             data.fk_ubicacion,
             data.fk_factura,
-            data.fk_garantia,
             data.foto_vehiculo,
             id
         ]
     ),
-
+    
     // ============================================
     // Desactivar (Baja lógica)
     // ============================================

@@ -11,7 +11,6 @@
             cargarTipos(),
             cargarUbicaciones(),
             cargarFacturas(),
-            cargarGarantias()
         ]);
         listar();
     }, 20, 'vehiculo/vehiculo');
@@ -45,30 +44,25 @@
         } catch(e) { console.error('Error ubicaciones:', e); }
     }
 
-    async function cargarFacturas() {
+   async function cargarFacturas() {
         try {
             const data = await fetchWithAuth('/factura');
             const sel  = document.getElementById('w_fk_factura');
             data.forEach(f => {
                 const opt = document.createElement('option');
                 opt.value = f.pk_factura;
-                opt.textContent = `${f.numero_factura}${f.proveedor_nombre ? ' — '+f.proveedor_nombre : ''}`;
+                const detalle = f.modelo_referencia ? ` — ${f.modelo_referencia}` : '';
+                opt.textContent = `${f.numero_factura}${detalle}`;
                 sel.appendChild(opt);
+            });
+            // Activar Select2
+            $('#w_fk_factura').select2({
+                placeholder: 'Buscar factura...',
+                allowClear: true,
+                width: '100%',
+                dropdownParent: $('#modalWizard')
             });
         } catch(e) { console.error('Error facturas:', e); }
-    }
-
-    async function cargarGarantias() {
-        try {
-            const data = await fetchWithAuth('/garantia');
-            const sel  = document.getElementById('w_fk_garantia');
-            data.forEach(g => {
-                const opt = document.createElement('option');
-                opt.value = g.pk_garantia;
-                opt.textContent = `Garantía #${g.pk_garantia} — ${g.fecha_inicio ? g.fecha_inicio.split('T')[0] : ''}`;
-                sel.appendChild(opt);
-            });
-        } catch(e) { console.error('Error garantías:', e); }
     }
 
     // ─────────────────────────────────────────
@@ -109,10 +103,9 @@
         document.getElementById('w_fk_ubicacion').value     = '';
 
         // --- Paso 3 ---
-        document.getElementById('w_kilometraje_actual').value = 0;
-        document.getElementById('w_gasolina_litros').value    = 0;
-        document.getElementById('w_fk_factura').value         = '';
-        document.getElementById('w_fk_garantia').value        = '';
+        document.getElementById('w_kilometraje_actual').value = '';
+        document.getElementById('w_gasolina_litros').value    = '';
+        $('#w_fk_factura').val('').trigger('change');
 
         document.getElementById('wFotoPreview').innerHTML =
             `<i class="fa-solid fa-camera" style="color:#3b82f6;font-size:16px;"></i>
@@ -159,12 +152,12 @@
         setTimeout(() => {
             document.getElementById('w_fk_tipo').value      = v.fk_tipo      || '';
             document.getElementById('w_fk_ubicacion').value = v.fk_ubicacion || '';
-            document.getElementById('w_fk_factura').value   = v.fk_factura   || '';
-            document.getElementById('w_fk_garantia').value  = v.fk_garantia  || '';
+            $('#w_fk_factura').val(v.fk_factura || '').trigger('change');
         }, 50);
 
         wIrPaso(1);
-        new bootstrap.Modal(document.getElementById('modalWizard')).show();
+        const elW = document.getElementById('modalWizard');
+        (bootstrap.Modal.getInstance(elW) || new bootstrap.Modal(elW)).show();
     };
 
     window.cerrarWizard = function() {
@@ -233,6 +226,23 @@
 
     window.wGuardar = async function() {
         const id   = document.getElementById('w_pk_vehiculo').value;
+
+         try {
+        // 1. Subir foto primero
+        let foto_vehiculo = null;
+        if (_wFotoFile) {
+            const formData = new FormData();
+            formData.append('archivo', _wFotoFile);
+            const res = await fetch('/archivo/temporal', {
+                method:  'POST',
+                headers: { 'Authorization': `Bearer ${getToken()}` },
+                body:    formData
+            });
+            if (!res.ok) throw new Error('Error al subir la foto');
+            const resData = await res.json();
+            foto_vehiculo = resData.url;
+        }
+
         const data = {
             numero_economico:      document.getElementById('w_numero_economico').value.trim(),
             numero_inventario_gob: document.getElementById('w_numero_inventario_gob').value.trim() || null,
@@ -240,56 +250,43 @@
             marca:                 document.getElementById('w_marca').value.trim()   || null,
             modelo:                document.getElementById('w_modelo').value.trim()  || null,
             anio:                  document.getElementById('w_anio').value            || null,
-            // ── CAMPOS CORREGIDOS ──
             color:                 document.getElementById('w_color').value.trim()   || null,
             vin:                   document.getElementById('w_vin').value.trim()     || null,
             placas:                document.getElementById('w_placas').value.trim()  || null,
-            // ──────────────────────
             estado_fisico:         document.getElementById('w_estado_fisico').value,
             estado_operativo:      document.getElementById('w_estado_operativo').value,
             fk_ubicacion:          document.getElementById('w_fk_ubicacion').value,
             kilometraje_actual:    document.getElementById('w_kilometraje_actual').value || 0,
             gasolina_litros:       document.getElementById('w_gasolina_litros').value    || 0,
             fk_factura:            document.getElementById('w_fk_factura').value  || null,
-            fk_garantia:           document.getElementById('w_fk_garantia').value || null,
         };
-        try {
-            let vehId = id;
-            if (id) {
-                await fetchWithAuth(`/vehiculo/${id}`, 'PUT', data);
-                Swal.fire({ icon:'success', title:'Actualizado',
-                    text:'Vehículo actualizado exitosamente',
-                    timer:2000, showConfirmButton:false });
-            } else {
-                const res = await fetchWithAuth('/vehiculo', 'POST', data);
-                vehId = res.data?.pk_vehiculo;
-                Swal.fire({ icon:'success', title:'Registrado',
-                    text:'Vehículo creado exitosamente',
-                    timer:2000, showConfirmButton:false });
-            }
-            if (_wFotoFile && vehId) {
-                try {
-                    const formData = new FormData();
-                    formData.append('archivo',     _wFotoFile);
-                    formData.append('modulo',      'vehiculo');
-                    formData.append('fk_registro', vehId);
-                    formData.append('categoria',   'foto_vehiculo');
-                    await fetch('/archivo', {
-                        method:  'POST',
-                        headers: { 'Authorization': `Bearer ${getToken()}` },
-                        body:    formData
-                    });
-                } catch(ef) { console.warn('Foto no subida:', ef); }
-            }
-            cerrarWizard();
-            listar();
-        } catch(error) {
-            const msg = error.message.includes('duplicate key')
-                ? 'El número económico ya existe, usa uno diferente'
-                : error.message;
-            Swal.fire({ icon:'error', title:'Error', text: msg });
+         // 3. Agregar foto si se subió
+        if (foto_vehiculo) {
+            data.foto_vehiculo = foto_vehiculo;
         }
-    };
+
+        // 4. Guardar
+        if (id) {
+            await fetchWithAuth(`/vehiculo/${id}`, 'PUT', data);
+            Swal.fire({ icon:'success', title:'Actualizado',
+                text:'Vehículo actualizado exitosamente',
+                timer:2000, showConfirmButton:false });
+        } else {
+            await fetchWithAuth('/vehiculo', 'POST', data);
+            Swal.fire({ icon:'success', title:'Registrado',
+                text:'Vehículo creado exitosamente',
+                timer:2000, showConfirmButton:false });
+        }
+
+        cerrarWizard();
+        listar();
+    } catch(error) {
+        const msg = error.message.includes('duplicate key')
+            ? 'El número económico ya existe, usa uno diferente'
+            : error.message;
+        Swal.fire({ icon:'error', title:'Error', text: msg });
+    }
+};
 
     // ─────────────────────────────────────────
     // LISTAR ACTIVOS
@@ -526,113 +523,129 @@
     // ─────────────────────────────────────────
     // VER DETALLE
     // ─────────────────────────────────────────
-    window.verDetalle = async function(id) {
-        document.getElementById('detalleTitle').textContent = 'Cargando…';
-        document.getElementById('detalleBody').innerHTML = `
-            <div class="text-center py-4">
-                <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
-            </div>`;
-        new bootstrap.Modal(document.getElementById('modalDetalle')).show();
-        try {
-            const v = await fetchWithAuth(`/vehiculo/${id}`);
-            document.getElementById('detalleTitle').textContent =
-                `${v.numero_economico} — ${v.tipo_nombre||''}`;
+            window.verDetalle = async function(id) {
+            document.getElementById('detalleTitle').textContent = 'Cargando…';
             document.getElementById('detalleBody').innerHTML = `
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">N° ECONÓMICO</p>
-                        <p class="fw-bold mb-0" style="font-family:monospace;color:#1a3c5e;">
-                            ${v.numero_economico||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">N° INVENTARIO GOB</p>
-                        <p class="mb-0">${v.numero_inventario_gob||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">TIPO</p>
-                        <p class="mb-0">${v.tipo_nombre||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">MARCA</p>
-                        <p class="mb-0">${v.marca||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">MODELO</p>
-                        <p class="mb-0">${v.modelo||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">AÑO</p>
-                        <p class="mb-0">${v.anio||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">COLOR</p>
-                        <p class="mb-0">${v.color||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">VIN</p>
-                        <p class="mb-0" style="font-family:monospace;font-size:12px;">${v.vin||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">PLACAS</p>
-                        <p class="mb-0">${v.placas||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">UBICACIÓN</p>
-                        <p class="mb-0">${v.ubicacion_nombre||'—'}</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">KILOMETRAJE</p>
-                        <p class="mb-0">${v.kilometraje_actual ?? '—'} km</p>
-                    </div>
-                    <div class="col-md-4">
-                        <p class="text-muted mb-1" style="font-size:11px;">GASOLINA (L)</p>
-                        <p class="mb-0">${v.gasolina_litros ?? '—'}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="text-muted mb-1" style="font-size:11px;">ESTADO FÍSICO</p>
-                        <p class="mb-0">${badgeFisico(v.estado_fisico)}</p>
-                    </div>
-                    <div class="col-md-3">
-                        <p class="text-muted mb-1" style="font-size:11px;">ESTADO OPERATIVO</p>
-                        <p class="mb-0">${badgeOperativo(v.estado_operativo)}</p>
-                    </div>
-                    ${v.numero_factura ? `
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1" style="font-size:11px;">FACTURA</p>
-                        <p class="mb-0">${v.numero_factura}
-                            ${v.fecha_factura
-                                ? ` — ${new Date(v.fecha_factura).toLocaleDateString('es-MX')}`
-                                : ''}
-                            ${v.costo_adquisicion
-                                ? ` — $${parseFloat(v.costo_adquisicion).toLocaleString('es-MX')}`
-                                : ''}</p>
-                    </div>` : ''}
-                    ${v.fecha_inicio ? `
-                    <div class="col-md-6">
-                        <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA</p>
-                        <p class="mb-0">
-                            ${v.fecha_inicio.split('T')[0]}
-                            ${v.fecha_fin ? ' → '+v.fecha_fin.split('T')[0] : ''}
-                        </p>
-                    </div>` : ''}
-                    <div class="col-12">
-                        <p class="text-muted mb-1" style="font-size:11px;">REGISTRADO POR</p>
-                        <p class="mb-0">${v.registrado_por_usuario||'—'}
-                            <span class="text-muted ms-2" style="font-size:11px;">
-                                ${v.fecha_registro
-                                    ? new Date(v.fecha_registro).toLocaleDateString('es-MX') : ''}
-                            </span>
-                        </p>
-                    </div>
+                <div class="text-center py-4">
+                    <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
                 </div>`;
-        } catch(e) {
-            document.getElementById('detalleBody').innerHTML = `
-                <div class="text-center text-danger py-4">
-                    <i class="fa-solid fa-triangle-exclamation me-1"></i>
-                    Error al cargar el detalle
-                </div>`;
-        }
-    };
+            new bootstrap.Modal(document.getElementById('modalDetalle')).show();
+            try {
+                const v = await fetchWithAuth(`/vehiculo/${id}`);
+                document.getElementById('detalleTitle').textContent =
+                    `${v.numero_economico} — ${v.tipo_nombre||''}`;
+                document.getElementById('detalleBody').innerHTML = `
+                    ${v.foto_vehiculo ? `
+                    <div class="text-center mb-3">
+                        <a href="${v.foto_vehiculo}" target="_blank" title="Ver foto completa">
+                            <img src="${v.foto_vehiculo}"
+                                style="width:90px;height:90px;border-radius:50%;object-fit:cover;
+                                    border:3px solid #1a3c5e;cursor:pointer;transition:opacity .2s;"
+                                onmouseover="this.style.opacity='.8'"
+                                onmouseout="this.style.opacity='1'">
+                        </a>
+                    </div>` : ''}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">N° ECONÓMICO</p>
+                            <p class="fw-bold mb-0" style="font-family:monospace;color:#1a3c5e;">
+                                ${v.numero_economico||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">N° INVENTARIO GOB</p>
+                            <p class="mb-0">${v.numero_inventario_gob||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">TIPO</p>
+                            <p class="mb-0">${v.tipo_nombre||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">MARCA</p>
+                            <p class="mb-0">${v.marca||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">MODELO</p>
+                            <p class="mb-0">${v.modelo||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">AÑO</p>
+                            <p class="mb-0">${v.anio||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">COLOR</p>
+                            <p class="mb-0">${v.color||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">VIN</p>
+                            <p class="mb-0" style="font-family:monospace;font-size:12px;">${v.vin||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">PLACAS</p>
+                            <p class="mb-0">${v.placas||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">UBICACIÓN</p>
+                            <p class="mb-0">${v.ubicacion_nombre||'—'}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">KILOMETRAJE</p>
+                            <p class="mb-0">${v.kilometraje_actual ?? '—'} km</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="text-muted mb-1" style="font-size:11px;">GASOLINA (L)</p>
+                            <p class="mb-0">${v.gasolina_litros ?? '—'}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size:11px;">ESTADO FÍSICO</p>
+                            <p class="mb-0">${badgeFisico(v.estado_fisico)}</p>
+                        </div>
+                        <div class="col-md-3">
+                            <p class="text-muted mb-1" style="font-size:11px;">ESTADO OPERATIVO</p>
+                            <p class="mb-0">${badgeOperativo(v.estado_operativo)}</p>
+                        </div>
+                        ${v.numero_factura ? `
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1" style="font-size:11px;">FACTURA</p>
+                            <p class="mb-0">${v.numero_factura}
+                                ${v.fecha_factura
+                                    ? ` — ${new Date(v.fecha_factura).toLocaleDateString('es-MX')}`
+                                    : ''}
+                                ${v.costo_adquisicion
+                                    ? ` — $${parseFloat(v.costo_adquisicion).toLocaleString('es-MX')}`
+                                    : ''}
+                                ${v.pdf_factura
+                                    ? `<a href="${v.pdf_factura}" target="_blank" class="ms-2 btn btn-sm btn-outline-danger py-0">
+                                        <i class="fa-solid fa-file-pdf"></i> PDF
+                                    </a>`
+                                    : ''}
+                            </p>
+                        </div>` : ''}
+                        ${(v.garantia_duracion_dias || v.garantia_limite_km) ? `
+                        <div class="col-md-6">
+                            <p class="text-muted mb-1" style="font-size:11px;">GARANTÍA (FACTURA)</p>
+                            <p class="mb-0">
+                                ${v.garantia_duracion_dias ? `<span class="me-2">${v.garantia_duracion_dias} días</span>` : ''}
+                                ${v.garantia_limite_km     ? `<span>${v.garantia_limite_km} km</span>` : ''}
+                            </p>
+                        </div>` : ''}
+                        <div class="col-12">
+                            <p class="text-muted mb-1" style="font-size:11px;">REGISTRADO POR</p>
+                            <p class="mb-0">${v.registrado_por_usuario||'—'}
+                                <span class="text-muted ms-2" style="font-size:11px;">
+                                    ${v.fecha_registro
+                                        ? new Date(v.fecha_registro).toLocaleDateString('es-MX') : ''}
+                                </span>
+                            </p>
+                        </div>
+                    </div>`;
+            } catch(e) {
+                document.getElementById('detalleBody').innerHTML = `
+                    <div class="text-center text-danger py-4">
+                        <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                        Error al cargar el detalle
+                    </div>`;
+            }
+        };
 
     // ─────────────────────────────────────────
     // BAJA
@@ -657,7 +670,9 @@
         document.getElementById('docBajaLabel').textContent     = 'Sin documento seleccionado';
         document.getElementById('err_baja_tipo').classList.add('d-none');
         document.getElementById('err_baja_motivo').classList.add('d-none');
-        new bootstrap.Modal(document.getElementById('modalBaja')).show();
+        const el = document.getElementById('modalBaja');
+        const instancia = bootstrap.Modal.getInstance(el);
+        if (instancia) { instancia.show(); } else { new bootstrap.Modal(el).show(); }
     };
 
     window.confirmarBajaModal = async function() {
@@ -674,22 +689,18 @@
 
             let urlDocumento = null;
             if (_archivoBaja) {
-                try {
-                    const formData = new FormData();
-                    formData.append('archivo',     _archivoBaja);
-                    formData.append('modulo',      'vehiculo');
-                    formData.append('fk_registro', _idParaBaja);
-                    formData.append('categoria',   'documento_baja');
-                    const resFile  = await fetch('/archivo', {
-                        method:  'POST',
-                        headers: { 'Authorization': `Bearer ${getToken()}` },
-                        body:    formData
-                    });
-                    const dataFile = await resFile.json();
-                    if (dataFile.url) urlDocumento = dataFile.url;
-                } catch(ef) { console.warn('Documento no subido:', ef); }
-            }
-
+                    try {
+                        const formData = new FormData();
+                        formData.append('archivo', _archivoBaja);
+                        const resFile = await fetch('/archivo/temporal', {
+                            method:  'POST',
+                            headers: { 'Authorization': `Bearer ${getToken()}` },
+                            body:    formData
+                        });
+                        const dataFile = await resFile.json();
+                        if (dataFile.url) urlDocumento = dataFile.url;
+                    } catch(ef) { console.warn('Documento no subido:', ef); }
+                }
             await fetchWithAuth('/vehiculo/bajas', 'POST', {
                 fk_vehiculo:        _idParaBaja,
                 tipo_baja:          tipo,

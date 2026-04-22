@@ -3,6 +3,57 @@
      Descripción: Gestión de vehículos – wizard 3 pasos
      ============================================ -->
 
+     <style>
+.select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 8px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #212529 !important;
+    line-height: normal !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    top: 1px !important;
+}
+.select2-dropdown {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+}
+.select2-container--default .select2-search--dropdown {
+    padding: 8px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    outline: none !important;
+}
+.select2-results__option {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #1a3c5e !important;
+    color: #fff !important;
+}
+.select2-container--open { z-index: 9999 !important; }
+#modalWizard .modal-body { overflow: visible !important; }
+#modalWizard .modal-content { overflow: visible !important; }
+</style>
+
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
@@ -299,19 +350,30 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                VIN <span class="text-muted fw-normal">(opcional)</span>
+                                VIN
                             </label>
                             <input type="text" id="w_vin" class="form-control"
                                 placeholder="Ej: 1HGBH41JXMN109186">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Placas <span class="text-muted fw-normal">(opcional)</span>
+                                Placas
                             </label>
                             <input type="text" id="w_placas" class="form-control" placeholder="Ej: ABC-123">
                         </div>
                     </div>
+                    <hr class="my-3">
                     <div class="row g-3">
+                        <p class="fw-semibold mb-3"
+                            style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Estado físico, operativo y ubicación
+                        </p>
+                    <div class="p-3 rounded-3 mb-3" style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                        <p style="font-size:12px;color:#0369a1;margin:0;">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                           Estado físico y operativo se marcarán en automático como <strong>Bueno</strong> y <strong>Disponible</strong>. Puedes modificarlos si lo necesitas.
+                        </p>
+                    </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                                 Estado Físico
@@ -345,31 +407,27 @@
 
                 <!-- PASO 3 -->
                 <div id="wPaso3" class="d-none">
-                    <div class="p-3 rounded-3 mb-3"
-                        style="background:#f0f9ff;border:0.5px solid #bae6fd;">
+                    <p class="fw-semibold mb-3"
+                            style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Factura de compra, provedor y garantía
+                        </p>
+                    <div class="p-3 rounded-3 mb-3" style="background:#f0f9ff;border:0.5px solid #bae6fd;">
                         <p style="font-size:12px;color:#0369a1;margin:0;">
                             <i class="fa-solid fa-circle-info me-1"></i>
-                            Selecciona una factura y garantía si aplica, y registra las lecturas actuales.
+                            Selecciona una factura existente. Puedes búscala por modelo del equipo.
                         </p>
                     </div>
                     <div class="row g-3 mb-3">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Factura <span class="text-muted fw-normal">(opcional)</span>
+                              Factura
                             </label>
                             <select id="w_fk_factura" class="form-select">
                                 <option value="">Sin factura</option>
                             </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Garantía <span class="text-muted fw-normal">(opcional)</span>
-                            </label>
-                            <select id="w_fk_garantia" class="form-select">
-                                <option value="">Sin garantía</option>
-                            </select>
-                        </div>
                     </div>
+                    <hr class="my-3">
                     <p class="fw-semibold mb-3"
                         style="font-size:12px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
                         <i class="fa-solid fa-gauge me-1"></i>Datos de uso previo
@@ -378,27 +436,29 @@
                         style="background:#fefce8;border:0.5px solid #fde68a;">
                         <p style="font-size:12px;color:#92400e;margin:0;">
                             <i class="fa-solid fa-circle-info me-1"></i>
-                            Registra las lecturas al momento de ingreso al sistema.
+                            Registra las lecturas al momento de registrarlo en el sistema.
                         </p>
                     </div>
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Kilometraje actual
+                                Kilometraje actual 
+                                <span class="text-muted fw-normal ms-1">(opcional)</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="w_kilometraje_actual" class="form-control"
-                                    placeholder="0" min="0" value="0">
+                                    placeholder="0" min="0">
                                 <span class="input-group-text text-muted" style="font-size:12px;">km</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                                 Gasolina en tanque
+                                 <span class="text-muted fw-normal ms-1">(opcional)</span>
                             </label>
                             <div class="input-group">
                                 <input type="number" id="w_gasolina_litros" class="form-control"
-                                    placeholder="0" min="0" step="0.01" value="0">
+                                    placeholder="0" min="0" step="0.01">
                                 <span class="input-group-text text-muted" style="font-size:12px;">L</span>
                             </div>
                         </div>
@@ -475,15 +535,13 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Autorizado por
-                        <span class="text-muted fw-normal ms-1">(opcional)</span>
                     </label>
                     <input type="text" id="bajaAutorizadoInput" class="form-control"
                         placeholder="Ej: Ing. Roberto Flores">
                 </div>
                 <div>
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Documento de respaldo
-                        <span class="text-muted fw-normal ms-1">(opcional)</span>
+                        Acta de Baja (PDF)
                     </label>
                     <div class="d-flex align-items-center gap-2 p-3 rounded-3"
                         style="background:#f8fafc;border:0.5px dashed #cbd5e1;">
