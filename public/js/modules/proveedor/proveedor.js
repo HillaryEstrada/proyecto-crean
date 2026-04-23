@@ -56,9 +56,6 @@
                 <td class="px-3 text-muted" style="font-size:13px;">${p.correo || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.direccion || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
-                <td class="px-3 text-center">
-                    <span class="badge bg-success" style="font-size:11px;">Activo</span>
-                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarProveedor(${p.pk_proveedor})">
@@ -85,6 +82,40 @@
         }));
     };
 
+    window.filtrarTablaInactivos = function () {
+    const q = (document.getElementById('searchInputInactivos')?.value || '').toLowerCase();
+    const cuerpo = document.getElementById('provBodyInactivos');
+    const info   = document.getElementById('info-registros-prov-inactivos');
+    const filtrados = _registrosInactivos.filter(p => {
+        const txt = `${p.nombre} ${p.telefono||''} ${p.correo||''} ${p.registrado_por_usuario||''}`.toLowerCase();
+        return !q || txt.includes(q);
+    });
+
+    if (info) info.textContent = `Mostrando ${filtrados.length} de ${_registrosInactivos.length} registros`;
+
+    cuerpo.innerHTML = filtrados.length ? filtrados.map((p, i) => `
+        <tr>
+            <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+            <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${p.nombre || '—'}</span></td>
+            <td class="px-3 text-muted" style="font-size:13px;">${p.telefono || '—'}</td>
+            <td class="px-3 text-muted" style="font-size:13px;">${p.correo || '—'}</td>
+            <td class="px-3 text-muted" style="font-size:13px;">${p.direccion || '—'}</td>
+            <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+            <td class="px-3 text-center" style="white-space:nowrap;">
+                <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                    onclick="reactivarProveedor(${p.pk_proveedor}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
+                    <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                    Reactivar
+                </button>
+            </td>
+        </tr>`).join('')
+    : `<tr><td colspan="7" class="text-center py-5 text-muted">
+            <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+            Sin resultados
+        </td></tr>`;
+
+    initPaginacion({ tbodyId: 'provBodyInactivos', filasPorPagina: 10, sufijo: 'prov-inactivos' });
+};
     // ============================================
     // SWITCH TABS
     // ============================================
@@ -99,6 +130,8 @@
         } else {
             va.classList.add('d-none');    vi.classList.remove('d-none');
             ta.classList.remove('active'); ti.classList.add('active');
+            const si = document.getElementById('searchInputInactivos');
+            if (si) si.value = '';
             listarInactivos();
         }
     };
