@@ -58,11 +58,8 @@
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
                      ${u.fecha_registro
-                        ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mexico_City' })
+                        ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
-                </td>
-                <td class="px-3 text-center">
-                    <span class="badge bg-success" style="font-size:11px;">Activo</span>
                 </td>
                 <td class="px-3 text-center">
                     <button class="btn btn-sm btn-outline-primary" title="Editar"

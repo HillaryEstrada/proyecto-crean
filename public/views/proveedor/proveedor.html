@@ -54,12 +54,11 @@
                     <thead class="text-white text-center" style="background-color:#1a3c5e;">
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:50px;">#</th>
-                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3">NOMBRE PROVEEDOR</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
                             <th class="py-3 px-3">DIRECCIÓN</th>
                             <th class="py-3 px-3">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center">ESTADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
@@ -90,13 +89,22 @@
 
     <!-- INACTIVOS -->
     <div id="vistaInactivos" class="d-none">
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                    <i class="fa-solid fa-magnifying-glass text-muted"
+                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                            font-size:12px;pointer-events:none;"></i>
+                    <input type="text" class="form-control ps-4" id="searchInputInactivos"
+                        placeholder="Buscar por nombre…" oninput="filtrarTablaInactivos()">
+                </div>
+            </div>
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 table-bordered">
                     <thead class="text-white text-center" style="background-color:#1a3c5e;">
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:50px;">#</th>
-                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3">NOMBRE PROVEEDOR</th>
                             <th class="py-3 px-3">TELÉFONO</th>
                             <th class="py-3 px-3">CORREO</th>
                             <th class="py-3 px-3">DIRECCIÓN</th>
@@ -149,7 +157,7 @@
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Nombre <span class="text-danger">*</span>
+                        Nombre Proveedor <span class="text-danger">*</span>
                     </label>
                     <input type="text" id="f_nombre" class="form-control"
                         placeholder="Ej: Distribuidora Agrícola SA">
