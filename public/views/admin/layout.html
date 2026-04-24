@@ -300,56 +300,72 @@
             </div>
 
             <!-- ============================== -->
-            <!-- GRUPO: CONTROL DE MANTENIMIENTOS -->
+            <!-- GRUPO: BODEGA                  -->
             <!-- ============================== -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseControlMant"
+                        data-bs-target="#collapseBodega"
                         aria-expanded="false"
-                        aria-controls="collapseControlMant">
-                    <i class="fa-solid fa-wrench menu-icon"></i>
-                    <span class="sidebar-text">Control de Mantenimientos</span>
+                        aria-controls="collapseBodega">
+                    <i class="fa-solid fa-house-chimney menu-icon"></i>
+                    <span class="sidebar-text">Bodega de Granos</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
-                <div class="collapse sidebar-submenu-children" id="collapseControlMant">
-                    <a href="#" data-clave="mantenimiento/mantenimiento" onclick="cargarVista('mantenimiento/mantenimiento')">
-                        <i class="fa-solid fa-wrench"></i>
-                        <span class="sidebar-text">Mantenimiento</span>
+                <div class="collapse sidebar-submenu-children" id="collapseBodega">
+                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span class="sidebar-text">Bodegas</span>
                     </a>
-                    <a href="#" data-clave="falla/falla" onclick="cargarVista('falla/falla')">
-                        <i class="fa-solid fa-exclamation-triangle"></i>
-                        <span class="sidebar-text">Reporte de Fallas</span>
+                    <!-- GRANOS -->
+                    <a href="#" data-clave="inventario/bodega_producto" onclick="cargarVista('inventario/bodega_producto')">
+                        <i class="fa-solid fa-box"></i>
+                        <span class="sidebar-text">Granos</span>
                     </a>
-                    <a href="#" data-clave="checklist/checklist" onclick="cargarVista('checklist/checklist')">
-                        <i class="fa-solid fa-clipboard-check"></i>
-                        <span class="sidebar-text">Inspección Diaria</span>
+
+                    <!-- MOVIMIENTOS -->
+                    <a href="#" data-clave="inventario/bodega_movimiento" onclick="cargarVista('inventario/bodega_movimiento')">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <span class="sidebar-text">Movimientos</span>
                     </a>
                 </div>
             </div>
 
             <!-- ============================== -->
-            <!-- GRUPO: INVENTARIOS             -->
+            <!-- GRUPO: CONSUMIBLES             -->
             <!-- ============================== -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
-                        data-bs-target="#collapseInventarios"
+                        data-bs-target="#collapseConsumibles"
                         aria-expanded="false"
-                        aria-controls="collapseInventarios">
-                    <i class="fa-solid fa-warehouse menu-icon"></i>
-                    <span class="sidebar-text">Inventarios</span>
+                        aria-controls="collapseConsumibles">
+                    <i class="fa-solid fa-flask menu-icon"></i>
+                    <span class="sidebar-text">Consumibles</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
-                <div class="collapse sidebar-submenu-children" id="collapseInventarios">
+                <div class="collapse sidebar-submenu-children" id="collapseConsumibles">
                     <a href="#" data-clave="inventario/consumibles" onclick="cargarVista('inventario/consumibles')">
                         <i class="fa-solid fa-flask"></i>
                         <span class="sidebar-text">Consumibles</span>
                     </a>
-                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
-                        <i class="fa-solid fa-house-chimney"></i>
-                        <span class="sidebar-text">Bodega</span>
-                    </a>
+                </div>
+            </div>
+
+            <!-- ============================== -->
+            <!-- GRUPO: MOBILIARIO              -->
+            <!-- ============================== -->
+            <div class="dropdown-section">
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseMobiliario"
+                        aria-expanded="false"
+                        aria-controls="collapseMobiliario">
+                    <i class="fa-solid fa-chair menu-icon"></i>
+                    <span class="sidebar-text">Mobiliario</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseMobiliario">
                     <a href="#" data-clave="inventario/mobiliario" onclick="cargarVista('inventario/mobiliario')">
                         <i class="fa-solid fa-chair"></i>
                         <span class="sidebar-text">Mobiliario</span>

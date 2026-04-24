@@ -44,7 +44,10 @@ app.use('/proveedor', require('./routes/proveedor/proveedor.routes'));
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));
 app.use('/vehiculo', require('./routes/vehiculo/vehiculo.routes'));
 app.use('/archivo', require('./routes/upload/upload.routes'));
- 
+
+app.use('/bodega', require('./routes/bodega/bodega.routes'));
+app.use('/bodega_producto', require('./routes/bodega_producto/bodega_producto.routes'));
+app.use('/productor', require('./routes/productor/productor.routes'));
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
 

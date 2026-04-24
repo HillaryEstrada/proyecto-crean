@@ -11,7 +11,7 @@ function toggleSeccion(nombre) {
 // ── Filtrar por sección ───────────────────────
 function filtrarSeccion() {
     const filtro = document.getElementById('filtroSeccion')?.value || 'todas';
-    ['operacion', 'catalogos', 'administracion'].forEach(sec => {
+    ['operacion', 'bodega', 'catalogos', 'administracion'].forEach(sec => {
         const seccionEl = document.getElementById(`seccion-${sec}`);
         if (!seccionEl) return;
         if (filtro === 'todas') {
@@ -138,8 +138,9 @@ function filtrarSeccion() {
         document.getElementById('footer-guardar').style.removeProperty('display');
 
         const grupos = {
-            'OPERACIÓN':      ['maquinaria', 'vehiculo', 'mantenimiento', 'falla', 'checklist', 'alertas'],
-            'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'garantia', 'tipo_equipo'],
+            'OPERACIÓN':      ['maquinaria', 'vehiculo', 'alertas'],
+            'BODEGA':         ['inventario'],
+            'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'tipo_equipo'],
             'ADMINISTRACIÓN': ['admin']
         };
 

@@ -46,6 +46,7 @@
                 <select id="filtroSeccion" class="form-select form-select-sm" style="width:160px;" onchange="filtrarSeccion()">
                     <option value="todas">Todas las secciones</option>
                     <option value="operacion">Operación</option>
+                     <option value="bodega">Bodega</option>
                     <option value="catalogos">Catálogos</option>
                     <option value="administracion">Administración</option>
                 </select>
@@ -74,19 +75,30 @@
                 <div id="modulos-operacion"></div>
             </div>
 
+            <!-- Sección Bodega (colapsable) -->
+            <div id="seccion-bodega" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
+                    style="cursor:pointer;" onclick="toggleSeccion('bodega')">
+                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
+                        <i class="fa-solid fa-folder-open me-1"></i>Bodega
+                    </small>
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-bodega"
+                        style="font-size:11px;transition:transform .2s;"></i>
+                </div>
+                <div id="modulos-bodega"></div>
+            </div>
             <!-- Sección Catálogos (colapsable) -->
             <div id="seccion-catalogos" style="display:none;">
                 <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
                     style="cursor:pointer;" onclick="toggleSeccion('catalogos')">
                     <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
-                        <i class="fa-solid fa-folder-open me-1"></i>Catálogos
+                        <i class="fa-solid fa-folder me-1"></i>Catálogos
                     </small>
                     <i class="fa-solid fa-chevron-down text-muted" id="chevron-catalogos"
                         style="font-size:11px;transition:transform .2s;"></i>
                 </div>
                 <div id="modulos-catalogos"></div>
             </div>
-
             <!-- Sección Administración (colapsable) -->
             <div id="seccion-administracion" style="display:none;">
                 <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
@@ -101,7 +113,7 @@
             </div>
 
         </div>
-
+</div>
         <!-- Footer con botón guardar -->
         <div id="footer-guardar" class="card-footer bg-white border-top py-3 d-flex justify-content-end gap-2"
             style="display:none !important;">
