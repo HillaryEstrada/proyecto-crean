@@ -5,6 +5,7 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const app = express();
 
+
 // ========== MIDDLEWARES GLOBALES ==========
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 

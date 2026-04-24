@@ -17,6 +17,7 @@ const modulosJS = {
     'inventario/consumibles':         'modules/inventario/consumibles',
     'inventario/bodega':              'modules/inventario/bodega',
     'inventario/bodega_producto':     'modules/inventario/bodega_producto',
+    'productor/productor':            'modules/productor/productor',
     'inventario/bodega_movimiento':   'modules/inventario/bodega_movimiento',
     'inventario/mobiliario':          'modules/inventario/mobiliario',
 
