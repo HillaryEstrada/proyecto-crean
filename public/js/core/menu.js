@@ -11,14 +11,13 @@ const modulosJS = {
     // ====== OPERACIÓN ======
     'maquinaria/maquinaria':          'modules/maquinaria/maquinaria',
     'vehiculo/vehiculo':              'modules/vehiculo/vehiculo',
-    'mantenimiento/mantenimiento':    'modules/mantenimiento/mantenimiento',
-    'falla/falla':                    'modules/falla/falla',
-    'checklist/checklist':            'modules/checklist/checklist',
     'alertas/alertas':                'modules/alertas/alertas',
 
     // ====== INVENTARIOS ======
     'inventario/consumibles':         'modules/inventario/consumibles',
     'inventario/bodega':              'modules/inventario/bodega',
+    'inventario/bodega_producto':     'modules/inventario/bodega_producto',
+    'inventario/bodega_movimiento':   'modules/inventario/bodega_movimiento',
     'inventario/mobiliario':          'modules/inventario/mobiliario',
 
     // ====== CATÁLOGOS ======

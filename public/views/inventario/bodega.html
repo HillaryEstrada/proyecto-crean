@@ -1,0 +1,267 @@
+<!-- ============================================
+     VISTA: bodega.html
+     Descripción: Gestión de bodegas
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-house-chimney me-2 fs-2"></i>Bodegas
+        </h4>
+        <p class="text-muted mb-0 fs-5">Gestión de bodegas e instalaciones de almacenamiento</p>
+    </div>
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+        onclick="abrirFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Nueva bodega
+    </button>
+</div>
+
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabActivos" onclick="switchTab('activos')">
+            <i class="fa-solid fa-circle-check"></i>
+            Activas
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabInhabilitadas" onclick="switchTab('inhabilitadas')">
+            <i class="fa-solid fa-ban"></i>
+            Inhabilitadas
+        </button>
+    </li>
+</ul>
+
+<!-- ── VISTA TABLA ── -->
+<div id="vistaTabla">
+
+    <!-- ── TABLA ACTIVAS ── -->
+    <div id="vistaActivos">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                           font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInput"
+                    placeholder="Buscar por nombre, descripción…" oninput="filtrarTabla()">
+            </div>
+            <select class="form-select" style="width:auto;" id="filtroEstado"
+                onchange="filtrarTabla()">
+                <option value="">Todos los estados</option>
+                <option value="Operativo">Operativo</option>
+                <option value="En mantenimiento">En mantenimiento</option>
+            </select>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
+                            <th class="py-3 px-3 text-center" style="width:150px;">ESTADO</th>
+                            <th class="py-3 px-3">DESCRIPCIÓN</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bodBody" class="bg-white">
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer activas -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <small class="text-muted d-block" id="footerInfo"></small>
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-bod" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-bod" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-bod" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-bod" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-bod"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-bod" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-bod" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── TABLA INHABILITADAS ── -->
+    <div id="vistaInhabilitadas" class="d-none">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                           font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInhabilitadas"
+                    placeholder="Buscar por nombre…" oninput="filtrarInhabilitadas()">
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
+                            <th class="py-3 px-3">DESCRIPCIÓN</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inhabBody" class="bg-white">
+                        <tr>
+                            <td colspan="7" class="text-center py-4 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer inhabilitadas -->
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div id="info-registros-inhab" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-inhab" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-inhab" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-inhab" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-inhab"
+                            class="form-control form-control-sm text-center"
+                            style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-inhab" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-inhab" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── VISTA FORMULARIO (oculta por defecto) — igual que tipo_equipo ── -->
+<div id="vistaFormulario" class="d-none">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+
+        <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between"
+            style="background:#1a3c5e;">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fa-solid fa-house-chimney me-2"></i>
+                <span id="formTitulo">Registrar Bodega</span>
+            </h6>
+        </div>
+
+        <div class="p-4">
+            <input type="hidden" id="f_pk_bodega">
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Nombre <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_nombre" class="form-control"
+                        placeholder="Ej: Bodega Norte">
+                    <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Estado <span class="text-danger">*</span>
+                    </label>
+                    <select id="f_estado" class="form-select">
+                        <option value="Operativo">Operativo</option>
+                        <option value="En mantenimiento">En mantenimiento</option>
+                        <option value="Inhabilitada">Inhabilitada</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Capacidad (kg)
+                    </label>
+                    <div class="input-group">
+                        <input type="number" id="f_capacidad_kg" class="form-control"
+                            placeholder="0.00" min="0" step="0.01">
+                        <span class="input-group-text text-muted" style="font-size:12px;">kg</span>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Descripción
+                    </label>
+                    <textarea id="f_descripcion" class="form-control" rows="3"
+                        placeholder="Características, ubicación física, observaciones…"></textarea>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-4 pb-4 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary px-4"
+                onclick="cancelarFormulario()">
+                <i class="fa-solid fa-xmark me-1"></i>Cancelar
+            </button>
+            <button type="button" class="btn text-white fw-semibold px-4"
+                style="background:#1a3c5e;" onclick="guardarBodega()">
+                <i class="fa-solid fa-floppy-disk me-1"></i>
+                <span id="btnGuardarLabel">Guardar bodega</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── MODAL: INHABILITAR ── -->
+<div class="modal fade" id="modalInhabilitar" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Inhabilitar Bodega
+                </h5>
+                <button type="button" class="btn-close btn-close-white"
+                    data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-house-chimney fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="inhabilitarNombre">—</div>
+                        <div class="small text-muted">Esta bodega quedará inhabilitada</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Podrás reactivarla desde la pestaña <strong>Inhabilitadas</strong> en cualquier momento.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarInhabilitar()">
+                    <i class="fa-solid fa-ban me-1"></i>Inhabilitar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
