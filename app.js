@@ -48,7 +48,8 @@ app.use('/archivo', require('./routes/upload/upload.routes'));
 
 app.use('/bodega', require('./routes/bodega/bodega.routes'));
 app.use('/bodega_producto', require('./routes/bodega_producto/bodega_producto.routes'));
-app.use('/productor', require('./routes/productor/productor.routes'));
+//app.use('/productor', require('./routes/productor/productor.routes'));
+app.use('/ejido', require('./routes/ejido/ejido.routes'));
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
 

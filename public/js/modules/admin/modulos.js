@@ -139,7 +139,7 @@ function filtrarSeccion() {
 
         const grupos = {
             'OPERACIÓN':      ['maquinaria', 'vehiculo', 'alertas'],
-            'BODEGA':         ['inventario', 'productor'],
+            'BODEGA':         ['inventario', 'productor', 'ejido'],
             'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'tipo_equipo'],
             'ADMINISTRACIÓN': ['admin']
         };

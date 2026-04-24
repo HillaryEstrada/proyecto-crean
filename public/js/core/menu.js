@@ -20,6 +20,7 @@ const modulosJS = {
     'productor/productor':            'modules/productor/productor',
     'inventario/bodega_movimiento':   'modules/inventario/bodega_movimiento',
     'inventario/mobiliario':          'modules/inventario/mobiliario',
+    'ejido/ejido':                    'modules/ejido/ejido',
 
     // ====== CATÁLOGOS ======
     'factura/factura':                'modules/factura/factura',
