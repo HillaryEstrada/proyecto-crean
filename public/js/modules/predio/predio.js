@@ -288,7 +288,7 @@
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 
@@ -313,7 +313,7 @@
                 timer: 2000, showConfirmButton: false });
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 
@@ -340,7 +340,7 @@
             await listarInactivos();
             switchTab('activos');
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 

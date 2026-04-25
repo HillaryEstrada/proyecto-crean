@@ -16,7 +16,7 @@ exports.crear = async (req, res) => {
         });
         res.json({ mensaje: 'Predio creado exitosamente', data: resultado.rows[0] });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        manejarError(error, res);
     }
 };
 
@@ -82,7 +82,7 @@ exports.actualizar = async (req, res) => {
         }
         res.json({ mensaje: 'Predio actualizado exitosamente', data: resultado.rows[0] });
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        manejarError(error, res);
     }
 };
 
@@ -115,3 +115,15 @@ exports.reactivar = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// ============================================
+// HELPER: Manejo centralizado de errores
+// ============================================
+function manejarError(error, res) {
+    if (error.code === '23505') {
+        return res.status(400).json({
+            error: 'Ya existe un predio con ese nombre en este ejido'
+        });
+    }
+    res.status(500).json({ error: error.message });
+}

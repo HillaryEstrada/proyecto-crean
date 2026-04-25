@@ -10,10 +10,13 @@ const ejido = require('../../models/ejido/ejido.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        const resultado = await ejido.crear({
-            ...req.body,
-            registrado_por: req.user.id
-        });
+        // Verificar duplicado
+        const existe = await ejido.existeNombre(req.body.nombre);
+        if (existe.rows.length) {
+            return res.status(400).json({ error: 'Ya existe un ejido con ese nombre' });
+        }
+
+        const resultado = await ejido.crear({ ...req.body, registrado_por: req.user.id });
         res.json({ mensaje: 'Ejido creado exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -76,9 +79,11 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        const resultado = await ejido.actualizar(req.params.id, req.body);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Ejido no encontrado' });
+        if (req.body.nombre) {
+            const existe = await ejido.existeNombre(req.body.nombre, req.params.id);
+            if (existe.rows.length) {
+                return res.status(400).json({ error: 'Ya existe un ejido con ese nombre' });
+            }
         }
         res.json({ mensaje: 'Ejido actualizado exitosamente', data: resultado.rows[0] });
     } catch (error) {
