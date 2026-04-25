@@ -12,20 +12,20 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO ejido
-        (nombre, municipio, estado, direccion, registrado_por)
+        (nombre, municipio, estado_geo, direccion, registrado_por)
         VALUES($1, $2, $3, $4, $5)
         RETURNING *`,
         [
             data.nombre,
-            data.municipio || null,
-            data.estado    || null,
-            data.direccion || null,
+            data.municipio  || null,
+            data.estado_geo || null,
+            data.direccion  || null,
             data.registrado_por
         ]
     ),
 
     // ============================================
-    // Listar ejidos activos (activo = 1)
+    // Listar ejidos activos (estado = 1)
     // ============================================
     listar: () => Conexion.query(
         `SELECT
@@ -33,7 +33,7 @@ module.exports = {
             u.username AS registrado_por_usuario
         FROM ejido e
         LEFT JOIN users u ON e.registrado_por = u.pk_user
-        WHERE e.activo = 1
+        WHERE e.estado = 1
         ORDER BY e.nombre ASC`
     ),
 
@@ -50,7 +50,7 @@ module.exports = {
     ),
 
     // ============================================
-    // Listar ejidos inactivos (activo = 0)
+    // Listar ejidos inactivos (estado = 0)
     // ============================================
     listarInactivos: () => Conexion.query(
         `SELECT
@@ -58,12 +58,12 @@ module.exports = {
             u.username AS registrado_por_usuario
         FROM ejido e
         LEFT JOIN users u ON e.registrado_por = u.pk_user
-        WHERE e.activo = 0
+        WHERE e.estado = 0
         ORDER BY e.nombre ASC`
     ),
 
     // ============================================
-    // Obtener ejido por ID (con detalles completos)
+    // Obtener ejido por ID
     // ============================================
     obtenerPorId: (id) => Conexion.query(
         `SELECT
@@ -81,47 +81,39 @@ module.exports = {
     actualizar: (id, data) => Conexion.query(
         `UPDATE ejido
         SET
-            nombre    = COALESCE($1, nombre),
-            municipio = COALESCE($2, municipio),
-            estado    = COALESCE($3, estado),
-            direccion = COALESCE($4, direccion)
+            nombre     = COALESCE($1, nombre),
+            municipio  = COALESCE($2, municipio),
+            estado_geo = COALESCE($3, estado_geo),
+            direccion  = COALESCE($4, direccion)
         WHERE pk_ejido = $5
         RETURNING *`,
         [
             data.nombre,
-            data.municipio || null,
-            data.estado    || null,
-            data.direccion || null,
+            data.municipio  || null,
+            data.estado_geo || null,
+            data.direccion  || null,
             id
         ]
     ),
 
     // ============================================
-    // Desactivar ejido (baja lógica, activo = 0)
+    // Desactivar ejido (baja lógica, estado = 0)
     // ============================================
     desactivar: (id) => Conexion.query(
-        `UPDATE ejido SET activo = 0 WHERE pk_ejido = $1 RETURNING *`,
+        `UPDATE ejido SET estado = 0 WHERE pk_ejido = $1 RETURNING *`,
         [id]
     ),
 
     // ============================================
-    // Reactivar ejido (activo = 1)
+    // Reactivar ejido (estado = 1)
     // ============================================
     reactivar: (id) => Conexion.query(
-        `UPDATE ejido SET activo = 1 WHERE pk_ejido = $1 RETURNING *`,
+        `UPDATE ejido SET estado = 1 WHERE pk_ejido = $1 RETURNING *`,
         [id]
     ),
 
     // ============================================
-    // Verificar si el ejido existe por ID
-    // ============================================
-    existe: (id) => Conexion.query(
-        `SELECT pk_ejido FROM ejido WHERE pk_ejido = $1`,
-        [id]
-    ),
-
-    // ============================================
-    // Verificar si el nombre ya existe (evitar duplicados)
+    // Verificar si el nombre ya existe
     // ============================================
     existeNombre: (nombre, idActual = null) => Conexion.query(
         `SELECT pk_ejido FROM ejido

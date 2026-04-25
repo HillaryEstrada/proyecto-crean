@@ -52,10 +52,10 @@
                         ${e.nombre || '—'}
                     </span>
                 </td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.municipio || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.estado || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.direccion || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.municipio   || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo  || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.direccion   || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarEjido(${e.pk_ejido})">
@@ -77,7 +77,7 @@
     window.filtrarTabla = function () {
         const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
         renderTabla(_registrosActivos.filter(e => {
-            const txt = `${e.nombre} ${e.municipio||''} ${e.estado||''} ${e.registrado_por_usuario||''}`.toLowerCase();
+            const txt = `${e.nombre} ${e.municipio||''} ${e.estado_geo||''} ${e.registrado_por_usuario||''}`.toLowerCase();
             return !q || txt.includes(q);
         }));
     };
@@ -90,7 +90,7 @@
         const cuerpo = document.getElementById('ejidoBodyInactivos');
         const info   = document.getElementById('info-registros-ejido-inactivos');
         const filtrados = _registrosInactivos.filter(e => {
-            const txt = `${e.nombre} ${e.municipio||''} ${e.estado||''} ${e.registrado_por_usuario||''}`.toLowerCase();
+            const txt = `${e.nombre} ${e.municipio||''} ${e.estado_geo||''} ${e.registrado_por_usuario||''}`.toLowerCase();
             return !q || txt.includes(q);
         });
 
@@ -100,10 +100,10 @@
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${e.nombre || '—'}</span></td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.municipio || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.estado || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.direccion || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.municipio  || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${e.direccion  || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarEjido(${e.pk_ejido}, '${(e.nombre||'').replace(/'/g,"\\'")}')">
@@ -176,10 +176,10 @@
                             ${e.nombre || '—'}
                         </span>
                     </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${e.municipio || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${e.estado || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${e.direccion || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-muted" style="font-size:13px;">${e.municipio  || '—'}</td>
+                    <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo || '—'}</td>
+                    <td class="px-3 text-muted" style="font-size:13px;">${e.direccion  || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarEjido(${e.pk_ejido}, '${(e.nombre||'').replace(/'/g,"\\'")}')">
@@ -200,7 +200,7 @@
         document.getElementById('f_pk_ejido').value          = '';
         document.getElementById('f_nombre').value            = '';
         document.getElementById('f_municipio').value         = '';
-        document.getElementById('f_estado').value            = '';
+        document.getElementById('f_estado_geo').value        = '';
         document.getElementById('f_direccion').value         = '';
         document.getElementById('formTitulo').textContent    = 'Registrar Ejido';
         document.getElementById('btnGuardarLabel').textContent = 'Guardar ejido';
@@ -219,10 +219,10 @@
         if (!e) return;
 
         document.getElementById('f_pk_ejido').value          = e.pk_ejido;
-        document.getElementById('f_nombre').value            = e.nombre || '';
-        document.getElementById('f_municipio').value         = e.municipio || '';
-        document.getElementById('f_estado').value            = e.estado || '';
-        document.getElementById('f_direccion').value         = e.direccion || '';
+        document.getElementById('f_nombre').value            = e.nombre     || '';
+        document.getElementById('f_municipio').value         = e.municipio  || '';
+        document.getElementById('f_estado_geo').value        = e.estado_geo || '';
+        document.getElementById('f_direccion').value         = e.direccion  || '';
         document.getElementById('formTitulo').textContent    = `Editando: ${e.nombre}`;
         document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
         document.getElementById('err_nombre').classList.add('d-none');
@@ -238,11 +238,11 @@
     window.cancelarFormulario = function () {
         document.getElementById('vistaFormulario').classList.add('d-none');
         document.getElementById('vistaTabla').classList.remove('d-none');
-        document.getElementById('f_pk_ejido').value  = '';
-        document.getElementById('f_nombre').value    = '';
-        document.getElementById('f_municipio').value = '';
-        document.getElementById('f_estado').value    = '';
-        document.getElementById('f_direccion').value = '';
+        document.getElementById('f_pk_ejido').value    = '';
+        document.getElementById('f_nombre').value      = '';
+        document.getElementById('f_municipio').value   = '';
+        document.getElementById('f_estado_geo').value  = '';
+        document.getElementById('f_direccion').value   = '';
         document.getElementById('err_nombre').classList.add('d-none');
     };
 
@@ -250,11 +250,11 @@
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
     window.guardarEjido = async function () {
-        const id        = document.getElementById('f_pk_ejido').value;
-        const nombre    = document.getElementById('f_nombre').value.trim();
-        const municipio = document.getElementById('f_municipio').value.trim();
-        const estado    = document.getElementById('f_estado').value.trim();
-        const direccion = document.getElementById('f_direccion').value.trim();
+        const id         = document.getElementById('f_pk_ejido').value;
+        const nombre     = document.getElementById('f_nombre').value.trim();
+        const municipio  = document.getElementById('f_municipio').value.trim();
+        const estado_geo = document.getElementById('f_estado_geo').value.trim();
+        const direccion  = document.getElementById('f_direccion').value.trim();
 
         if (!nombre) {
             document.getElementById('err_nombre').classList.remove('d-none');
@@ -263,14 +263,14 @@
         }
         document.getElementById('err_nombre').classList.add('d-none');
 
-        try {
-            const payload = {
-                nombre,
-                municipio: municipio || null,
-                estado:    estado    || null,
-                direccion: direccion || null
-            };
+        const payload = {
+            nombre,
+            municipio:  municipio  || null,
+            estado_geo: estado_geo || null,
+            direccion:  direccion  || null
+        };
 
+        try {
             if (id) {
                 await fetchWithAuth(`/ejido/${id}`, 'PUT', payload);
                 Swal.fire({ icon: 'success', title: 'Actualizado',
@@ -282,11 +282,10 @@
                     text: 'Ejido creado exitosamente',
                     timer: 2000, showConfirmButton: false });
             }
-
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 
@@ -309,9 +308,10 @@
             Swal.fire({ icon: 'success', title: 'Desactivado',
                 text: 'Ejido desactivado exitosamente',
                 timer: 2000, showConfirmButton: false });
+            _idParaDesactivar = null;
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 
@@ -338,7 +338,7 @@
             await listarInactivos();
             switchTab('activos');
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
         }
     };
 
