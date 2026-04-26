@@ -1,6 +1,5 @@
 // ============================================
 // MODELO: alerta.model.js
-// Descripción: Consultas SQL para el módulo de alertas
 // ============================================
 
 const Conexion = require('../../config/database');
@@ -8,7 +7,7 @@ const Conexion = require('../../config/database');
 module.exports = {
 
     // ============================================
-    // Listar todas las alertas (con info del activo)
+    // Listar todas las alertas
     // ============================================
     listar: () => Conexion.query(
         `SELECT
@@ -45,67 +44,66 @@ module.exports = {
     ),
 
     // ============================================
-    // Listar alertas por maquinaria
+    // Listar por maquinaria
     // ============================================
     listarPorMaquinaria: (id) => Conexion.query(
-        `SELECT *
-        FROM alerta
-        WHERE fk_maquinaria = $1
-        ORDER BY prioridad ASC, fecha_generada DESC`,
+        `SELECT * FROM alerta
+         WHERE fk_maquinaria = $1
+         ORDER BY prioridad ASC, fecha_generada DESC`,
         [id]
     ),
 
     // ============================================
-    // Listar alertas por vehículo
+    // Listar por vehículo
     // ============================================
     listarPorVehiculo: (id) => Conexion.query(
-        `SELECT *
-        FROM alerta
-        WHERE fk_vehiculo = $1
-        ORDER BY prioridad ASC, fecha_generada DESC`,
+        `SELECT * FROM alerta
+         WHERE fk_vehiculo = $1
+         ORDER BY prioridad ASC, fecha_generada DESC`,
         [id]
     ),
 
     // ============================================
-    // Marcar alerta como leída
+    // Marcar una alerta como leída
     // ============================================
     marcarLeida: (id) => Conexion.query(
-        `UPDATE alerta
-         SET leida = TRUE
+        `UPDATE alerta SET leida = TRUE
          WHERE pk_alerta = $1
          RETURNING *`,
         [id]
     ),
 
     // ============================================
-    // Marcar todas las alertas de un activo como leídas
+    // Marcar todas las alertas de una maquinaria como leídas
     // ============================================
     marcarTodasLeidasMaquinaria: (id) => Conexion.query(
-        `UPDATE alerta
-         SET leida = TRUE
+        `UPDATE alerta SET leida = TRUE
          WHERE fk_maquinaria = $1
          RETURNING *`,
         [id]
     ),
 
+    // ============================================
+    // Marcar todas las alertas de un vehículo como leídas
+    // ============================================
     marcarTodasLeidasVehiculo: (id) => Conexion.query(
-        `UPDATE alerta
-         SET leida = TRUE
+        `UPDATE alerta SET leida = TRUE
          WHERE fk_vehiculo = $1
          RETURNING *`,
         [id]
     ),
 
     // ============================================
-    // Insertar alerta (con protección contra duplicados)
+    // Insertar alerta de garantía (maquinaria o vehículo)
+    // ON CONFLICT DO NOTHING evita duplicados por UNIQUE
     // ============================================
     insertar: (data) => Conexion.query(
         `INSERT INTO alerta
-        (tipo_alerta, categoria, prioridad, tipo_activo,
-         fk_maquinaria, fk_vehiculo, referencia_id, mensaje, fecha_evento)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-        ON CONFLICT DO NOTHING
-        RETURNING *`,
+            (tipo_alerta, categoria, prioridad, tipo_activo,
+             fk_maquinaria, fk_vehiculo, referencia_id, mensaje, fecha_evento)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         ON CONFLICT DO NOTHING
+         RETURNING *`,
         [
             data.tipo_alerta,
             data.categoria,
@@ -120,47 +118,48 @@ module.exports = {
     ),
 
     // ============================================
-    // Eliminar alertas resueltas (ya no aplica la condición)
+    // Insertar alerta de inventario (bajo_stock)
+    // Si ya existe, actualiza el mensaje y la marca como no leída
     // ============================================
-    eliminarResuelta: (tipo_alerta, fk_maquinaria, fk_vehiculo, referencia_id) => Conexion.query(
-        `DELETE FROM alerta
-         WHERE tipo_alerta = $1
-           AND (fk_maquinaria = $2 OR fk_vehiculo = $3)
-           AND (referencia_id = $4 OR ($4::INT IS NULL AND referencia_id IS NULL))`,
-        [tipo_alerta, fk_maquinaria || null, fk_vehiculo || null, referencia_id || null]
+    insertarInventario: (data) => Conexion.query(
+        `INSERT INTO alerta
+            (tipo_alerta, categoria, prioridad, tipo_activo,
+             fk_maquinaria, fk_vehiculo, referencia_id, mensaje, fecha_evento)
+         VALUES ($1, $2, $3, $4, NULL, NULL, $5, $6, NULL)
+         ON CONFLICT (tipo_alerta, referencia_id)
+         DO UPDATE SET
+             mensaje        = EXCLUDED.mensaje,
+             leida          = FALSE,
+             fecha_generada = CURRENT_TIMESTAMP
+         RETURNING *`,
+        [
+            data.tipo_alerta,
+            data.categoria,
+            data.prioridad,
+            data.tipo_activo,
+            data.referencia_id,
+            data.mensaje
+        ]
     ),
 
     // ============================================
-    // [NUEVO] Verificar si ya existe una alerta HOY
-    // Evita spam de alertas diarias (checklist, inactividad)
+    // Eliminar alerta de un tipo específico por activo y factura
+    // Usado para limpiar etapas obsoletas de garantía
     // ============================================
-    existeHoy: (tipo_alerta, fk_maquinaria, fk_vehiculo) => Conexion.query(
-        `SELECT pk_alerta FROM alerta
-         WHERE tipo_alerta = $1
-           AND (fk_maquinaria = $2 OR fk_vehiculo = $3)
-           AND fecha_generada::DATE = CURRENT_DATE
-         LIMIT 1`,
-        [tipo_alerta, fk_maquinaria || null, fk_vehiculo || null]
-    ),
-
-    // ============================================
-    // [NUEVO] Eliminar todas las alertas de un tipo
-    // para un activo (limpieza masiva por tipo)
-    // Ej: eliminar todas las de 'checklist_faltante' de hoy
-    // ============================================
-    eliminarPorTipoYActivo: (tipo_alerta, fk_maquinaria, fk_vehiculo) => Conexion.query(
+    eliminarPorTipoYReferencia: (tipo_alerta, fk_maquinaria, fk_vehiculo, referencia_id) => Conexion.query(
         `DELETE FROM alerta
          WHERE tipo_alerta = $1
            AND (
                ($2::INT IS NOT NULL AND fk_maquinaria = $2)
                OR
-               ($3::INT IS NOT NULL AND fk_vehiculo = $3)
-           )`,
-        [tipo_alerta, fk_maquinaria || null, fk_vehiculo || null]
+               ($3::INT IS NOT NULL AND fk_vehiculo   = $3)
+           )
+           AND referencia_id = $4`,
+        [tipo_alerta, fk_maquinaria || null, fk_vehiculo || null, referencia_id]
     ),
 
     // ============================================
-    // Contar alertas pendientes (para badge en frontend)
+    // Contar alertas pendientes (badge del frontend)
     // ============================================
     contarPendientes: () => Conexion.query(
         `SELECT
@@ -168,8 +167,8 @@ module.exports = {
             COUNT(*) FILTER (WHERE categoria = 'preventiva') AS preventivas,
             COUNT(*) FILTER (WHERE categoria = 'operativa')  AS operativas,
             COUNT(*) AS total
-        FROM alerta
-        WHERE leida = FALSE`
+         FROM alerta
+         WHERE leida = FALSE`
     )
 
 };
