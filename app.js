@@ -51,6 +51,13 @@ app.use('/bodega_producto', require('./routes/bodega_producto/bodega_producto.ro
 app.use('/productor', require('./routes/productor/productor.routes'));
 app.use('/ejido', require('./routes/ejido/ejido.routes'));
 app.use('/predio', require('./routes/predio/predio.routes'));
+
+//--- MÓDULO CONSUMIBLES ---
+app.use('/partida-presupuestal', require('./routes/partida_presupuestal/partida_presupuestal.routes'));
+app.use('/unidad-medida', require('./routes/unidad_medida/unidad_medida.routes'));
+app.use('/almacen', require('./routes/almacen/almacen.routes'));
+app.use('/area', require('./routes/area/area.routes'));
+
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
 

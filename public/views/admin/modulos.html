@@ -47,7 +47,8 @@
                     <option value="todas">Todas las secciones</option>
                     <option value="operacion">Operación</option>
                      <option value="bodega">Bodega</option>
-                    <option value="catalogos">Catálogos</option>
+                     <option value="catalogos">Catálogos</option>
+                    <option value="consumibles">Consumibles</option>
                     <option value="administracion">Administración</option>
                 </select>
                 <span id="rol-seleccionado-label" class="badge text-white"
@@ -110,6 +111,18 @@
                         style="font-size:11px;transition:transform .2s;"></i>
                 </div>
                 <div id="modulos-administracion"></div>
+            </div>
+            <!-- Sección Consumibles (colapsable) -->
+             <div id="seccion-consumibles" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
+                    style="cursor:pointer;" onclick="toggleSeccion('consumibles')">
+                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
+                        <i class="fa-solid fa-folder me-1"></i>Consumibles
+                    </small>
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-consumibles"
+                        style="font-size:11px;transition:transform .2s;"></i>
+                </div>
+                <div id="modulos-consumibles"></div>
             </div>
 
         </div>

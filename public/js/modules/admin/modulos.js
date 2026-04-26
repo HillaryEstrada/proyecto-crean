@@ -141,7 +141,10 @@ function filtrarSeccion() {
             'OPERACIÓN':      ['maquinaria', 'vehiculo', 'alertas'],
             'BODEGA':         ['inventario', 'productor', 'ejido', 'predio'],
             'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'tipo_equipo'],
-            'ADMINISTRACIÓN': ['admin']
+            'ADMINISTRACIÓN': ['admin'],
+            'CONSUMIBLES': ['partida_presupuestal', 'unidad_medida', 'almacen', 'area']
+
+
         };
 
         Object.entries(grupos).forEach(([seccionNombre, prefijos]) => {

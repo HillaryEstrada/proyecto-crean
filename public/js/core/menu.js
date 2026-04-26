@@ -30,6 +30,12 @@ const modulosJS = {
     'tipo_equipo/tipo_equipo':        'modules/tipo_equipo/tipo_equipo',
     'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
 
+    //Modulo partida presupuestal
+    'partida_presupuestal/partida_presupuestal': 'modules/partida_presupuestal/partida_presupuestal',
+    'unidad_medida/unidad_medida': 'modules/unidad_medida/unidad_medida',
+    'almacen/almacen': 'modules/almacen/almacen',
+    'area/area': 'modules/area/area',
+
     // ====== ADMINISTRACIÓN ======
         'admin/empleados':  'modules/admin/empleados',
         'admin/users':      'modules/admin/users',
