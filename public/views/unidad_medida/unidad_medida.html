@@ -1,0 +1,209 @@
+<!-- ============================================
+     VISTA: unidad_medida.html
+     Descripción: Gestión de unidades de medida
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-ruler me-2 fs-2"></i>Unidades de Medida
+        </h4>
+        <p class="text-muted mb-0 fs-5">Gestión de unidades de medida</p>
+    </div>
+    <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+        onclick="abrirFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Registrar unidad
+    </button>
+</div>
+
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabActivos" onclick="switchTab('activos')">
+            <i class="fa-solid fa-circle-check"></i>Activos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabInactivos" onclick="switchTab('inactivos')">
+            <i class="fa-solid fa-ban"></i>Inactivos
+        </button>
+    </li>
+</ul>
+
+<!-- ── VISTA TABLA ── -->
+<div id="vistaTabla">
+
+    <!-- ACTIVOS -->
+    <div id="vistaActivos">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                           font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInput"
+                    placeholder="Buscar por nombre…" oninput="filtrarTabla()">
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unidadBody" class="bg-white">
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-unidad" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-unidad" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-unidad" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-unidad" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-unidad" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-unidad" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-unidad" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- INACTIVOS -->
+    <div id="vistaInactivos" class="d-none">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                           font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInputInactivos"
+                    placeholder="Buscar por nombre…" oninput="filtrarTablaInactivos()">
+            </div>
+        </div>
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:50px;">#</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unidadBodyInactivos" class="bg-white">
+                        <tr>
+                            <td colspan="4" class="text-center py-4 text-muted">
+                                <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <div id="info-registros-unidad-inactivos" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-unidad-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-unidad-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-unidad-inactivos" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-unidad-inactivos" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-unidad-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-unidad-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- ── VISTA FORMULARIO ── -->
+<div id="vistaFormulario" class="d-none">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+
+        <div class="px-4 py-3 text-white" style="background:#1a3c5e;">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fa-solid fa-ruler me-2"></i>
+                <span id="formTitulo">Registrar Unidad de Medida</span>
+            </h6>
+        </div>
+
+        <div class="p-4">
+            <input type="hidden" id="f_pk_unidad">
+
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Nombre <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_nombre" class="form-control" maxlength="50"
+                        placeholder="Ej: Kilogramo, Litro, Pieza…">
+                    <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-4 pb-4 d-flex justify-content-between">
+            <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
+                <i class="fa-solid fa-xmark me-1"></i>Cancelar
+            </button>
+            <button type="button" class="btn text-white fw-semibold px-4"
+                style="background:#1a3c5e;" onclick="guardarUnidad()">
+                <i class="fa-solid fa-floppy-disk me-1"></i>
+                <span id="btnGuardarLabel">Guardar unidad</span>
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── MODAL DESACTIVAR ── -->
+<div class="modal fade" id="modalDesactivar" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Desactivar Unidad
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-ruler fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="desactivarNombre">—</div>
+                        <div class="small text-muted">Esta unidad quedará inactiva</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Podrás reactivarla desde la pestaña <strong>Inactivos</strong> en cualquier momento.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarDesactivar()">
+                    <i class="fa-solid fa-ban me-1"></i>Desactivar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
