@@ -1,0 +1,327 @@
+<!-- ============================================
+     VISTA: bodega_movimiento.html
+     Descripción: Movimientos de bodega (entrada/salida)
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-arrow-right-arrow-left me-2 fs-2"></i>Bodega de Granos
+        </h4>
+        <p class="text-muted mb-0 fs-5">Movimientos e inventario de bodega</p>
+    </div>
+    <button class="btn text-white fw-semibold" id="btnNuevoMovimiento" style="background:#1a3c5e;"
+        onclick="abrirFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Nuevo movimiento
+    </button>
+</div>
+
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabMovimientos" onclick="switchTabPrincipal('movimientos')">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>Movimientos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabInventario" onclick="switchTabPrincipal('inventario')">
+            <i class="fa-solid fa-boxes-stacked"></i>Inventario
+        </button>
+    </li>
+</ul>
+
+<!-- ── VISTA MOVIMIENTOS ── -->
+<div id="vistaMovimientosTab">
+
+<!-- ── TARJETAS RESUMEN MOVIMIENTOS ── -->
+<div class="row g-3 mb-4" id="tarjetasMovimientos"></div>
+
+<!-- ── VISTA TABLA ── -->
+<div id="vistaTabla">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchInput"
+                placeholder="Buscar por bodega, motivo…" oninput="filtrarTabla()">
+        </div>
+        <select class="form-select" style="width:auto;" id="filtroTipo" onchange="filtrarTabla()">
+            <option value="">Todos los tipos</option>
+            <option value="entrada">Entrada</option>
+            <option value="salida">Salida</option>
+        </select>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">FECHA</th>
+                        <th class="py-3 px-3 text-center" style="width:120px;">FOLIO</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">TIPO</th>
+                        <th class="py-3 px-3">BODEGA</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">TOTAL KG</th>
+                        <th class="py-3 px-3 text-center" style="width:70px;">PRODS.</th>
+                        <th class="py-3 px-3">MOTIVO</th>
+                        <th class="py-3 px-3 text-center" style="width:80px;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="movBody" class="bg-white">
+                    <tr>
+                        <td colspan="9" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="info-registros-mov" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-mov" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-mov"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ── VISTA FORMULARIO TIPO FACTURA ── -->
+<div id="vistaFormulario" class="d-none">
+
+    <!-- ENCABEZADO -->
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;overflow:hidden;">
+        <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between" id="formHeaderMovimiento" style="background:#1a3c5e;">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fa-solid fa-arrow-right-arrow-left me-2"></i><span id="formTituloMovimiento">Nuevo Movimiento</span>
+            </h6>
+            <span class="badge" id="formTipoBadge" style="font-size:12px;background:rgba(255,255,255,0.2);">Sin tipo</span>
+        </div>
+        <div class="p-4">
+            <div class="row g-3">
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo de Movimiento <span class="text-danger">*</span>
+                    </label>
+                    <input type="hidden" id="f_tipo_movimiento">
+                    <div class="d-flex gap-3 mb-1">
+                        <div id="card_entrada" onclick="seleccionarTipo('entrada')"
+                            class="tipo-card flex-fill text-center p-3 rounded-3 border-2"
+                            style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                            <i class="fa-solid fa-arrow-down fa-lg mb-1" style="color:#2d7a4f;"></i>
+                            <div class="fw-semibold" style="font-size:13px;color:#2d7a4f;">Entrada</div>
+                            <div class="text-muted" style="font-size:11px;">Recepción de granos</div>
+                        </div>
+                        <div id="card_salida" onclick="seleccionarTipo('salida')"
+                            class="tipo-card flex-fill text-center p-3 rounded-3 border-2"
+                            style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                            <i class="fa-solid fa-arrow-up fa-lg mb-1" style="color:#c0392b;"></i>
+                            <div class="fw-semibold" style="font-size:13px;color:#c0392b;">Salida</div>
+                            <div class="text-muted" style="font-size:11px;">Despacho / entrega</div>
+                        </div>
+                    </div>
+                    <div class="text-danger d-none small mt-1" id="err_tipo">Selecciona el tipo de movimiento</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Bodega <span class="text-danger">*</span>
+                    </label>
+                    <select id="f_fk_bodega" class="form-select">
+                        <option value="">Seleccionar…</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_bodega">Campo requerido</div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Motivo
+                    </label>
+                    <input type="text" id="f_motivo" class="form-control"
+                        placeholder="Ej: Cosecha temporada 2025">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETALLE (tabla dinámica) -->
+    <div class="card border-0 shadow-sm mb-3" style="border-radius:12px;overflow:hidden;">
+        <div class="px-4 py-3 text-white border-bottom d-flex justify-content-between align-items-center" id="detalleHeaderColor" style="background:#1a3c5e;">
+            <span class="fw-semibold" style="font-size:14px;">
+                <i class="fa-solid fa-list me-2"></i>Detalle de productos
+                <span class="badge ms-2" id="badgeLineas" style="background:rgba(255,255,255,0.25);font-size:11px;">0 líneas</span>
+            </span>
+            <button class="btn btn-sm fw-semibold" style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.4);"
+                onclick="agregarFilaDetalle()">
+                <i class="fa-solid fa-plus me-1"></i>Agregar producto
+            </button>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle mb-0" style="min-width:1200px;">
+                <thead style="background:#f8fafc;font-size:11px;font-weight:600;color:#1a3c5e;">
+                    <tr>
+                        <th class="px-2 py-2" style="width:160px;">PRODUCTO *</th>
+                        <th class="px-2 py-2 text-center" style="width:100px;">KG *</th>
+                        <th class="px-2 py-2 text-center" style="width:80px;">BULTOS</th>
+                        <th class="px-2 py-2 text-center" style="width:90px;">KG/BULTO</th>
+                        <th class="px-2 py-2 text-center" style="width:110px;">TIPO RECEPCIÓN</th>
+                        <th class="px-2 py-2 text-center" style="width:80px;">HUMEDAD %</th>
+                        <th class="px-2 py-2 text-center" style="width:70px;">ANÁLISIS</th>
+                        <th class="px-2 py-2" style="width:140px;">PRODUCTOR</th>
+                        <th class="px-2 py-2" style="width:130px;">EJIDO</th>
+                        <th class="px-2 py-2" style="width:130px;">PREDIO</th>
+                        <th class="px-2 py-2 text-center" style="width:50px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="detalleBody">
+                    <!-- filas dinámicas -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="px-4 py-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="d-flex gap-4">
+                    <div>
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Total KG</div>
+                        <div class="fw-bold" style="font-size:18px;color:#1a3c5e;"><span id="totalKg">0.00</span> kg</div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Productos</div>
+                        <div class="fw-bold" style="font-size:18px;color:#1a3c5e;"><span id="totalProductos">0</span></div>
+                    </div>
+                    <div>
+                        <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Folio</div>
+                        <div class="fw-semibold" style="font-size:14px;color:#1a3c5e;font-family:monospace;"><span id="folioDisplay">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTONES -->
+    <div class="d-flex justify-content-between">
+        <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
+            <i class="fa-solid fa-xmark me-1"></i>Cancelar
+        </button>
+        <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold px-4"
+            style="background:#1a3c5e;" onclick="guardarMovimiento()">
+            <i class="fa-solid fa-floppy-disk me-1"></i><span id="lblGuardarMovimiento">Registrar movimiento</span>
+        </button>
+    </div>
+</div>
+
+</div><!-- /vistaMovimientosTab -->
+
+<!-- ── VISTA INVENTARIO TAB ── -->
+<div id="vistaInventarioTab" class="d-none">
+
+    <!-- Tarjetas resumen -->
+    <div class="row g-3 mb-4" id="invTarjetas"></div>
+
+    <!-- Filtros -->
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="invSearch"
+                placeholder="Buscar por producto, variedad…" oninput="filtrarInvTab()">
+        </div>
+        <select class="form-select" style="width:auto;" id="invFiltroBodega" onchange="filtrarInvTab()">
+            <option value="">Todas las bodegas</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="invFiltroTipo" onchange="filtrarInvTab()">
+            <option value="">Todos los tipos</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="invOrden" onchange="filtrarInvTab()">
+            <option value="nombre">Ordenar por nombre</option>
+            <option value="mayor">Mayor stock primero</option>
+            <option value="menor">Menor stock primero</option>
+        </select>
+        <button class="btn btn-outline-secondary btn-sm" onclick="cargarInvTab()">
+            <i class="fa-solid fa-rotate-right me-1"></i>Actualizar
+        </button>
+    </div>
+
+    <!-- Tabla inventario -->
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3">PRODUCTO</th>
+                        <th class="py-3 px-3" style="width:110px;">TIPO</th>
+                        <th class="py-3 px-3" style="width:100px;">VARIEDAD</th>
+                        <th class="py-3 px-3" style="width:120px;">BODEGA</th>
+                        <th class="py-3 px-3 text-center" style="width:120px;">STOCK (KG)</th>
+                        <th class="py-3 px-3 text-center" style="width:130px;">% BODEGA</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">HUMEDAD</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">CALIDAD</th>
+                        <th class="py-3 px-3 text-center" style="width:130px;">ÚLTIMO MOV.</th>
+                        <th class="py-3 px-3 text-center" style="width:80px;">NIVEL</th>
+                    </tr>
+                </thead>
+                <tbody id="invTabBody" class="bg-white">
+                    <tr>
+                        <td colspan="11" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-inv-tab" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-inv-tab" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-inv-tab" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-inv-tab" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-inv-tab"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-inv-tab" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-inv-tab" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /vistaInventarioTab -->
+
+<!-- ── MODAL: VER DETALLE ── -->
+<div class="modal fade" id="modalDetalle" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" id="modalDetalleHeader" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i id="modalDetalleTipoIcon" class="fa-solid fa-arrow-right-arrow-left me-2"></i>
+                    <span id="detalleTitulo">Detalle del Movimiento</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="detalleModalBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
