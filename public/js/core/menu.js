@@ -22,6 +22,7 @@ const modulosJS = {
     'inventario/mobiliario':          'modules/inventario/mobiliario',
     'ejido/ejido':                    'modules/ejido/ejido',
     'predio/predio':                  'modules/predio/predio',
+    'inventario/bodega_movimiento': 'modules/inventario/bodega_movimiento',
 
     // ====== CATÁLOGOS ======
     'factura/factura':                'modules/factura/factura',

@@ -45,18 +45,23 @@ app.use('/proveedor', require('./routes/proveedor/proveedor.routes'));
 app.use('/maquinaria', require('./routes/maquinaria/maquinaria.routes'));
 app.use('/vehiculo', require('./routes/vehiculo/vehiculo.routes'));
 app.use('/archivo', require('./routes/upload/upload.routes'));
-
+// --- MÓDULO BODEGA ---
 app.use('/bodega', require('./routes/bodega/bodega.routes'));
 app.use('/bodega_producto', require('./routes/bodega_producto/bodega_producto.routes'));
 app.use('/productor', require('./routes/productor/productor.routes'));
 app.use('/ejido', require('./routes/ejido/ejido.routes'));
 app.use('/predio', require('./routes/predio/predio.routes'));
 
+
 //--- MÓDULO CONSUMIBLES ---
 app.use('/partida-presupuestal', require('./routes/partida_presupuestal/partida_presupuestal.routes'));
 app.use('/unidad-medida', require('./routes/unidad_medida/unidad_medida.routes'));
 app.use('/almacen', require('./routes/almacen/almacen.routes'));
 app.use('/area', require('./routes/area/area.routes'));
+
+app.use('/movimiento_bodega', require('./routes/movimiento_bodega/movimiento_bodega.routes'));
+app.use('/inventario_bodega', require('./routes/inventario_bodega/inventario_bodega.routes'));
+
 
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
