@@ -1,0 +1,423 @@
+<!-- ============================================
+     VISTA: consumible.html
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-boxes-stacked me-2 fs-2"></i>Consumibles
+        </h4>
+        <p class="text-muted mb-0 fs-5">Control de papelería y productos de limpieza</p>
+    </div>
+    <button class="btn text-white fw-semibold" id="btnNuevoArticulo" style="background:#1a3c5e;"
+        onclick="abrirFormulario()">
+        <i class="fa-solid fa-plus me-1"></i>Nuevo artículo
+    </button>
+</div>
+
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabArticulos" onclick="switchTabPrincipal('articulos')">
+            <i class="fa-solid fa-circle-check"></i>Inventario
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabMovimientos" onclick="switchTabPrincipal('movimientos')">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i>Movimientos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabInactivos" onclick="switchTabPrincipal('inactivos')">
+            <i class="fa-solid fa-ban"></i> Inventario Inactivos
+        </button>
+    </li>
+</ul>
+
+
+<!-- ══════════════════════════════════════
+     TAB: ARTÍCULOS ACTIVOS
+══════════════════════════════════════ -->
+<div id="vistaArticulosTab">
+
+    <div class="row g-3 mb-4" id="tarjetasArticulos"></div>
+
+    <div id="alertaStockBajo" class="alert d-none mb-3"
+        style="background:#fff8e1;border:1px solid #f9a825;color:#5d4037;">
+        <i class="fas fa-exclamation-triangle me-2" style="color:#f9a825;"></i>
+        <strong>Stock bajo:</strong> <span id="listaStockBajo"></span>
+    </div>
+
+    <div id="vistaTabla">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchInput"
+                    placeholder="Buscar por nombre…" oninput="filtrarTabla()">
+            </div>
+            <select class="form-select" style="width:auto;" id="filtroCategoria" onchange="filtrarTabla()">
+                <option value="">Todas las categorías</option>
+                <option value="Papelería">Papelería</option>
+                <option value="Productos de limpieza">Productos de limpieza</option>
+            </select>
+            <select class="form-select" style="width:auto;" id="filtroEstado" onchange="filtrarTabla()">
+                <option value="">Todos los estados</option>
+                <option value="ok">OK</option>
+                <option value="bajo">Stock bajo</option>
+                <option value="sin_stock">Sin stock</option>
+            </select>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3" style="width:130px;">CATEGORÍA</th>
+                            <th class="py-3 px-3" style="width:100px;">UNIDAD</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">STOCK ACTUAL</th>
+                            <th class="py-3 px-3 text-center" style="width:70px;">MÍN.</th>
+                            <th class="py-3 px-3" style="width:130px;">UBICACIÓN</th>
+                            <th class="py-3 px-3 text-center" style="width:90px;">ESTADO</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="articuloBody" class="bg-white">
+                        <tr><td colspan="9" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-art" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-art" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-art" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-art" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-art" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-art" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-art" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario artículo inline -->
+    <div id="vistaFormulario" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="px-4 py-3 text-white" style="background:#1a3c5e;">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-boxes-stacked me-2"></i>
+                    <span id="formTituloArticulo">Nuevo Artículo</span>
+                </h6>
+            </div>
+            <div class="p-4">
+                <input type="hidden" id="f_pk_articulo">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="f_nombre" class="form-control" placeholder="Ej: Papel Bond A4">
+                        <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Categoría <span class="text-danger">*</span></label>
+                        <select id="f_categoria" class="form-select">
+                            <option value="">Seleccionar…</option>
+                            <option value="Papelería">Papelería</option>
+                            <option value="Productos de limpieza">Productos de limpieza</option>
+                        </select>
+                        <div class="text-danger d-none small mt-1" id="err_categoria">Campo requerido</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Unidad de medida <span class="text-danger">*</span></label>
+                        <select id="f_fk_unidad" class="form-select"><option value="">Seleccionar…</option></select>
+                        <div class="text-danger d-none small mt-1" id="err_unidad">Campo requerido</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock inicial</label>
+                        <input type="number" id="f_stock_inicial" class="form-control" value="0" min="0">
+                        <small class="text-muted" id="notaStockInicial">Se registrará como entrada inicial</small>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock mínimo</label>
+                        <input type="number" id="f_stock_minimo" class="form-control" value="0" min="0">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Almacén / Ubicación <span class="text-danger">*</span></label>
+                        <select id="f_fk_almacen" class="form-select"><option value="">Seleccionar…</option></select>
+                        <div class="text-danger d-none small mt-1" id="err_almacen">Campo requerido</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
+                        <select id="f_fk_partida" class="form-select"><option value="">Sin partida</option></select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>
+                        <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Descripción opcional…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn text-white fw-semibold px-4" style="background:#1a3c5e;" onclick="guardarArticulo()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i><span id="btnGuardarLabel">Guardar artículo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div><!-- /vistaArticulosTab -->
+
+
+<!-- ══════════════════════════════════════
+     TAB: MOVIMIENTOS
+══════════════════════════════════════ -->
+<div id="vistaMovimientosTab" class="d-none">
+
+    <div class="row g-3 mb-4" id="tarjetasMovimientos"></div>
+
+    <div id="vistaTablaMovimientos">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchMovInput"
+                    placeholder="Buscar por artículo, motivo…" oninput="filtrarMovimientos()">
+            </div>
+            <select class="form-select" style="width:auto;" id="filtroTipoMov" onchange="filtrarMovimientos()">
+                <option value="">Todos los tipos</option>
+                <option value="entrada">Entrada</option>
+                <option value="salida">Salida</option>
+                <option value="baja">Baja</option>
+            </select>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA</th>
+                            <th class="py-3 px-3 text-center" style="width:90px;">TIPO</th>
+                            <th class="py-3 px-3">ARTÍCULO</th>
+                            <th class="py-3 px-3 text-center" style="width:90px;">CANTIDAD</th>
+                            <th class="py-3 px-3" style="width:120px;">ÁREA</th>
+                            <th class="py-3 px-3" style="width:140px;">RECIBIÓ</th>
+                            <th class="py-3 px-3">MOTIVO</th>
+                        </tr>
+                    </thead>
+                    <tbody id="movBody" class="bg-white">
+                        <tr><td colspan="8" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-mov" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-mov" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-mov" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario movimiento inline -->
+    <div id="vistaFormularioMovimiento" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between"
+                id="formHeaderMovimiento" style="background:#1a3c5e;">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Registrar Movimiento
+                </h6>
+                <span class="badge" id="formTipoMovBadge" style="font-size:12px;background:rgba(255,255,255,0.2);">Sin tipo</span>
+            </div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Tipo de movimiento <span class="text-danger">*</span></label>
+                        <input type="hidden" id="f_tipo_movimiento">
+                        <div class="d-flex gap-3 mb-1">
+                            <div id="card_entrada" onclick="seleccionarTipoMov('entrada')"
+                                class="flex-fill text-center p-3 rounded-3"
+                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                                <i class="fa-solid fa-arrow-down fa-lg mb-1" style="color:#2d7a4f;"></i>
+                                <div class="fw-semibold" style="font-size:13px;color:#2d7a4f;">Entrada</div>
+                                <div class="text-muted" style="font-size:11px;">Recepción de artículos</div>
+                            </div>
+                            <div id="card_salida" onclick="seleccionarTipoMov('salida')"
+                                class="flex-fill text-center p-3 rounded-3"
+                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                                <i class="fa-solid fa-arrow-up fa-lg mb-1" style="color:#c0392b;"></i>
+                                <div class="fw-semibold" style="font-size:13px;color:#c0392b;">Salida</div>
+                                <div class="text-muted" style="font-size:11px;">Entrega a área</div>
+                            </div>
+                            <div id="card_baja" onclick="seleccionarTipoMov('baja')"
+                                class="flex-fill text-center p-3 rounded-3"
+                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                                <i class="fa-solid fa-times-circle fa-lg mb-1" style="color:#e67e22;"></i>
+                                <div class="fw-semibold" style="font-size:13px;color:#e67e22;">Baja</div>
+                                <div class="text-muted" style="font-size:11px;">Merma / destrucción</div>
+                            </div>
+                        </div>
+                        <div class="text-danger d-none small mt-1" id="err_tipo_mov">Selecciona el tipo de movimiento</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Artículo <span class="text-danger">*</span></label>
+                        <select id="f_fk_articulo" class="form-select"><option value="">Seleccionar…</option></select>
+                        <div class="text-danger d-none small mt-1" id="err_articulo">Campo requerido</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Cantidad <span class="text-danger">*</span></label>
+                        <input type="number" id="f_cantidad" class="form-control" value="1" min="1">
+                        <div class="text-danger d-none small mt-1" id="err_cantidad">Debe ser mayor a 0</div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Referencia <small class="text-muted">(opcional)</small></label>
+                        <input type="text" id="f_referencia" class="form-control" placeholder="Ej: Folio factura…">
+                    </div>
+                    <!-- Campos solo SALIDA -->
+                    <div id="camposSalida" class="col-12 d-none">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Área <span class="text-danger">*</span></label>
+                                <select id="f_fk_area" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_area">Campo requerido</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Recibido por (empleado) <span class="text-danger">*</span></label>
+                                <select id="f_recibido_por" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_recibido">Campo requerido</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Entregado por (usuario) <span class="text-danger">*</span></label>
+                                <select id="f_entregado_por" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_entregado">Campo requerido</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo <span class="text-danger">*</span></label>
+                        <textarea id="f_motivo" class="form-control" rows="2" placeholder="Ej: Uso en impresora de administración…"></textarea>
+                        <div class="text-danger d-none small mt-1" id="err_motivo">Campo requerido</div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormularioMovimiento()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold px-4"
+                    style="background:#1a3c5e;" onclick="guardarMovimiento()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Registrar movimiento
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /vistaMovimientosTab -->
+
+
+<!-- ══════════════════════════════════════
+     TAB: INACTIVOS
+══════════════════════════════════════ -->
+<div id="vistaInactivosTab" class="d-none">
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchInactivos"
+                placeholder="Buscar por nombre…" oninput="filtrarInactivos()">
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3">NOMBRE</th>
+                        <th class="py-3 px-3" style="width:130px;">CATEGORÍA</th>
+                        <th class="py-3 px-3" style="width:100px;">UNIDAD</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">STOCK</th>
+                        <th class="py-3 px-3" style="width:130px;">UBICACIÓN</th>
+                        <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="articuloBodyInactivos" class="bg-white">
+                    <tr><td colspan="7" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-art-inactivos" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-art-inactivos" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-art-inactivos" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /vistaInactivosTab -->
+
+<!-- ── MODAL: DESACTIVAR ARTÍCULO ── -->
+<div class="modal fade" id="modalDesactivar" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Desactivar Artículo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-boxes-stacked fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="desactivarNombre">—</div>
+                        <div class="small text-muted">Este artículo quedará inactivo</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Podrás reactivarlo desde la pestaña <strong>Inventario Inactivos</strong>.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarDesactivar()">
+                    <i class="fa-solid fa-ban me-1"></i>Desactivar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

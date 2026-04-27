@@ -61,7 +61,8 @@ app.use('/area', require('./routes/area/area.routes'));
 
 app.use('/movimiento_bodega', require('./routes/movimiento_bodega/movimiento_bodega.routes'));
 app.use('/inventario_bodega', require('./routes/inventario_bodega/inventario_bodega.routes'));
-
+app.use('/articulos', require('./routes/consumible/articulo.routes'))
+app.use('/movimientos-articulo', require('./routes/consumible/movimiento_articulo.routes'))
 
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));

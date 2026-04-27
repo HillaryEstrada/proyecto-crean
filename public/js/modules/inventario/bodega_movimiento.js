@@ -245,9 +245,13 @@
                         onclick="verDetalle(${m.pk_movimiento_bodega})">
                         <i class="fa-solid fa-eye" style="font-size:11px;"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-primary" title="Editar"
+                    <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarMovimiento(${m.pk_movimiento_bodega})">
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Eliminar movimiento"
+                        onclick="eliminarMovimiento(${m.pk_movimiento_bodega})">
+                        <i class="fa-solid fa-trash" style="font-size:11px;"></i>
                     </button>
                 </td>
             </tr>`;
@@ -971,10 +975,180 @@
                 <td class="px-3 text-center">${calidad}</td>
                 <td class="px-3 text-center">${ultHtml}</td>
                 <td class="px-3 text-center">${badgeNivelInv(i.stock_kg)}</td>
+                <td class="px-3 text-center">
+                    <button class="btn btn-sm btn-outline-primary" title="Ver historial"
+                        onclick="verDetalleProducto(${i.fk_producto || i.pk_inventario}, ${i.fk_bodega || 0}, '${(i.producto||'').replace(/'/g,'\'')}', '${(i.bodega||'').replace(/'/g,'\'')}')"
+                        style="white-space:nowrap;">
+                        <i class="fa-solid fa-eye" style="font-size:11px;"></i>
+                    </button>
+                </td>
             </tr>`;
         }).join('');
         initPaginacion({ tbodyId: 'invTabBody', filasPorPagina: 15, sufijo: 'inv-tab' });
     }
+
+    // ════════════════════════════════════════
+    // ELIMINAR MOVIMIENTO
+    // ════════════════════════════════════════
+    window.eliminarMovimiento = async function (id) {
+        const confirm = await Swal.fire({
+            icon: 'warning',
+            title: '¿Eliminar movimiento?',
+            html: '<p class="mb-1">Esta acción <strong>revertirá el stock</strong> asociado a este movimiento.</p><p class="text-muted small">No se puede deshacer.</p>',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#c0392b',
+            cancelButtonColor: '#6c757d'
+        });
+        if (!confirm.isConfirmed) return;
+
+        try {
+            await fetchWithAuth(`/movimiento_bodega/${id}`, 'DELETE');
+            Swal.fire({ icon: 'success', title: 'Eliminado', text: 'Movimiento eliminado y stock revertido exitosamente', timer: 2000, showConfirmButton: false });
+            listar();
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+        }
+    };
+
+    // ════════════════════════════════════════
+    // VER DETALLE DE PRODUCTO EN INVENTARIO
+    // ════════════════════════════════════════
+    window.verDetalleProducto = async function (fk_producto, fk_bodega, producto, bodega) {
+        // Buscar el registro de inventario
+        const inv = _inventario.find(i => (i.fk_producto || i.pk_inventario) == fk_producto && (i.fk_bodega || 0) == fk_bodega)
+            || _inventario.find(i => i.producto === producto && i.bodega === bodega)
+            || {};
+
+        const stk        = parseFloat(inv.stock_kg || 0);
+        const cap        = parseFloat(inv.capacidad_kg || 0);
+        const pct        = cap > 0 ? Math.min(100, Math.round((stk / cap) * 100)) : null;
+        const hum        = inv.humedad != null ? parseFloat(inv.humedad) : null;
+        const humColor   = hum === null ? '#6c757d' : hum > 13 ? '#c0392b' : '#2d7a4f';
+        const calidad    = inv.analisis_calidad === true ? 'A' : inv.analisis_calidad === false && hum !== null ? 'B' : '—';
+        const calidadTxt = inv.analisis_calidad === true ? 'Buena' : inv.analisis_calidad === false && hum !== null ? 'Regular' : '—';
+
+        // Mostrar modal con loading
+        const modalEl = document.getElementById('modalDetalleProducto');
+        if (!modalEl) {
+            // Crear modal dinámicamente si no existe
+            const div = document.createElement('div');
+            div.innerHTML = `
+            <div class="modal fade" id="modalDetalleProducto" tabindex="-1">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+                        <div class="modal-header text-white py-3 px-4" id="modalProdHeader" style="background:#2d7a4f;">
+                            <h5 class="modal-title">
+                                <i class="fa-solid fa-seedling me-2"></i>
+                                <span id="modalProdTitulo">Cargando...</span>
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body p-4" id="modalProdBody">
+                            <div class="text-center py-4"><div class="spinner-border" style="color:#2d7a4f;"></div></div>
+                        </div>
+                        <div class="modal-footer bg-light border-top" id="modalProdFooter"></div>
+                    </div>
+                </div>
+            </div>`;
+            document.body.appendChild(div.firstElementChild);
+        }
+
+        document.getElementById('modalProdTitulo').textContent = `${producto} · ${bodega}`;
+        document.getElementById('modalProdBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border" style="color:#2d7a4f;"></div></div>';
+        document.getElementById('modalProdFooter').innerHTML = '';
+        new bootstrap.Modal(document.getElementById('modalDetalleProducto')).show();
+
+        try {
+            // Obtener historial de movimientos de este producto en esta bodega
+            const historial = await fetchWithAuth(`/movimiento_bodega/historial/${fk_producto}/${fk_bodega}`);
+
+            document.getElementById('modalProdBody').innerHTML = `
+                <!-- Tarjetas resumen -->
+                <div class="row g-3 mb-4">
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-3 text-center">
+                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Stock Actual</div>
+                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${stk.toLocaleString('es-MX')}</div>
+                                <div class="text-muted" style="font-size:11px;">kilogramos</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-3 text-center">
+                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Humedad</div>
+                                <div class="fw-bold" style="font-size:22px;color:${humColor};">
+                                    ${hum !== null ? hum.toFixed(1) + '%' : '—'}
+                                </div>
+                                <div style="font-size:11px;color:${humColor};">${hum !== null ? (hum > 13 ? '⚠ Alta' : '✓ Nivel óptimo') : 'Sin datos'}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-3 text-center">
+                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Calidad</div>
+                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${calidad}</div>
+                                <div class="text-muted" style="font-size:11px;">${calidadTxt}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="card border-0 bg-light h-100">
+                            <div class="card-body p-3 text-center">
+                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Ocupación Bodega</div>
+                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${pct !== null ? pct + '%' : '—'}</div>
+                                <div class="text-muted" style="font-size:11px;">${cap > 0 ? stk.toLocaleString('es-MX') + ' / ' + cap.toLocaleString('es-MX') + ' kg' : 'Sin capacidad'}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial -->
+                <h6 class="fw-semibold mb-3" style="color:#1a3c5e;">
+                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de movimientos
+                </h6>
+                ${historial.length ? `
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0" style="font-size:12px;">
+                        <thead style="background:#f8fafc;">
+                            <tr>
+                                <th class="px-3 py-2">Fecha</th>
+                                <th class="px-3 py-2">Folio</th>
+                                <th class="px-3 py-2 text-center">Tipo</th>
+                                <th class="px-3 py-2 text-center">Cantidad</th>
+                                <th class="px-3 py-2 text-center">Humedad</th>
+                                <th class="px-3 py-2">Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${historial.map(h => {
+                                const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
+                                const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
+                                return `<tr>
+                                    <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
+                                    <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
+                                    <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
+                                        ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
+                                        : '<span class="badge bg-danger"  style="font-size:10px;">↑ Salida</span>'}</td>
+                                    <td class="px-3 text-center fw-semibold" style="color:${color};">${signo}${parseFloat(h.cantidad_kg).toLocaleString('es-MX')} kg</td>
+                                    <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
+                                    <td class="px-3 text-muted">${h.motivo || '—'}</td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>` : '<p class="text-muted text-center py-3">Sin movimientos registrados para este producto en esta bodega.</p>'}
+            `;
+
+        } catch (e) {
+            document.getElementById('modalProdBody').innerHTML =
+                `<div class="text-center text-danger py-4">Error al cargar el historial</div>`;
+        }
+    };
 
     window.filtrarInvTab = function () {
         const q      = (document.getElementById('invSearch')?.value || '').toLowerCase();

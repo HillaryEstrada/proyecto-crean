@@ -312,38 +312,36 @@
                     <span class="sidebar-text">Bodega de Granos</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
+                
                 <div class="collapse sidebar-submenu-children" id="collapseBodega">
-                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
-                        <i class="fa-solid fa-house-chimney"></i>
-                        <span class="sidebar-text">Bodegas</span>
+                    <!-- MOVIMIENTOS -->
+                    <a href="#" data-clave="inventario/bodega_movimiento" onclick="cargarVista('inventario/bodega_movimiento')">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <span class="sidebar-text">Entradas/ Salidas</span>
                     </a>
                     <!-- GRANOS -->
                     <a href="#" data-clave="inventario/bodega_producto" onclick="cargarVista('inventario/bodega_producto')">
                         <i class="fa-solid fa-box"></i>
                         <span class="sidebar-text">Granos</span>
                     </a>
+                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
+                        <i class="fa-solid fa-house-chimney"></i>
+                        <span class="sidebar-text">Bodegas</span>
+                    </a>
                     <a href="#" data-clave="productor/productor" onclick="cargarVista('productor/productor')">
                         <i class="fa-solid fa-user-tie"></i>
                         <span class="sidebar-text">Productores</span>
                     </a>
-                    <!-- MOVIMIENTOS -->
-                    <a href="#" data-clave="inventario/bodega_movimiento" onclick="cargarVista('inventario/bodega_movimiento')">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        <span class="sidebar-text">Movimientos</span>
-                    </a>
-
-                    <!-- Ejido -->
-                    <a href="#" data-clave="ejido/ejido" onclick="cargarVista('ejido/ejido')">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        <span class="sidebar-text">Ejidos</span>
-                    </a>
-
                     <!-- Predio -->
                      <a href="#" data-clave="predio/predio" onclick="cargarVista('predio/predio')">
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>
                         <span class="sidebar-text">Predios</span>
                     </a>
-                    
+                    <!-- Ejido -->
+                    <a href="#" data-clave="ejido/ejido" onclick="cargarVista('ejido/ejido')">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <span class="sidebar-text">Ejidos</span>
+                    </a>
                 </div>
             </div>
 
@@ -363,7 +361,10 @@
 
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseConsumibles">
-                    
+                    <a href="#" data-clave="consumible/consumible" onclick="cargarVista('consumible/consumible')">
+                        <i class="fa-solid fa-boxes-stacked"></i>
+                        <span class="sidebar-text">Artículos</span>
+                    </a>
                     <a href="#" data-clave="partida_presupuestal/partida_presupuestal" onclick="cargarVista('partida_presupuestal/partida_presupuestal')">
                         <i class="fa-solid fa-house-chimney"></i>
                         <span class="sidebar-text">Partidas Presupuestales</span>
@@ -383,19 +384,8 @@
                         <i class="fa-solid fa-map"></i>
                         <span class="sidebar-text">Áreas</span>
                     </a>
-                    
-                   
-                   
-                   
-                
-
-                  
-                    
                 </div>
             </div>
-
-
-
             <!-- ============================== -->
             <!-- GRUPO: MOBILIARIO              -->
             <!-- ============================== -->
