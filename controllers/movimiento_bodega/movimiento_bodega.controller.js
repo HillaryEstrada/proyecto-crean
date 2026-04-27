@@ -45,7 +45,7 @@ exports.crearMovimiento = async (req, res) => {
 };
 
 // ============================================
-// ACTUALIZAR MOVIMIENTO (revierte y re-aplica inventario)
+// ACTUALIZAR MOVIMIENTO
 // ============================================
 exports.actualizarMovimiento = async (req, res) => {
     try {
@@ -62,6 +62,21 @@ exports.actualizarMovimiento = async (req, res) => {
             return res.status(404).json({ error: 'Movimiento no encontrado' });
         if (error.tipo === 'stock_insuficiente')
             return res.status(400).json({ error: 'Stock insuficiente para uno o más productos' });
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// ELIMINAR MOVIMIENTO (revierte inventario)
+// ============================================
+exports.eliminarMovimiento = async (req, res) => {
+    try {
+        await Movimiento.eliminarMovimiento(req.params.id);
+        res.json({ mensaje: 'Movimiento eliminado y stock revertido exitosamente' });
+    } catch (error) {
+        console.error('Error al eliminar movimiento:', error);
+        if (error.tipo === 'no_encontrado')
+            return res.status(404).json({ error: 'Movimiento no encontrado' });
         res.status(500).json({ error: error.message });
     }
 };
@@ -94,6 +109,20 @@ exports.obtenerDetalle = async (req, res) => {
 
     } catch (error) {
         console.error('Error al obtener movimiento:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// HISTORIAL POR PRODUCTO + BODEGA
+// ============================================
+exports.historialPorProducto = async (req, res) => {
+    try {
+        const { fk_producto, fk_bodega } = req.params;
+        const data = await Movimiento.historialPorProducto(fk_producto, fk_bodega);
+        res.json(data.rows);
+    } catch (error) {
+        console.error('Error historial producto:', error);
         res.status(500).json({ error: error.message });
     }
 };

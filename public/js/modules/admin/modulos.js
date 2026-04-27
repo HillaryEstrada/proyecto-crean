@@ -142,7 +142,7 @@ function filtrarSeccion() {
             'BODEGA':         ['inventario', 'productor', 'ejido', 'predio'],
             'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'tipo_equipo'],
             'ADMINISTRACIÓN': ['admin'],
-            'CONSUMIBLES': ['partida_presupuestal', 'unidad_medida', 'almacen', 'area']
+            'CONSUMIBLES': ['partida_presupuestal', 'unidad_medida', 'almacen', 'area', 'consumible']
 
 
         };

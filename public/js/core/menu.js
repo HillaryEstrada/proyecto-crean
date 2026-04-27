@@ -13,8 +13,7 @@ const modulosJS = {
     'vehiculo/vehiculo':              'modules/vehiculo/vehiculo',
     'alertas/alertas':                'modules/alertas/alertas',
 
-    // ====== INVENTARIOS ======
-    'inventario/consumibles':         'modules/inventario/consumibles',
+   // ====== INVENTARIOS ======
     'inventario/bodega':              'modules/inventario/bodega',
     'inventario/bodega_producto':     'modules/inventario/bodega_producto',
     'productor/productor':            'modules/productor/productor',
@@ -36,6 +35,7 @@ const modulosJS = {
     'unidad_medida/unidad_medida': 'modules/unidad_medida/unidad_medida',
     'almacen/almacen': 'modules/almacen/almacen',
     'area/area': 'modules/area/area',
+    'consumible/consumible':         'modules/consumible/consumible',
 
     // ====== ADMINISTRACIÓN ======
         'admin/empleados':  'modules/admin/empleados',

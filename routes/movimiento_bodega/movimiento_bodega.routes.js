@@ -10,11 +10,13 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 router.use(verificarToken);
 
 // ── LECTURA — cualquier usuario autenticado ──
-router.get('/',    controller.listar);
-router.get('/:id', controller.obtenerDetalle);
+router.get('/',                              controller.listar);
+router.get('/historial/:fk_producto/:fk_bodega', controller.historialPorProducto);
+router.get('/:id',                           controller.obtenerDetalle);
 
 // ── ESCRITURA — solo con módulo asignado ──
 router.post('/',    verificarModulo('inventario/bodega_movimiento'), controller.crearMovimiento);
 router.put('/:id',  verificarModulo('inventario/bodega_movimiento'), controller.actualizarMovimiento);
+router.delete('/:id', verificarModulo('inventario/bodega_movimiento'), controller.eliminarMovimiento);
 
 module.exports = router;
