@@ -365,31 +365,34 @@
                 agregarFilaDetalle();
                 const rowId = _filaContador;
 
-                // Campos simples
                 const setVal = (sel, val) => { const el = document.getElementById(sel); if (el) el.value = val || ''; };
-                setVal(`d_producto_${rowId}`,       d.fk_producto);
-                setVal(`d_kg_${rowId}`,             d.cantidad_kg);
-                setVal(`d_bultos_${rowId}`,         d.cantidad_bultos);
-                setVal(`d_peso_bulto_${rowId}`,     d.peso_por_bulto);
+
+                setVal(`d_producto_${rowId}`,   d.fk_producto);
+                setVal(`d_bultos_${rowId}`,     d.cantidad_bultos);
+                setVal(`d_peso_bulto_${rowId}`, d.peso_por_bulto);
                 setVal(`d_tipo_recepcion_${rowId}`, d.tipo_recepcion);
-                setVal(`d_humedad_${rowId}`,        d.humedad);
-                setVal(`d_productor_${rowId}`,      d.fk_productor);
+                setVal(`d_humedad_${rowId}`,    d.humedad);
+                setVal(`d_productor_${rowId}`,  d.fk_productor);
 
                 const analisis = document.getElementById(`d_analisis_${rowId}`);
                 if (analisis) analisis.checked = d.analisis_calidad || false;
 
-                // Ejido → filtrar predios → asignar predio (todo síncrono)
+                // Aplicar lógica visual ANTES de asignar kg
+                aplicarLogicaTipoRecepcion(rowId);
+
+                // Asignar kg después (puede estar readonly si es costal/quintalado)
+                const kgEl = document.getElementById(`d_kg_${rowId}`);
+                if (kgEl) { kgEl.disabled = false; kgEl.value = d.cantidad_kg || ''; }
+
+                // Ejido → predios → predio
                 const ejidoSel = document.getElementById(`d_ejido_${rowId}`);
                 if (ejidoSel && d.fk_ejido) {
                     ejidoSel.value = d.fk_ejido;
-                    // filtrarPredios llena el select de predio síncronamente
                     filtrarPredios(rowId);
-                    // ahora el select ya tiene las opciones, asignamos el valor
                     const predioSel = document.getElementById(`d_predio_${rowId}`);
                     if (predioSel && d.fk_predio) predioSel.value = d.fk_predio;
                 }
             }
-
             calcularTotal();
         } catch (e) {
             console.error('Error editar movimiento:', e);
@@ -407,100 +410,193 @@
     };
 
     // ─────────────────────────────────────────
-    // AGREGAR FILA DE DETALLE
-    // ─────────────────────────────────────────
-    window.agregarFilaDetalle = function () {
-        _filaContador++;
-        const id    = _filaContador;
-        const tbody = document.getElementById('detalleBody');
+// AGREGAR FILA DE DETALLE
+// ─────────────────────────────────────────
+window.agregarFilaDetalle = function () {
+    _filaContador++;
+    const id    = _filaContador;
+    const tbody = document.getElementById('detalleBody');
 
-        const optsProducto = _productos
-            .filter(p => p.estado === 1)
-            .map(p => `<option value="${p.pk_producto}">${p.nombre}${p.variedad ? ' — ' + p.variedad : ''}</option>`)
-            .join('');
+    const optsProducto = _productos
+        .filter(p => p.estado === 1)
+        .map(p => `<option value="${p.pk_producto}">${p.nombre}${p.variedad ? ' — ' + p.variedad : ''}</option>`)
+        .join('');
 
-        const optsProductor = _productores
-            .filter(p => p.estado === 1)
-            .map(p => `<option value="${p.pk_productor}">${p.nombre}</option>`)
-            .join('');
+    const optsProductor = _productores
+        .filter(p => p.estado === 1)
+        .map(p => `<option value="${p.pk_productor}">${p.nombre}</option>`)
+        .join('');
 
-        const optsEjido = _ejidos
-            .filter(e => e.estado === 1)
-            .map(e => `<option value="${e.pk_ejido}">${e.nombre}</option>`)
-            .join('');
+    const optsEjido = _ejidos
+        .filter(e => e.estado === 1)
+        .map(e => `<option value="${e.pk_ejido}">${e.nombre}</option>`)
+        .join('');
 
-        const tr = document.createElement('tr');
-        tr.id    = `fila-${id}`;
-        tr.innerHTML = `
-            <td class="px-1 py-1">
-                <select class="form-select form-select-sm" id="d_producto_${id}" required>
-                    <option value="">Seleccionar…</option>
-                    ${optsProducto}
-                </select>
-            </td>
-            <td class="px-1 py-1">
-                <input type="number" class="form-control form-control-sm text-end"
-                    id="d_kg_${id}" placeholder="0.00" min="0.01" step="0.01"
-                    oninput="calcularTotal()">
-            </td>
-            <td class="px-1 py-1">
-                <input type="number" class="form-control form-control-sm text-center"
-                    id="d_bultos_${id}" placeholder="0" min="0">
-            </td>
-            <td class="px-1 py-1">
-                <input type="number" class="form-control form-control-sm text-end"
-                    id="d_peso_bulto_${id}" placeholder="0.00" min="0" step="0.01">
-            </td>
-            <td class="px-1 py-1">
-                <select class="form-select form-select-sm" id="d_tipo_recepcion_${id}">
-                    <option value="">—</option>
-                    <option value="granel">Granel</option>
-                    <option value="quintalado">Quintalado</option>
-                    <option value="costal">Costal</option>
-                </select>
-            </td>
-            <td class="px-1 py-1">
-                <input type="number" class="form-control form-control-sm text-end"
-                    id="d_humedad_${id}" placeholder="0.0" min="0" max="100" step="0.1">
-            </td>
-            <td class="px-1 py-1 text-center">
-                <div class="form-check d-flex justify-content-center m-0">
-                    <input type="checkbox" class="form-check-input" id="d_analisis_${id}">
-                </div>
-            </td>
-            <td class="px-1 py-1">
-                <select class="form-select form-select-sm" id="d_productor_${id}">
-                    <option value="">—</option>
-                    ${optsProductor}
-                </select>
-            </td>
-            <td class="px-1 py-1">
-                <select class="form-select form-select-sm" id="d_ejido_${id}">
-                    <option value="">—</option>
-                    ${optsEjido}
-                </select>
-            </td>
-            <td class="px-1 py-1">
-                <select class="form-select form-select-sm" id="d_predio_${id}">
-                    <option value="">—</option>
-                </select>
-            </td>
-            <td class="px-1 py-1 text-center">
-                <button class="btn btn-sm btn-outline-danger" title="Eliminar fila"
-                    onclick="eliminarFila(${id})">
-                    <i class="fa-solid fa-trash" style="font-size:10px;"></i>
-                </button>
-            </td>`;
+    const tr = document.createElement('tr');
+    tr.id    = `fila-${id}`;
+    tr.innerHTML = `
+        <td class="px-1 py-1">
+            <select class="form-select form-select-sm" id="d_producto_${id}" required>
+                <option value="">Seleccionar…</option>
+                ${optsProducto}
+            </select>
+        </td>
+        <td class="px-1 py-1">
+            <select class="form-select form-select-sm" id="d_tipo_recepcion_${id}">
+                <option value="">—</option>
+                <option value="granel">Granel</option>
+                <option value="quintalado">Quintalado</option>
+                <option value="costal">Costal</option>
+            </select>
+        </td>
+        <td class="px-1 py-1">
+            <input type="number" class="form-control form-control-sm text-end"
+                id="d_kg_${id}" placeholder="Kg totales" min="0.01" step="0.01"
+                oninput="calcularTotal()">
+            <span id="hint_kg_${id}" style="display:none;font-size:10px;color:#9ca3af;margin-top:2px;"></span>
+        </td>
+        <td class="px-1 py-1">
+            <input type="number" class="form-control form-control-sm text-center"
+                id="d_bultos_${id}" placeholder="0" min="0" disabled
+                style="background:#f8f9fa;">
+        </td>
+        <td class="px-1 py-1">
+            <input type="number" class="form-control form-control-sm text-end"
+                id="d_peso_bulto_${id}" placeholder="0.00" min="0" step="0.01" disabled
+                style="background:#f8f9fa;">
+            <span id="hint_bultos_${id}" style="display:none;"></span>
+        </td>
+        <td class="px-1 py-1">
+            <input type="number" class="form-control form-control-sm text-end"
+                id="d_humedad_${id}" placeholder="0.0" min="0" max="100" step="0.1">
+        </td>
+        <td class="px-1 py-1 text-center">
+            <div class="form-check d-flex justify-content-center m-0">
+                <input type="checkbox" class="form-check-input" id="d_analisis_${id}">
+            </div>
+        </td>
+        <td class="px-1 py-1">
+            <select class="form-select form-select-sm" id="d_productor_${id}">
+                <option value="">—</option>
+                ${optsProductor}
+            </select>
+        </td>
+        <td class="px-1 py-1">
+            <select class="form-select form-select-sm" id="d_ejido_${id}">
+                <option value="">—</option>
+                ${optsEjido}
+            </select>
+        </td>
+        <td class="px-1 py-1">
+            <select class="form-select form-select-sm" id="d_predio_${id}">
+                <option value="">—</option>
+            </select>
+        </td>
+        <td class="px-1 py-1 text-center">
+            <button class="btn btn-sm btn-outline-danger" title="Eliminar fila"
+                onclick="eliminarFila(${id})">
+                <i class="fa-solid fa-trash" style="font-size:10px;"></i>
+            </button>
+        </td>`;
 
-        tbody.appendChild(tr);
+    tbody.appendChild(tr);
 
-        // Agregar event listener después de insertar en el DOM
-        // El onchange inline no siempre dispara correctamente en elementos dinámicos
-        const ejidoSelect = document.getElementById(`d_ejido_${id}`);
-        if (ejidoSelect) {
-            ejidoSelect.addEventListener('change', () => filtrarPredios(id));
-        }
-    };
+    // ── Listener tipo recepción ──
+    const tipoSel = document.getElementById(`d_tipo_recepcion_${id}`);
+    if (tipoSel) {
+        tipoSel.addEventListener('change', () => aplicarLogicaTipoRecepcion(id));
+    }
+
+    // ── Listeners cálculo automático kg ──
+    const bultosInput    = document.getElementById(`d_bultos_${id}`);
+    const pesoBultoInput = document.getElementById(`d_peso_bulto_${id}`);
+    if (bultosInput)    bultosInput.addEventListener('input',    () => calcularKg(id));
+    if (pesoBultoInput) pesoBultoInput.addEventListener('input', () => calcularKg(id));
+
+    // ── Listener ejido → predios ──
+    const ejidoSelect = document.getElementById(`d_ejido_${id}`);
+    if (ejidoSelect) {
+        ejidoSelect.addEventListener('change', () => filtrarPredios(id));
+    }
+};
+
+// ─────────────────────────────────────────
+// LÓGICA POR TIPO DE RECEPCIÓN
+// ─────────────────────────────────────────
+window.aplicarLogicaTipoRecepcion = function (id) {
+    const tipo        = document.getElementById(`d_tipo_recepcion_${id}`)?.value;
+    const kgInput     = document.getElementById(`d_kg_${id}`);
+    const bultosInput = document.getElementById(`d_bultos_${id}`);
+    const pesoInput   = document.getElementById(`d_peso_bulto_${id}`);
+    const hintKg      = document.getElementById(`hint_kg_${id}`);
+    const hintBultos  = document.getElementById(`hint_bultos_${id}`);
+
+    if (!kgInput || !bultosInput || !pesoInput) return;
+
+    // Limpiar todos al cambiar tipo
+    kgInput.value     = '';
+    bultosInput.value = '';
+    pesoInput.value   = '';
+    calcularTotal();
+
+    if (tipo === 'granel') {
+        // KG: habilitado y editable
+        kgInput.disabled             = false;
+        kgInput.style.background     = '';
+        kgInput.placeholder          = 'Kg totales';
+        // Bultos y kg/bulto: deshabilitados
+        bultosInput.disabled         = true;
+        bultosInput.style.background = '#f8f9fa';
+        pesoInput.disabled           = true;
+        pesoInput.style.background   = '#f8f9fa';
+        // Hints
+        if (hintKg)     { hintKg.textContent = 'Captura el peso total en kilogramos'; hintKg.style.display = 'block'; }
+        if (hintBultos) { hintBultos.style.display = 'none'; }
+
+    } else if (tipo === 'costal' || tipo === 'quintalado') {
+        // KG: deshabilitado, se calcula automáticamente
+        kgInput.disabled             = true;
+        kgInput.style.background     = '#f8f9fa';
+        kgInput.placeholder          = 'Calculado automáticamente';
+        // Bultos y kg/bulto: habilitados
+        bultosInput.disabled         = false;
+        bultosInput.style.background = '';
+        pesoInput.disabled           = false;
+        pesoInput.style.background   = '';
+        // Hints
+        if (hintKg)     { hintKg.textContent    = ''; hintKg.style.display = 'none'; }
+        if (hintBultos) { hintBultos.style.display = ''; }
+
+    } else {
+        // Sin tipo seleccionado: estado inicial
+        kgInput.disabled             = false;
+        kgInput.style.background     = '';
+        kgInput.placeholder          = 'Kg totales';
+        bultosInput.disabled         = true;
+        bultosInput.style.background = '#f8f9fa';
+        pesoInput.disabled           = true;
+        pesoInput.style.background   = '#f8f9fa';
+        if (hintKg)     { hintKg.textContent = 'Captura el peso total en kilogramos'; hintKg.style.display = 'block'; }
+        if (hintBultos) { hintBultos.style.display = 'none'; }
+    }
+};
+
+// ─────────────────────────────────────────
+// CALCULAR KG AUTOMÁTICAMENTE
+// ─────────────────────────────────────────
+window.calcularKg = function (id) {
+    const tipo    = document.getElementById(`d_tipo_recepcion_${id}`)?.value;
+    if (tipo !== 'costal' && tipo !== 'quintalado') return;
+
+    const bultos  = parseFloat(document.getElementById(`d_bultos_${id}`)?.value)    || 0;
+    const peso    = parseFloat(document.getElementById(`d_peso_bulto_${id}`)?.value) || 0;
+    const kgInput = document.getElementById(`d_kg_${id}`);
+
+    if (kgInput) {
+        kgInput.value = bultos > 0 && peso > 0 ? (bultos * peso).toFixed(2) : '';
+    }
+    calcularTotal();
+};
 
     // ─────────────────────────────────────────
     // ELIMINAR FILA
@@ -556,48 +652,55 @@
         if (tipo) generarFolioVisual(tipo);
     };
 
-    // ─────────────────────────────────────────
-    // RECOLECTAR DETALLES DEL FORMULARIO
-    // ─────────────────────────────────────────
-    function recolectarDetalles() {
-        const filas = document.querySelectorAll('#detalleBody tr');
-        const detalles = [];
-        let valido = true;
+   // ─────────────────────────────────────────
+// RECOLECTAR DETALLES DEL FORMULARIO
+// ─────────────────────────────────────────
+function recolectarDetalles() {
+    const filas    = document.querySelectorAll('#detalleBody tr');
+    const detalles = [];
+    let valido     = true;
 
-        filas.forEach(fila => {
-            const rowId          = fila.id.replace('fila-', '');
-            const fk_producto    = document.getElementById(`d_producto_${rowId}`)?.value;
-            const cantidad_kg    = document.getElementById(`d_kg_${rowId}`)?.value;
-            const cantidad_bultos = document.getElementById(`d_bultos_${rowId}`)?.value;
-            const peso_por_bulto = document.getElementById(`d_peso_bulto_${rowId}`)?.value;
-            const tipo_recepcion = document.getElementById(`d_tipo_recepcion_${rowId}`)?.value;
-            const humedad        = document.getElementById(`d_humedad_${rowId}`)?.value;
-            const analisis       = document.getElementById(`d_analisis_${rowId}`)?.checked;
-            const fk_productor   = document.getElementById(`d_productor_${rowId}`)?.value;
-            const fk_ejido       = document.getElementById(`d_ejido_${rowId}`)?.value;
-            const fk_predio      = document.getElementById(`d_predio_${rowId}`)?.value;
+    filas.forEach(fila => {
+        const rowId          = fila.id.replace('fila-', '');
+        const fk_producto    = document.getElementById(`d_producto_${rowId}`)?.value;
+        const cantidad_kg    = document.getElementById(`d_kg_${rowId}`)?.value;
+        const cantidad_bultos = document.getElementById(`d_bultos_${rowId}`)?.value;
+        const peso_por_bulto = document.getElementById(`d_peso_bulto_${rowId}`)?.value;
+        const tipo_recepcion = document.getElementById(`d_tipo_recepcion_${rowId}`)?.value;
+        const humedad        = document.getElementById(`d_humedad_${rowId}`)?.value;
+        const analisis       = document.getElementById(`d_analisis_${rowId}`)?.checked;
+        const fk_productor   = document.getElementById(`d_productor_${rowId}`)?.value;
+        const fk_ejido       = document.getElementById(`d_ejido_${rowId}`)?.value;
+        const fk_predio      = document.getElementById(`d_predio_${rowId}`)?.value;
 
-            if (!fk_producto || !cantidad_kg || parseFloat(cantidad_kg) <= 0) {
-                valido = false;
-                return;
-            }
+        // Validación según tipo de recepción
+        if (!fk_producto) { valido = false; return; }
 
-            detalles.push({
-                fk_producto:      parseInt(fk_producto),
-                cantidad_kg:      parseFloat(cantidad_kg),
-                cantidad_bultos:  cantidad_bultos ? parseInt(cantidad_bultos)   : null,
-                peso_por_bulto:   peso_por_bulto  ? parseFloat(peso_por_bulto) : null,
-                tipo_recepcion:   tipo_recepcion  || null,
-                humedad:          humedad         ? parseFloat(humedad)         : null,
-                analisis_calidad: analisis || false,
-                fk_productor:     fk_productor    ? parseInt(fk_productor)      : null,
-                fk_ejido:         fk_ejido        ? parseInt(fk_ejido)          : null,
-                fk_predio:        fk_predio       ? parseInt(fk_predio)         : null
-            });
+        if (tipo_recepcion === 'costal' || tipo_recepcion === 'quintalado') {
+            const b = parseFloat(cantidad_bultos);
+            const p = parseFloat(peso_por_bulto);
+            if (!b || b <= 0 || !p || p <= 0) { valido = false; return; }
+        } else {
+            // granel o sin tipo: validar kg directamente
+            if (!cantidad_kg || parseFloat(cantidad_kg) <= 0) { valido = false; return; }
+        }
+
+        detalles.push({
+            fk_producto:      parseInt(fk_producto),
+            cantidad_kg:      parseFloat(cantidad_kg) || 0,
+            cantidad_bultos:  cantidad_bultos ? parseInt(cantidad_bultos)   : null,
+            peso_por_bulto:   peso_por_bulto  ? parseFloat(peso_por_bulto) : null,
+            tipo_recepcion:   tipo_recepcion  || null,
+            humedad:          humedad         ? parseFloat(humedad)         : null,
+            analisis_calidad: analisis || false,
+            fk_productor:     fk_productor    ? parseInt(fk_productor)      : null,
+            fk_ejido:         fk_ejido        ? parseInt(fk_ejido)          : null,
+            fk_predio:        fk_predio       ? parseInt(fk_predio)         : null
         });
+    });
 
-        return { detalles, valido };
-    }
+    return { detalles, valido };
+}
 
     // ─────────────────────────────────────────
     // GUARDAR MOVIMIENTO (CREAR O ACTUALIZAR)

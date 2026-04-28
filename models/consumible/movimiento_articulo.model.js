@@ -1,6 +1,5 @@
 // ============================================
 // MODELO: movimiento_articulo.model.js
-// Descripción: Queries para movimiento_articulo
 // ============================================
 
 const Conexion = require('../../config/database');
@@ -10,15 +9,8 @@ const Conexion = require('../../config/database');
 // ============================================
 exports.registrar = async (client, datos) => {
     const {
-        fk_articulo,
-        tipo_movimiento,
-        cantidad,
-        motivo,
-        registrado_por,
-        entregado_por,
-        recibido_por,
-        fk_area,
-        referencia
+        fk_articulo, tipo_movimiento, cantidad, motivo,
+        registrado_por, entregado_por, recibido_por, fk_area, referencia
     } = datos;
 
     return client.query(
@@ -28,21 +20,16 @@ exports.registrar = async (client, datos) => {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
          RETURNING *`,
         [
-            fk_articulo,
-            tipo_movimiento,
-            cantidad,
-            motivo,
-            registrado_por  || null,
-            entregado_por   || null,
-            recibido_por    || null,
-            fk_area         || null,
-            referencia      || null
+            fk_articulo, tipo_movimiento, cantidad, motivo,
+            registrado_por || null, entregado_por || null,
+            recibido_por   || null, fk_area       || null,
+            referencia     || null
         ]
     );
 };
 
 // ============================================
-// Historial de movimientos por artículo
+// Historial por artículo
 // ============================================
 exports.historialPorArticulo = async (fk_articulo) => {
     return Conexion.query(
@@ -55,15 +42,15 @@ exports.historialPorArticulo = async (fk_articulo) => {
             ma.fecha,
             ia.nombre           AS articulo,
             ar.nombre           AS area,
-            u_reg.username AS registrado_por,
-            u_ent.username AS entregado_por,
+            u_reg.username      AS registrado_por,
+            u_ent.username      AS entregado_por,
             CONCAT(e.nombre, ' ', e.apellido_paterno) AS recibido_por
          FROM movimiento_articulo ma
-         INNER JOIN inventario_articulo ia ON ia.pk_articulo    = ma.fk_articulo
-         LEFT JOIN  area              ar  ON ar.pk_area          = ma.fk_area
-         LEFT JOIN  users             u_reg ON u_reg.pk_user     = ma.registrado_por
-         LEFT JOIN  users             u_ent ON u_ent.pk_user     = ma.entregado_por
-         LEFT JOIN  empleado          e     ON e.pk_empleado     = ma.recibido_por
+         INNER JOIN inventario_articulo ia ON ia.pk_articulo = ma.fk_articulo
+         LEFT JOIN  area              ar  ON ar.pk_area      = ma.fk_area
+         LEFT JOIN  users         u_reg   ON u_reg.pk_user   = ma.registrado_por
+         LEFT JOIN  users         u_ent   ON u_ent.pk_user   = ma.entregado_por
+         LEFT JOIN  empleado      e       ON e.pk_empleado   = ma.recibido_por
          WHERE ma.fk_articulo = $1
          ORDER BY ma.fecha DESC`,
         [fk_articulo]
@@ -75,7 +62,7 @@ exports.historialPorArticulo = async (fk_articulo) => {
 // ============================================
 exports.historialGeneral = async ({ tipo, fecha_inicio, fecha_fin } = {}) => {
     let conditions = [];
-    const params = [];
+    const params   = [];
 
     if (tipo) {
         params.push(tipo);
@@ -103,15 +90,15 @@ exports.historialGeneral = async ({ tipo, fecha_inicio, fecha_fin } = {}) => {
             ia.nombre           AS articulo,
             ia.categoria        AS categoria,
             ar.nombre           AS area,
-            u_reg.username AS registrado_por,
-            u_ent.username AS entregado_por,
+            u_reg.username      AS registrado_por,
+            u_ent.username      AS entregado_por,
             CONCAT(e.nombre, ' ', e.apellido_paterno) AS recibido_por
          FROM movimiento_articulo ma
-         INNER JOIN inventario_articulo ia ON ia.pk_articulo    = ma.fk_articulo
-         LEFT JOIN  area              ar  ON ar.pk_area          = ma.fk_area
-         LEFT JOIN  users             u_reg ON u_reg.pk_user     = ma.registrado_por
-         LEFT JOIN  users             u_ent ON u_ent.pk_user     = ma.entregado_por
-         LEFT JOIN  empleado          e     ON e.pk_empleado     = ma.recibido_por
+         INNER JOIN inventario_articulo ia ON ia.pk_articulo = ma.fk_articulo
+         LEFT JOIN  area              ar  ON ar.pk_area      = ma.fk_area
+         LEFT JOIN  users         u_reg   ON u_reg.pk_user   = ma.registrado_por
+         LEFT JOIN  users         u_ent   ON u_ent.pk_user   = ma.entregado_por
+         LEFT JOIN  empleado      e       ON e.pk_empleado   = ma.recibido_por
          ${where}
          ORDER BY ma.fecha DESC`,
         params

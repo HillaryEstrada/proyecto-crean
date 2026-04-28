@@ -2,7 +2,6 @@
      VISTA: bodega_movimiento.html
      Descripción: Movimientos de bodega (entrada/salida)
      ============================================ -->
-
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
@@ -121,16 +120,16 @@
                         <input type="hidden" id="f_tipo_movimiento">
                         <div class="d-flex gap-3 mb-1">
                             <div id="card_entrada" onclick="seleccionarTipo('entrada')"
-                                class="flex-fill text-center p-3 rounded-3"
+    class="flex-fill text-center px-3 py-2 rounded-3"
                                 style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
-                                <i class="fa-solid fa-arrow-down fa-lg mb-1" style="color:#2d7a4f;"></i>
+                                <i class="fa-solid fa-arrow-down fa-sm" style="color:#2d7a4f;"></i>
                                 <div class="fw-semibold" style="font-size:13px;color:#2d7a4f;">Entrada</div>
                                 <div class="text-muted" style="font-size:11px;">Recepción de granos</div>
                             </div>
                             <div id="card_salida" onclick="seleccionarTipo('salida')"
-                                class="flex-fill text-center p-3 rounded-3"
+    class="flex-fill text-center px-3 py-2 rounded-3"
                                 style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
-                                <i class="fa-solid fa-arrow-up fa-lg mb-1" style="color:#c0392b;"></i>
+                                <i class="fa-solid fa-arrow-up fa-sm" style="color:#c0392b;"></i>
                                 <div class="fw-semibold" style="font-size:13px;color:#c0392b;">Salida</div>
                                 <div class="text-muted" style="font-size:11px;">Despacho / entrega</div>
                             </div>
@@ -174,14 +173,14 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle mb-0" style="min-width:1200px;">
+                <table class="table table-bordered align-middle mb-0" style="min-width:1200px;table-layout:fixed;">
                     <thead style="background:#f8fafc;font-size:11px;font-weight:600;color:#1a3c5e;">
                         <tr>
                             <th class="px-2 py-2" style="width:160px;">PRODUCTO *</th>
+                            <th class="px-2 py-2 text-center" style="width:110px;">TIPO RECEPCIÓN</th>
                             <th class="px-2 py-2 text-center" style="width:100px;">KG *</th>
                             <th class="px-2 py-2 text-center" style="width:80px;">BULTOS</th>
                             <th class="px-2 py-2 text-center" style="width:90px;">KG/BULTO</th>
-                            <th class="px-2 py-2 text-center" style="width:110px;">TIPO RECEPCIÓN</th>
                             <th class="px-2 py-2 text-center" style="width:80px;">HUMEDAD %</th>
                             <th class="px-2 py-2 text-center" style="width:70px;">ANÁLISIS</th>
                             <th class="px-2 py-2" style="width:140px;">PRODUCTOR</th>
@@ -194,7 +193,9 @@
                 </table>
             </div>
 
-            <div class="px-4 py-3 bg-light border-top">
+            <!-- Footer con totales Y botones -->
+        <div class="px-4 py-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center">
                 <div class="d-flex gap-4">
                     <div>
                         <div class="text-muted" style="font-size:11px;text-transform:uppercase;letter-spacing:.05em;">Total KG</div>
@@ -211,22 +212,20 @@
                         </div>
                     </div>
                 </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-secondary" onclick="cancelarFormulario()">
+                        <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                    </button>
+                    <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold"
+                        style="background:#1a3c5e;" onclick="guardarMovimiento()">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        <span id="lblGuardarMovimiento">Registrar movimiento</span>
+                    </button>
+                </div>
             </div>
         </div>
-
-        <!-- Botones formulario -->
-        <div class="d-flex justify-content-between">
-            <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
-                <i class="fa-solid fa-xmark me-1"></i>Cancelar
-            </button>
-            <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold px-4"
-                style="background:#1a3c5e;" onclick="guardarMovimiento()">
-                <i class="fa-solid fa-floppy-disk me-1"></i>
-                <span id="lblGuardarMovimiento">Registrar movimiento</span>
-            </button>
-        </div>
-    </div>
-
+        </div><!-- /card formulario -->
+    </div><!-- /vistaFormulario -->
 </div><!-- /vistaMovimientosTab -->
 
 

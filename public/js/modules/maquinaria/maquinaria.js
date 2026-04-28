@@ -398,7 +398,7 @@
     function badgeOperativo(estado) {
         const map = {
             disponible:    ['bg-success',           'Disponible'],
-            prestada:      ['bg-info text-dark',    'Prestada'],
+            prestada:      ['bg-info text-dark',    'En comodato'],
             mantenimiento: ['bg-danger',            'Mantenimiento'],
             baja:          ['bg-dark',              'Baja']
         };

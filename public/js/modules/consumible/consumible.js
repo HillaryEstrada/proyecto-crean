@@ -93,7 +93,7 @@
                 <div class="text-muted" style="font-size:11px;">Registrados activos</div>
             </div></div></div>
             <div class="col-md-3 col-sm-6"><div class="card border-0 shadow-sm h-100" style="border-radius:10px;"><div class="card-body p-3">
-                <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Stock OK</div>
+                <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Stock lleno</div>
                 <div class="fw-bold" style="font-size:24px;color:#2d7a4f;">${ok}</div>
                 <div class="text-muted" style="font-size:11px;">artículo${ok !== 1 ? 's' : ''} en nivel óptimo</div>
             </div></div></div>
@@ -147,9 +147,9 @@
                         onclick="editarArticulo(${a.pk_articulo})">
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Desactivar"
-                        onclick="abrirDesactivar(${a.pk_articulo}, '${(a.nombre||'').replace(/'/g,"\\'")}')">
-                        <i class="fa-solid fa-ban" style="font-size:11px;"></i>
+                    <button class="btn btn-sm btn-outline-info" title="Historial"
+                        onclick="verHistorialArticulo(${a.pk_articulo}, '${(a.nombre||'').replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size:11px;"></i>
                     </button>
                 </td>
             </tr>`).join('');
@@ -166,7 +166,7 @@
     function badgeEstado(estado) {
         if (estado === 'sin_stock') return `<span class="badge" style="background:#c0392b;font-size:11px;">Sin stock</span>`;
         if (estado === 'bajo')      return `<span class="badge bg-warning text-dark" style="font-size:11px;">Bajo</span>`;
-        return `<span class="badge" style="background:#2d7a4f;font-size:11px;">OK</span>`;
+        return `<span class="badge" style="background:#2d7a4f;font-size:11px;">Stock lleno</span>`;
     }
 
     window.filtrarTabla = function () {
@@ -280,8 +280,8 @@
     function resetFormularioArticulo() {
         ['f_pk_articulo','f_nombre','f_categoria','f_fk_unidad','f_fk_almacen','f_fk_partida','f_descripcion']
             .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
-        document.getElementById('f_stock_inicial').value = 0;
-        document.getElementById('f_stock_minimo').value  = 0;
+        document.getElementById('f_stock_inicial').value = '';
+        document.getElementById('f_stock_minimo').value  = '';
         ['err_nombre','err_categoria','err_unidad','err_almacen']
             .forEach(id => document.getElementById(id)?.classList.add('d-none'));
         document.getElementById('f_stock_inicial').disabled = false;
@@ -364,51 +364,6 @@
             cancelarFormulario();
             await listarArticulos();
             await cargarStockBajo();
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
-        }
-    };
-
-    // ════════════════════════════════════════
-    // DESACTIVAR / REACTIVAR
-    // ════════════════════════════════════════
-    window.abrirDesactivar = function (id, nombre) {
-        _idDesactivar = id;
-        document.getElementById('desactivarNombre').textContent = nombre;
-        new bootstrap.Modal(document.getElementById('modalDesactivar')).show();
-    };
-
-    window.confirmarDesactivar = async function () {
-        try {
-            await fetchWithAuth(`/articulos/${_idDesactivar}/desactivar`, 'PATCH');
-            bootstrap.Modal.getInstance(document.getElementById('modalDesactivar')).hide();
-            Swal.fire({ icon: 'success', title: 'Desactivado', text: 'Artículo desactivado. Lo encontrarás en la pestaña Inactivos.', timer: 2500, showConfirmButton: false });
-            _idDesactivar = null;
-            await listarArticulos();
-            await cargarStockBajo();
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
-        }
-    };
-
-    window.reactivarArticulo = async function (id, nombre) {
-        const confirm = await Swal.fire({
-            icon: 'question',
-            title: 'Reactivar artículo',
-            text: `¿Deseas reactivar "${nombre}"?`,
-            showCancelButton: true,
-            confirmButtonText: 'Sí, reactivar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#1a3c5e'
-        });
-        if (!confirm.isConfirmed) return;
-        try {
-            await fetchWithAuth(`/articulos/${id}/reactivar`, 'PATCH');
-            Swal.fire({ icon: 'success', title: 'Reactivado', text: 'Artículo reactivado exitosamente', timer: 2000, showConfirmButton: false });
-            await listarInactivos();
-            await listarArticulos();
-            await cargarStockBajo();
-            switchTabPrincipal('articulos');
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
         }
@@ -640,5 +595,77 @@
                 return `<option value="${d[valueKey]}">${label}</option>`;
             }).join('');
     }
+
+    // ════════════════════════════════════════
+// HISTORIAL DE ARTÍCULO
+// ════════════════════════════════════════
+window.verHistorialArticulo = async function (id, nombre) {
+    const { value: confirm } = await Swal.fire({
+        title: `<span style="font-size:16px;color:#1a3c5e;">Historial de movimientos</span>`,
+        html: `
+            <div class="text-start">
+                <p class="mb-3 text-muted" style="font-size:13px;">
+                    <i class="fa-solid fa-boxes-stacked me-1"></i><strong>${nombre}</strong>
+                </p>
+                <div id="swal-historial-body" class="text-center py-3">
+                    <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                </div>
+            </div>`,
+        width: 800,
+        showConfirmButton: false,
+        showCloseButton: true,
+        didOpen: async () => {
+            try {
+                const data = await fetchWithAuth(`/movimientos-articulo/articulo/${id}`);
+                const movs = Array.isArray(data) ? data : [];
+                const cont = document.getElementById('swal-historial-body');
+                if (!cont) return;
+                if (!movs.length) {
+                    cont.innerHTML = `<div class="text-muted py-3">
+                        <i class="fa-solid fa-inbox fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                        Sin movimientos registrados</div>`;
+                    return;
+                }
+                cont.innerHTML = `
+                    <div class="table-responsive" style="max-height:400px;overflow-y:auto;">
+                        <table class="table table-sm table-hover align-middle mb-0" style="font-size:12px;">
+                            <thead style="position:sticky;top:0;background:#1a3c5e;color:#fff;z-index:1;">
+                                <tr>
+                                    <th class="px-2 py-2">FECHA</th>
+                                    <th class="px-2 py-2 text-center">TIPO</th>
+                                    <th class="px-2 py-2 text-center">CANTIDAD</th>
+                                    <th class="px-2 py-2">ÁREA</th>
+                                    <th class="px-2 py-2">RECIBIÓ</th>
+                                    <th class="px-2 py-2">MOTIVO</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${movs.map(m => {
+                                    const signo = m.tipo_movimiento === 'entrada' ? '+' : '-';
+                                    const color = m.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
+                                    return `<tr>
+                                        <td class="px-2 text-muted">
+                                            ${m.fecha ? new Date(m.fecha).toLocaleDateString('es-MX') : '—'}
+                                        </td>
+                                        <td class="px-2 text-center">${badgeTipo(m.tipo_movimiento)}</td>
+                                        <td class="px-2 text-center fw-semibold" style="color:${color};">
+                                            ${signo}${m.cantidad}
+                                        </td>
+                                        <td class="px-2 text-muted">${m.area || '—'}</td>
+                                        <td class="px-2 text-muted">${m.recibido_por || '—'}</td>
+                                        <td class="px-2 text-muted">${m.motivo || '—'}</td>
+                                    </tr>`;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-muted text-end mt-2" style="font-size:11px;">${movs.length} movimiento${movs.length !== 1 ? 's' : ''}</div>`;
+            } catch (e) {
+                const cont = document.getElementById('swal-historial-body');
+                if (cont) cont.innerHTML = `<div class="text-danger py-3">Error al cargar el historial</div>`;
+            }
+        }
+    });
+};
 
 })();
