@@ -105,36 +105,6 @@ exports.actualizar = async (req, res) => {
 };
 
 // ============================================
-// Desactivar artículo (baja lógica)
-// ============================================
-exports.desactivar = async (req, res) => {
-    try {
-        const resultado = await articulo.desactivar(req.params.id);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Artículo no encontrado' });
-        }
-        res.json({ mensaje: 'Artículo desactivado exitosamente', data: resultado.rows[0] });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// ============================================
-// Reactivar artículo
-// ============================================
-exports.reactivar = async (req, res) => {
-    try {
-        const resultado = await articulo.reactivar(req.params.id);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Artículo no encontrado' });
-        }
-        res.json({ mensaje: 'Artículo reactivado exitosamente', data: resultado.rows[0] });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// ============================================
 // Listar categorías únicas
 // ============================================
 exports.listarCategorias = async (req, res) => {
