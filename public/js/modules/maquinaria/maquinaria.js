@@ -120,8 +120,11 @@
         document.getElementById('w_color').value                   = m.color||'';
         document.getElementById('w_serie').value                   = m.serie||'';
         document.getElementById('w_numero_motor').value            = m.numero_motor||'';
-        document.getElementById('w_horas_actuales').value          = m.horas_actuales||0;
-        document.getElementById('w_combustible_litros').value      = m.combustible_litros||0;
+        document.getElementById('w_horas_actuales').value     = m.horas_actuales || '';
+        document.getElementById('w_combustible_litros').value = 
+        document.getElementById('w_combustible_litros').value = 
+    (m.combustible_litros && parseFloat(m.combustible_litros) !== 0) 
+    ? m.combustible_litros : '';
         document.getElementById('w_estado_fisico').value           = m.estado_fisico||'bueno';
         document.getElementById('w_estado_operativo').value        = m.estado_operativo||'disponible';
         if (m.foto_maquina) {
@@ -592,7 +595,7 @@
                         <p class="mb-0">${m.horas_actuales ?? '—'}</p>
                     </div>
                     <div class="col-md-3">
-                        <p class="text-muted mb-1" style="font-size:11px;">COMBUSTIBLE (L)</p>
+                        <p class="text-muted mb-1" style="font-size:11px;">DIÉSEL EN TANQUE (L)</p>
                         <p class="mb-0">${m.combustible_litros ?? '—'}</p>
                     </div>
                     <div class="col-md-3">

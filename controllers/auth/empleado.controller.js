@@ -3,7 +3,10 @@
 // Descripción: CRUD de empleados
 // ============================================
 
-const Empleado = require('../../models/auth/empleado.model');
+const Empleado         = require('../../models/auth/empleado.model');
+const ContratoEmpleado = require('../../models/auth/contrato_empleado.model');
+const MotivoBaja       = require('../../models/auth/motivo_baja.model');
+const TipoContrato     = require('../../models/auth/tipo_contrato.model');
 
 // LISTAR - Todos los empleados
 exports.listar = async (req, res) => {
@@ -30,12 +33,13 @@ exports.obtenerPorId = async (req, res) => {
     }
 };
 
-// CREAR - Nuevo empleado
+// CREAR - Nuevo empleado (+ contrato automático)
 exports.crear = async (req, res) => {
     try {
         const {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, fecha_ingreso, fecha_nacimiento
+            sexo, telefono, correo, direccion, fecha_ingreso, fecha_nacimiento,
+            fk_tipo_contrato  // ← nuevo campo requerido
         } = req.body;
 
         if (!nombre || !apellido_paterno || !numero_empleado) {
@@ -44,33 +48,49 @@ exports.crear = async (req, res) => {
             });
         }
 
+        if (!fk_tipo_contrato) {
+            return res.status(400).json({ error: 'El tipo de contrato es requerido' });
+        }
+
+        if (!fecha_ingreso) {
+            return res.status(400).json({ error: 'La fecha de ingreso es requerida' });
+        }
+
+        // Validar que el tipo de contrato exista
+        const tipoContrato = await TipoContrato.obtenerPorId(fk_tipo_contrato);
+        if (tipoContrato.rows.length === 0) {
+            return res.status(400).json({ error: 'El tipo de contrato no existe' });
+        }
+
         const existeNumero = await Empleado.existeNumero(numero_empleado);
         if (existeNumero.rows.length > 0) {
-            return res.status(400).json({
-                error: 'El número de empleado ya está en uso'
-            });
+            return res.status(400).json({ error: 'El número de empleado ya está en uso' });
         }
 
         if (correo) {
             const existeCorreo = await Empleado.existeCorreo(correo);
             if (existeCorreo.rows.length > 0) {
-                return res.status(400).json({
-                    error: 'El correo ya está registrado'
-                });
+                return res.status(400).json({ error: 'El correo ya está registrado' });
             }
         }
 
+        // Crear empleado
         const result = await Empleado.crear({
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion,
-            estado: 'activo', // siempre activo al crear
-            fecha_ingreso:    fecha_ingreso    || null,  // ← fix
-            fecha_nacimiento: fecha_nacimiento || null 
+            estado: 'activo',
+            fecha_ingreso:    fecha_ingreso    || null,
+            fecha_nacimiento: fecha_nacimiento || null
         });
 
+        const empleadoId = result.rows[0].pk_empleado;
+
+        // Crear contrato automáticamente (fecha_inicio = fecha_ingreso)
+        await ContratoEmpleado.crear(empleadoId, fk_tipo_contrato, fecha_ingreso);
+
         res.json({
-            mensaje: 'Empleado creado exitosamente',
-            empleadoId: result.rows[0].pk_empleado
+            mensaje: 'Empleado creado exitosamente con su contrato inicial',
+            empleadoId
         });
 
     } catch (error) {
@@ -112,7 +132,7 @@ exports.actualizar = async (req, res) => {
         await Empleado.actualizar(req.params.id, {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion, estado,
-            fecha_ingreso:    fecha_ingreso    || null,  // ← fix
+            fecha_ingreso:    fecha_ingreso    || null,
             fecha_nacimiento: fecha_nacimiento || null
         });
 
@@ -124,13 +144,129 @@ exports.actualizar = async (req, res) => {
     }
 };
 
-// DESACTIVAR - Empleado (soft delete)
+// DESACTIVAR - Empleado (soft delete, sin motivo — se mantiene para compatibilidad)
 exports.desactivar = async (req, res) => {
     try {
         await Empleado.desactivar(req.params.id);
         res.json({ mensaje: 'Empleado desactivado exitosamente' });
     } catch (error) {
         console.error('Error al desactivar empleado:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ─── NUEVO: DAR DE BAJA con motivo ───────────────────────────────────────────
+exports.darDeBaja = async (req, res) => {
+    try {
+        const { fk_motivo_baja } = req.body;
+
+        if (!fk_motivo_baja) {
+            return res.status(400).json({ error: 'El motivo de baja es requerido' });
+        }
+
+        // Verificar que el empleado exista
+        const empleado = await Empleado.obtenerPorId(req.params.id);
+        if (empleado.rows.length === 0) {
+            return res.status(404).json({ error: 'Empleado no encontrado' });
+        }
+
+        // No dar de baja si ya está inactivo
+        if (empleado.rows[0].estado === 'inactivo') {
+            return res.status(400).json({ error: 'El empleado ya está dado de baja' });
+        }
+
+        // Verificar que el motivo exista
+        const motivo = await MotivoBaja.obtenerPorId(fk_motivo_baja);
+        if (motivo.rows.length === 0) {
+            return res.status(400).json({ error: 'El motivo de baja no existe' });
+        }
+
+        // Desactivar contrato activo
+        await ContratoEmpleado.desactivarContrato(req.params.id);
+
+        // Dar de baja al empleado
+        await Empleado.darDeBaja(req.params.id, fk_motivo_baja);
+
+        res.json({ mensaje: 'Empleado dado de baja exitosamente' });
+
+    } catch (error) {
+        console.error('Error al dar de baja al empleado:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ─── NUEVO: REACTIVAR empleado ────────────────────────────────────────────────
+exports.reactivar = async (req, res) => {
+    try {
+        const { fk_tipo_contrato } = req.body;
+
+        if (!fk_tipo_contrato) {
+            return res.status(400).json({ error: 'El tipo de contrato es requerido para reactivar' });
+        }
+
+        // Verificar que el empleado exista
+        const empleado = await Empleado.obtenerPorId(req.params.id);
+        if (empleado.rows.length === 0) {
+            return res.status(404).json({ error: 'Empleado no encontrado' });
+        }
+
+        // No reactivar si ya está activo
+        if (empleado.rows[0].estado === 'activo') {
+            return res.status(400).json({ error: 'El empleado ya está activo' });
+        }
+
+        // Validar que el tipo de contrato exista
+        const tipoContrato = await TipoContrato.obtenerPorId(fk_tipo_contrato);
+        if (tipoContrato.rows.length === 0) {
+            return res.status(400).json({ error: 'El tipo de contrato no existe' });
+        }
+
+        // Reactivar empleado (limpia fecha_baja y motivo)
+        await Empleado.reactivar(req.params.id);
+
+        // Crear nuevo contrato desde hoy
+        const hoy = new Date().toISOString().split('T')[0];
+        await ContratoEmpleado.crear(req.params.id, fk_tipo_contrato, hoy);
+
+        res.json({ mensaje: 'Empleado reactivado exitosamente con nuevo contrato' });
+
+    } catch (error) {
+        console.error('Error al reactivar empleado:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
+exports.renovarContrato = async (req, res) => {
+    try {
+        const { fk_tipo_contrato } = req.body;
+
+        if (!fk_tipo_contrato) {
+            return res.status(400).json({ error: 'El tipo de contrato es requerido' });
+        }
+
+        const empleado = await Empleado.obtenerPorId(req.params.id);
+        if (empleado.rows.length === 0) {
+            return res.status(404).json({ error: 'Empleado no encontrado' });
+        }
+
+        if (empleado.rows[0].estado !== 'activo') {
+            return res.status(400).json({ error: 'Solo se puede renovar contrato a empleados activos' });
+        }
+
+        const tipoContrato = await TipoContrato.obtenerPorId(fk_tipo_contrato);
+        if (tipoContrato.rows.length === 0) {
+            return res.status(400).json({ error: 'El tipo de contrato no existe' });
+        }
+
+        // Desactivar contrato actual y crear uno nuevo
+        await ContratoEmpleado.desactivarContrato(req.params.id);
+        const hoy = new Date().toISOString().split('T')[0];
+        await ContratoEmpleado.crear(req.params.id, fk_tipo_contrato, hoy);
+
+        res.json({ mensaje: 'Contrato renovado exitosamente' });
+
+    } catch (error) {
+        console.error('Error al renovar contrato:', error);
         res.status(500).json({ error: error.message });
     }
 };

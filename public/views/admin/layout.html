@@ -284,7 +284,7 @@
                         aria-expanded="false"
                         aria-controls="collapseInventarioActivos">
                     <i class="fa-solid fa-boxes-stacked menu-icon"></i>
-                    <span class="sidebar-text">Inventario de Activos</span>
+                    <span class="sidebar-text">Catálogo de Activos</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseInventarioActivos">
@@ -298,7 +298,38 @@
                     </a>
                 </div>
             </div>
-
+                <!-- ============================== -->
+            <!-- GRUPO: CATÁLOGOS              -->
+            <!-- ============================== -->
+            <div class="dropdown-section">
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseCatalogos"
+                        aria-expanded="false"
+                        aria-controls="collapseCatalogos">
+                    <i class="fa-solid fa-book menu-icon"></i>
+                    <span class="sidebar-text">Catálogos</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseCatalogos">
+                    <a href="#" data-clave="factura/factura" onclick="cargarVista('factura/factura')">
+                        <i class="fa-solid fa-file-invoice"></i>
+                        <span class="sidebar-text">Factura</span>
+                    </a>
+                    <a href="#" data-clave="ubicacion/ubicacion" onclick="cargarVista('ubicacion/ubicacion')">
+                        <i class="fa-solid fa-map-marker-alt"></i>
+                        <span class="sidebar-text">Ubicación</span>
+                    </a>
+                    <a href="#" data-clave="proveedor/proveedor" onclick="cargarVista('proveedor/proveedor')">
+                        <i class="fa-solid fa-truck-loading"></i>
+                        <span class="sidebar-text">Proveedor</span>
+                    </a>
+                    <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="cargarVista('tipo_equipo/tipo_equipo')">
+                        <i class="fa-solid fa-cogs"></i>
+                        <span class="sidebar-text">Tipo Equipo</span>
+                    </a>
+                </div>
+            </div>
             <!-- ============================== -->
             <!-- GRUPO: BODEGA                  -->
             <!-- ============================== -->
@@ -386,59 +417,27 @@
                     </a>
                 </div>
             </div>
-            <!-- ============================== -->
-            <!-- GRUPO: MOBILIARIO              -->
-            <!-- ============================== -->
-            <div class="dropdown-section">
-                <button class="sidebar-submenu-btn"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseMobiliario"
-                        aria-expanded="false"
-                        aria-controls="collapseMobiliario">
-                    <i class="fa-solid fa-chair menu-icon"></i>
-                    <span class="sidebar-text">Mobiliario</span>
-                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
-                </button>
-                <div class="collapse sidebar-submenu-children" id="collapseMobiliario">
-                    <a href="#" data-clave="inventario/mobiliario" onclick="cargarVista('inventario/mobiliario')">
-                        <i class="fa-solid fa-chair"></i>
+                <!-- ============================== -->
+                <!-- GRUPO: MOBILIARIO              -->
+                <!-- ============================== -->
+                <div class="dropdown-section">
+                    <button class="sidebar-submenu-btn"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapseMobiliario"
+                            aria-expanded="false"
+                            aria-controls="collapseMobiliario">
+                        <i class="fa-solid fa-chair menu-icon"></i>
                         <span class="sidebar-text">Mobiliario</span>
-                    </a>
+                        <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                    </button>
+                    <div class="collapse sidebar-submenu-children" id="collapseMobiliario">
+                        <a href="#" data-clave="mobiliario/mobiliario" onclick="cargarVista('mobiliario/mobiliario')">
+                            <i class="fa-solid fa-chair"></i>
+                            <span class="sidebar-text">Mobiliario</span>
+                        </a>
+                    </div>
                 </div>
-            </div>
-
-            <!-- ============================== -->
-            <!-- GRUPO: CATÁLOGOS              -->
-            <!-- ============================== -->
-            <div class="dropdown-section">
-                <button class="sidebar-submenu-btn"
-                        data-bs-toggle="collapse"
-                        data-bs-target="#collapseCatalogos"
-                        aria-expanded="false"
-                        aria-controls="collapseCatalogos">
-                    <i class="fa-solid fa-book menu-icon"></i>
-                    <span class="sidebar-text">Catálogos</span>
-                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
-                </button>
-                <div class="collapse sidebar-submenu-children" id="collapseCatalogos">
-                    <a href="#" data-clave="factura/factura" onclick="cargarVista('factura/factura')">
-                        <i class="fa-solid fa-file-invoice"></i>
-                        <span class="sidebar-text">Factura</span>
-                    </a>
-                    <a href="#" data-clave="ubicacion/ubicacion" onclick="cargarVista('ubicacion/ubicacion')">
-                        <i class="fa-solid fa-map-marker-alt"></i>
-                        <span class="sidebar-text">Ubicación</span>
-                    </a>
-                    <a href="#" data-clave="proveedor/proveedor" onclick="cargarVista('proveedor/proveedor')">
-                        <i class="fa-solid fa-truck-loading"></i>
-                        <span class="sidebar-text">Proveedor</span>
-                    </a>
-                    <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="cargarVista('tipo_equipo/tipo_equipo')">
-                        <i class="fa-solid fa-cogs"></i>
-                        <span class="sidebar-text">Tipo Equipo</span>
-                    </a>
-                </div>
-            </div>
+            
 
             <!-- ============================== -->
             <!-- GRUPO: ADMINISTRACIÓN          -->
@@ -458,7 +457,15 @@
                         <i class="fa-solid fa-user"></i>
                         <span class="sidebar-text">Empleados</span>
                     </a>
-                    <a href="#" data-clave="admin/users" onclick="cargarVista('admin/users')">
+                    <a href="#" data-clave="admin/tipo_contrato" onclick="cargarVista('admin/tipo_contrato')">
+                            <i class="fa-solid fa-file-contract"></i>
+                            <span class="sidebar-text">Tipos de Contrato</span>
+                        </a>
+                        <a href="#" data-clave="admin/motivo_baja" onclick="cargarVista('admin/motivo_baja')">
+                            <i class="fa-solid fa-user-slash"></i>
+                            <span class="sidebar-text">Motivos de Baja</span>
+                        </a>
+                        <a href="#" data-clave="admin/users" onclick="cargarVista('admin/users')">
                         <i class="fa-solid fa-users"></i>
                         <span class="sidebar-text">Usuarios</span>
                     </a>

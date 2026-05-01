@@ -64,6 +64,13 @@ app.use('/inventario_bodega', require('./routes/inventario_bodega/inventario_bod
 app.use('/articulos', require('./routes/consumible/articulo.routes'))
 app.use('/movimientos-articulo', require('./routes/consumible/movimiento_articulo.routes'))
 
+app.use('/mobiliario',              require('./routes/mobiliario/mobiliario.routes'));
+app.use('/movimientos-mobiliario',  require('./routes/mobiliario/movimiento_mobiliario.routes'));
+app.use('/prestamo-mobiliario',     require('./routes/mobiliario/prestamo_mobiliario.routes'));
+
+app.use('/tipo_contrato', require('./routes/auth/tipo_contrato.routes'));
+app.use('/motivo_baja',   require('./routes/auth/motivo_baja.routes'));
+
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
 

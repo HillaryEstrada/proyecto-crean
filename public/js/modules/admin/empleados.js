@@ -1,14 +1,18 @@
 (function () {
     // quitar flag de inicialización
     let _registrosActivos = [];
-    let _registrosBajas = [];
+    let _registrosBajas   = [];
     let _idBaja           = null;
     let _empleadoCreado   = null;
+    let _idReactivar      = null;
+    let _idRenovar        = null;
     let _fotoFile         = null;
     let _modoEdicion      = false;
 
     esperarElemento('empBody', async () => {
         await cargarRolesSelect();
+        await cargarTiposContratoSelect();
+        await cargarMotivosSelect();
         listar();
      }, 20, 'admin/empleados');
 
@@ -24,7 +28,31 @@
             });
         } catch (e) { console.error('Error roles:', e); }
     }
+    async function cargarTiposContratoSelect() {
+    try {
+        const tipos = await fetchWithAuth('/tipo_contrato');
+        const sel   = document.getElementById('fk_tipo_contrato');
+        tipos.forEach(t => {
+            const opt       = document.createElement('option');
+            opt.value       = t.pk_tipo_contrato;
+            opt.textContent = t.nombre;
+            sel.appendChild(opt);
+        });
+    } catch (e) { console.error('Error tipos contrato:', e); }
+    }
 
+    async function cargarMotivosSelect() {
+        try {
+            const motivos = await fetchWithAuth('/motivo_baja');
+            const sel     = document.getElementById('selectMotivoBaja');
+            motivos.forEach(m => {
+                const opt       = document.createElement('option');
+                opt.value       = m.pk_motivo_baja;
+                opt.textContent = m.nombre;
+                sel.appendChild(opt);
+            });
+        } catch (e) { console.error('Error motivos baja:', e); }
+    }
     window.previsualizarFoto = function(input) {
         const file = input.files[0];
         if (!file) return;
@@ -210,15 +238,22 @@
     }
 
     function validarPaso1() {
-        const numero   = document.getElementById('numero_empleado').value.trim();
-        const nombre   = document.getElementById('nombre').value.trim();
-        const apellido = document.getElementById('apellido_paterno').value.trim();
-        if (!numero || !nombre || !apellido) {
-            Swal.fire({ icon:'warning', title:'Campos requeridos',
-                text:'Número de empleado, nombre y apellido paterno son obligatorios' });
-            return false;
-        }
-        return true;
+    const numero        = document.getElementById('numero_empleado').value.trim();
+    const nombre        = document.getElementById('nombre').value.trim();
+    const apellido      = document.getElementById('apellido_paterno').value.trim();
+    const tipoContrato  = document.getElementById('fk_tipo_contrato').value;
+    const id            = document.getElementById('pk_empleado').value; // ← agregar esta línea
+    if (!numero || !nombre || !apellido) {
+        Swal.fire({ icon:'warning', title:'Campos requeridos',
+            text:'Número de empleado, nombre y apellido paterno son obligatorios' });
+        return false;
+    }
+    if (!id && !tipoContrato) {
+        Swal.fire({ icon:'warning', title:'Campos requeridos',
+            text:'El tipo de contrato es obligatorio' });
+        return false;
+    }
+    return true;
     }
 
     function recolectarDatosPaso1() {
@@ -233,6 +268,7 @@
             correo:           document.getElementById('correo').value.trim(),
             direccion:        document.getElementById('direccion').value.trim(),
             fecha_ingreso:    document.getElementById('fecha_ingreso').value,
+            fk_tipo_contrato: document.getElementById('fk_tipo_contrato').value,
         };
     }
 
@@ -304,6 +340,9 @@
              <td class="px-3 text-muted" style="font-size:13px;">
                 ${e.direccion || '—'}
             </td>
+            <td class="px-3 text-center" style="font-size:13px;">
+                ${e.tipo_contrato || '—'}
+            </td>
             <td class="px-3 text-center text-muted" style="font-size:13px;">
                 ${e.fecha_ingreso
                     ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })()
@@ -312,13 +351,19 @@
                 <td class="px-3 text-center">
                     ${tieneCuenta
                         ? `<span class="badge bg-success" style="font-size:11px;">
-                               <i class="fa-solid fa-circle-check me-1"></i>${e.username}</span>`
+                            <i class="fa-solid fa-circle-check me-1"></i>Con cuenta</span>`
                         : `<span class="badge bg-secondary" style="font-size:11px;">Sin cuenta</span>`}
                 </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarEmpleado(${e.pk_empleado})">
-                        <i class="fa-solid fa-pen" style="font-size:11px;"></i></button>
+                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning me-1" title="Renovar contrato"
+                        onclick="abrirRenovar(${e.pk_empleado},
+                            '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}',
+                            '${(e.numero_empleado||'').replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-file-contract" style="font-size:11px;"></i></button>
                     <button class="btn btn-sm btn-outline-danger" title="Dar de baja"
                         onclick="abrirBaja(${e.pk_empleado},
                             '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}',
@@ -392,14 +437,25 @@
                   })()
                 : '—'}
         </td>
+
         <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
-        <td class="px-3 text-center text-muted" style="font-size:13px;">
-            ${e.fecha_ingreso
-                ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })()
-                : '—'}
+        <td class="px-3 text-center" style="font-size:13px;">
+            ${e.motivo_baja
+                ? `<span class="badge me-1" style="background:#fbe9e7;color:#b2382d;font-size:11px;">${e.motivo_baja}</span>`
+                : '<span class="text-muted" style="font-size:12px;">—</span>'}
         </td>
-        <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
-    </tr>`).join('');
+        <td class="px-3 text-center text-muted" style="font-size:13px;">
+            ${e.fecha_ingreso ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })() : '—'}
+        </td>
+        <td class="px-3 text-center" style="white-space:nowrap;">
+            <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                onclick="abrirReactivar(${e.pk_empleado},
+                    '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}',
+                    '${(e.numero_empleado||'').replace(/'/g,"\\'")}')">
+                <i class="fa-solid fa-rotate-right" style="font-size:11px;"></i>
+            </button>
+        </td>
+        </tr>`).join('');
                 initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
         } catch(e) { console.error('Error bajas:', e); }
     }
@@ -432,6 +488,7 @@
         document.getElementById('direccion').value        = emp.direccion||'';
         document.getElementById('fecha_ingreso').value    = emp.fecha_ingreso
             ? emp.fecha_ingreso.split('T')[0] : '';
+        document.getElementById('fk_tipo_contrato').value   = emp.fk_tipo_contrato||'';
 
         // Foto
         const preview = document.getElementById('fotoPreview');
@@ -477,6 +534,10 @@
                 subtexto.textContent = 'Activa para configurar usuario y contraseña';
                 subtexto.style.color = '#7dd3fc';
             }
+
+            // Ocultar tipo de contrato en edición (se gestiona desde Renovar contrato)
+            const contenedorContrato = document.getElementById('fk_tipo_contrato')?.closest('.col-md-6');
+            if (contenedorContrato) contenedorContrato.classList.add('d-none');
         }, 50);
     };
 
@@ -486,10 +547,72 @@
         document.getElementById('bajaNumeroEmp').textContent = numero;
         new bootstrap.Modal(document.getElementById('modalBaja')).show();
     };
+    window.abrirReactivar = function(id, nombre, numero) {
+    _idReactivar = id;
+    document.getElementById('reactivarNombre').textContent    = nombre;
+    document.getElementById('reactivarNumeroEmp').textContent = numero;
+    // Poblar tipos de contrato en el modal
+    const sel = document.getElementById('selectTipoContratoReactivar');
+    sel.innerHTML = '<option value="">Seleccionar tipo…</option>';
+    document.querySelectorAll('#fk_tipo_contrato option').forEach(opt => {
+        if (opt.value) sel.appendChild(opt.cloneNode(true));
+    });
+    new bootstrap.Modal(document.getElementById('modalReactivar')).show();
+    };
+
+    window.confirmarReactivar = async function() {
+        const fk_tipo_contrato = document.getElementById('selectTipoContratoReactivar').value;
+        if (!fk_tipo_contrato) {
+            Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
+            return;
+        }
+        try {
+            await fetchWithAuth(`/empleados/${_idReactivar}/reactivar`, 'PUT', { fk_tipo_contrato });
+            bootstrap.Modal.getInstance(document.getElementById('modalReactivar')).hide();
+            Swal.fire({ icon:'success', title:'Reactivado', timer:2000, showConfirmButton:false });
+            listarBajas();
+        } catch (error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
+
+    window.abrirRenovar = function(id, nombre, numero) {
+    _idRenovar = id;
+    document.getElementById('renovarNombre').textContent    = nombre;
+    document.getElementById('renovarNumeroEmp').textContent = numero;
+    const sel = document.getElementById('selectTipoContratoRenovar');
+    sel.innerHTML = '<option value="">Seleccionar tipo…</option>';
+    document.querySelectorAll('#fk_tipo_contrato option').forEach(opt => {
+        if (opt.value) sel.appendChild(opt.cloneNode(true));
+    });
+    new bootstrap.Modal(document.getElementById('modalRenovar')).show();
+    };
+
+    window.confirmarRenovar = async function() {
+        const fk_tipo_contrato = document.getElementById('selectTipoContratoRenovar').value;
+        if (!fk_tipo_contrato) {
+            Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
+            return;
+        }
+        try {
+            await fetchWithAuth(`/empleados/${_idRenovar}/renovar-contrato`, 'PATCH', { fk_tipo_contrato });
+            bootstrap.Modal.getInstance(document.getElementById('modalRenovar')).hide();
+            Swal.fire({ icon:'success', title:'Contrato renovado', timer:2000, showConfirmButton:false });
+            listar();
+        } catch (error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
 
     window.confirmarBaja = async function() {
         try {
-            await fetchWithAuth(`/empleados/${_idBaja}/desactivar`, 'PATCH');
+            const motivo = document.getElementById('selectMotivoBaja').value;
+            if (!motivo) {
+                Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un motivo de baja' });
+                return;
+            }
+            await fetchWithAuth(`/empleados/${_idBaja}/baja`, 'PATCH', { fk_motivo_baja: motivo });
+            document.getElementById('selectMotivoBaja').value = '';
             bootstrap.Modal.getInstance(document.getElementById('modalBaja')).hide();
             Swal.fire({ icon:'success', title:'Baja registrada',
                 timer:2000, showConfirmButton:false });
@@ -539,11 +662,23 @@
                     })() : '—'}
                 </td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
+                <td class="px-3 text-center" style="font-size:13px;">
+                    ${e.motivo_baja
+                        ? `<span class="badge me-1" style="background:#fbe9e7;color:#b2382d;font-size:11px;">${e.motivo_baja}</span>`
+                        : '<span class="text-muted" style="font-size:12px;">—</span>'}
+                </td>
                 <td class="px-3 text-center text-muted" style="font-size:13px;">
                     ${e.fecha_ingreso ? (() => { const [y,m,d] = String(e.fecha_ingreso).slice(0,10).split('-'); return `${d}/${m}/${y}`; })() : '—'}
                 </td>
-                <td class="px-3 text-center"><span class="badge bg-secondary">Inactivo</span></td>
-            </tr>`).join('');
+                <td class="px-3 text-center" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                        onclick="abrirReactivar(${e.pk_empleado},
+                            '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}',
+                            '${(e.numero_empleado||'').replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-rotate-right" style="font-size:11px;"></i> Reactivar
+                    </button>
+                </td>
+        </tr>`).join('');
         initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
     };
 })();
@@ -616,10 +751,15 @@ window.mostrarFormulario = function() {
     document.getElementById('correo').value            = '';
     document.getElementById('direccion').value         = '';
     document.getElementById('fecha_ingreso').value     = '';
+    document.getElementById('fk_tipo_contrato').value = '';
 
     window._fotoFile       = null;
     window._empleadoCreado = null;
     window._modoEdicion    = false;
+
+    // Mostrar tipo de contrato en registro nuevo
+    const contenedorContrato = document.getElementById('fk_tipo_contrato')?.closest('.col-md-6');
+    if (contenedorContrato) contenedorContrato.classList.remove('d-none');
 };
 
 window.mostrarTabla = function() {

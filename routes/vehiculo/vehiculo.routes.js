@@ -41,6 +41,8 @@ router.post('/',      verificarModulo('vehiculo/vehiculo'), controller.crear);
 // POST /vehiculo/bajas - Registrar una baja en el historial
 router.post('/bajas', verificarModulo('vehiculo/vehiculo'), controller.registrarBaja);
 
+router.put('/bajas/:id', verificarModulo('vehiculo/vehiculo'), controller.actualizarBaja);
+
 // PUT /vehiculo/:id - Actualizar vehículo
 router.put('/:id',    verificarModulo('vehiculo/vehiculo'), controller.actualizar);
 

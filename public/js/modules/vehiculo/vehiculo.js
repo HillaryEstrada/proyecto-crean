@@ -136,8 +136,8 @@
         document.getElementById('w_estado_operativo').value      = v.estado_operativo || 'disponible';
 
         // --- Paso 3 ---
-        document.getElementById('w_kilometraje_actual').value    = v.kilometraje_actual || 0;
-        document.getElementById('w_gasolina_litros').value       = v.gasolina_litros    || 0;
+        document.getElementById('w_kilometraje_actual').value = v.kilometraje_actual && parseFloat(v.kilometraje_actual) !== 0 ? v.kilometraje_actual : '';
+        document.getElementById('w_gasolina_litros').value     = v.gasolina_litros    && parseFloat(v.gasolina_litros)    !== 0 ? v.gasolina_litros    : '';
 
         if (v.foto_vehiculo) {
             document.getElementById('wFotoPreview').innerHTML =
@@ -495,27 +495,41 @@
         if (info) info.textContent = `Mostrando ${data.length} de ${_registrosBajas.length} registros`;
 
         cuerpo.innerHTML = data.map((b, i) => `
-            <tr>
-                <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
-                <td class="px-3">
-                    <span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">
-                        ${b.numero_economico||'—'}
-                    </span>
-                </td>
-                <td class="px-3" style="font-size:13px;">${b.tipo_nombre||'—'}</td>
-                <td class="px-3" style="font-size:13px;">
-                    ${b.marca||'—'}
-                    <span class="text-muted">${b.modelo ? ' · '+b.modelo : ''}</span>
-                </td>
-                <td class="px-3 text-center">
-                    <span class="badge bg-dark" style="font-size:11px;">${b.tipo_baja||'—'}</span>
-                </td>
-                <td class="px-3 text-muted" style="font-size:13px;max-width:200px;">${b.motivo||'—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${b.autorizado_por||'—'}</td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">
-                    ${b.fecha_baja ? new Date(b.fecha_baja).toLocaleDateString('es-MX') : '—'}
-                </td>
-            </tr>`).join('');
+        <tr>
+            <td class="px-3 text-muted" style="font-size:12px;">${i+1}</td>
+            <td class="px-3">
+                <span class="fw-bold" style="font-family:monospace;color:#1a3c5e;font-size:12px;">
+                    ${b.numero_economico||'—'}
+                </span>
+            </td>
+            <td class="px-3" style="font-size:13px;">${b.tipo_nombre||'—'}</td>
+            <td class="px-3" style="font-size:13px;">
+                ${b.marca||'—'}
+                <span class="text-muted">${b.modelo ? ' · '+b.modelo : ''}</span>
+            </td>
+            <td class="px-3 text-center">
+                <span class="badge bg-dark" style="font-size:11px;">${b.tipo_baja||'—'}</span>
+            </td>
+            <td class="px-3 text-center">
+                ${b.documento_respaldo
+                    ? `<a href="${b.documento_respaldo}" target="_blank"
+                        class="btn btn-sm btn-outline-danger">
+                        <i class="fa-solid fa-file-pdf"></i>
+                    </a>`
+                    : '<span class="text-muted">—</span>'}
+            </td>
+            <td class="px-3 text-muted" style="font-size:13px;max-width:200px;">${b.motivo||'—'}</td>
+            <td class="px-3 text-muted" style="font-size:13px;">${b.autorizado_por||'—'}</td>
+            <td class="px-3 text-center text-muted" style="font-size:12px;">
+                ${b.fecha_baja ? new Date(b.fecha_baja).toLocaleDateString('es-MX') : '—'}
+            </td>
+            <td class="px-3 text-center">
+                <button class="btn btn-sm btn-outline-primary" title="Editar baja"
+                    onclick="abrirEditarBaja(${b.pk_baja})">
+                    <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                </button>
+            </td>
+        </tr>`).join('');
 
         initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'bajas' });
     }
@@ -714,6 +728,77 @@
                 text:'El vehículo fue dado de baja exitosamente',
                 timer:2000, showConfirmButton:false });
             listar();
+        } catch(error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
+
+    let _archivoEditBaja = null;
+
+    window.previsualizarEditDocBaja = function(input) {
+        const file = input.files[0];
+        if (!file) { _archivoEditBaja = null; return; }
+        _archivoEditBaja = file;
+        const label = document.getElementById('editDocBajaLabel');
+        if (label) label.textContent = file.name;
+    };
+
+    window.abrirEditarBaja = function(id) {
+        const b = _registrosBajas.find(x => x.pk_baja === id);
+        if (!b) return;
+        document.getElementById('editBajaPk').value         = b.pk_baja;
+        document.getElementById('editBajaPdfActual').value  = b.documento_respaldo || '';
+        document.getElementById('editBajaTipo').value       = b.tipo_baja || '';
+        document.getElementById('editBajaMotivo').value     = b.motivo || '';
+        document.getElementById('editBajaAutorizado').value = b.autorizado_por || '';
+        document.getElementById('editBajaDocInput').value   = '';
+        document.getElementById('editDocBajaLabel').textContent = 'Sin documento seleccionado';
+        _archivoEditBaja = null;
+        const pdfContainer = document.getElementById('editPdfActualContainer');
+        const pdfLink      = document.getElementById('editPdfActualLink');
+        if (b.documento_respaldo) {
+            pdfLink.href = b.documento_respaldo;
+            pdfContainer.classList.remove('d-none');
+        } else {
+            pdfContainer.classList.add('d-none');
+        }
+        document.getElementById('err_edit_tipo').classList.add('d-none');
+        new bootstrap.Modal(document.getElementById('modalEditarBaja')).show();
+    };
+
+    window.guardarEditBaja = async function() {
+        const id   = document.getElementById('editBajaPk').value;
+        const tipo = document.getElementById('editBajaTipo').value;
+        if (!tipo) {
+            document.getElementById('err_edit_tipo').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('err_edit_tipo').classList.add('d-none');
+        try {
+            let documento_respaldo = document.getElementById('editBajaPdfActual').value || null;
+            if (_archivoEditBaja) {
+                const formData = new FormData();
+                formData.append('archivo', _archivoEditBaja);
+                const res = await fetch('/archivo/temporal', {
+                    method:  'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body:    formData
+                });
+                if (!res.ok) throw new Error('Error al subir el PDF');
+                const resData = await res.json();
+                documento_respaldo = resData.url;
+            }
+            await fetchWithAuth(`/vehiculo/bajas/${id}`, 'PUT', {
+                tipo_baja:      tipo,
+                motivo:         document.getElementById('editBajaMotivo').value.trim() || null,
+                autorizado_por: document.getElementById('editBajaAutorizado').value.trim() || null,
+                documento_respaldo
+            });
+            bootstrap.Modal.getInstance(document.getElementById('modalEditarBaja')).hide();
+            Swal.fire({ icon:'success', title:'Actualizada',
+                text:'Baja actualizada exitosamente',
+                timer:2000, showConfirmButton:false });
+            listarBajas();
         } catch(error) {
             Swal.fire({ icon:'error', title:'Error', text:error.message });
         }

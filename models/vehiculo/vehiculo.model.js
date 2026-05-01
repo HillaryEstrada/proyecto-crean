@@ -217,6 +217,21 @@ RETURNING *`,
         [id]
     ),
 
+    // Actualizar baja
+    actualizarBaja: (id, data) => Conexion.query(
+        `UPDATE baja_vehiculo
+        SET tipo_baja=$1, motivo=$2, autorizado_por=$3, documento_respaldo=$4
+        WHERE pk_baja=$5
+        RETURNING *`,
+        [
+            data.tipo_baja,
+            data.motivo             || null,
+            data.autorizado_por     || null,
+            data.documento_respaldo || null,
+            id
+        ]
+    ),
+
     // ============================================
     // Verificar si vehículo ya tiene baja registrada
     // ============================================

@@ -9,27 +9,34 @@ module.exports = {
 
     // Listar todos los empleados activos con info de cuenta
     listar: () => Conexion.query(
-    `SELECT DISTINCT ON (e.pk_empleado)
-            e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
-            e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
-            e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
-            CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
-            u.pk_user, u.username, u.estado as estado_user
-    FROM empleado e
-    LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
-    WHERE (e.estado = 'activo' OR e.estado IS NULL)
-    ORDER BY e.pk_empleado, u.estado DESC NULLS LAST`
-),
+        `SELECT DISTINCT ON (e.pk_empleado)
+                e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
+                e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
+                e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
+                CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
+                ce.activo as contrato_activo,
+                tc.nombre as tipo_contrato,
+                u.pk_user, u.username, u.estado as estado_user
+        FROM empleado e
+        LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
+        LEFT JOIN contrato_empleado ce ON ce.fk_empleado = e.pk_empleado AND ce.activo = true
+        LEFT JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
+        WHERE (e.estado = 'activo' OR e.estado IS NULL)
+        ORDER BY e.pk_empleado, u.estado DESC NULLS LAST`
+    ),
 
     // Obtener empleado por ID con info de cuenta
     obtenerPorId: (id) => Conexion.query(
         `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno,
                 e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion,
                 e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
+                e.fecha_baja, e.fk_motivo_baja,
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
-                u.pk_user, u.username, u.estado as estado_user
+                u.pk_user, u.username, u.estado as estado_user,
+                mb.nombre as motivo_baja
          FROM empleado e
          LEFT JOIN users u ON u.fk_empleado = e.pk_empleado
+         LEFT JOIN motivo_baja mb ON mb.pk_motivo_baja = e.fk_motivo_baja
          WHERE e.pk_empleado = $1`,
         [id]
     ),
@@ -90,6 +97,26 @@ module.exports = {
         [id]
     ),
 
+    // ─── NUEVO: Dar de baja con motivo ───────────────────────────────────────
+    darDeBaja: (id, fk_motivo_baja) => Conexion.query(
+        `UPDATE empleado
+         SET estado = 'inactivo',
+             fecha_baja = CURRENT_DATE,
+             fk_motivo_baja = $2
+         WHERE pk_empleado = $1`,
+        [id, fk_motivo_baja]
+    ),
+
+    // ─── NUEVO: Reactivar empleado ───────────────────────────────────────────
+    reactivar: (id) => Conexion.query(
+        `UPDATE empleado
+         SET estado = 'activo',
+             fecha_baja = NULL,
+             fk_motivo_baja = NULL
+         WHERE pk_empleado = $1`,
+        [id]
+    ),
+
     // Verificar si numero_empleado ya existe
     existeNumero: (numero, excludeId = null) => {
         const query = excludeId
@@ -109,8 +136,13 @@ module.exports = {
     },
 
     listarBajas: () => Conexion.query(
-    `SELECT pk_empleado, numero_empleado, nombre, apellido_paterno,
-            apellido_materno, telefono, correo, estado
-     FROM empleado WHERE estado != 'activo' ORDER BY nombre ASC`
+    `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno,
+            e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion,
+            e.estado, e.fecha_ingreso, e.fecha_nacimiento,
+            e.fecha_baja, mb.nombre as motivo_baja
+     FROM empleado e
+     LEFT JOIN motivo_baja mb ON mb.pk_motivo_baja = e.fk_motivo_baja
+     WHERE e.estado != 'activo'
+     ORDER BY e.nombre ASC`
     ),
 };

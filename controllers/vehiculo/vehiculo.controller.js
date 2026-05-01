@@ -157,6 +157,19 @@ exports.obtenerBajaPorId = async (req, res) => {
     }
 };
 
+exports.actualizarBaja = async (req, res) => {
+    try {
+        const resultado = await Vehiculo.actualizarBaja(req.params.id, req.body);
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Baja no encontrada' });
+        }
+        res.json({ mensaje: 'Baja actualizada exitosamente', data: resultado.rows[0] });
+    } catch (error) {
+        console.error('Error al actualizar baja:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+
 // ============================================
 // HELPER: mensajes amigables para duplicate key
 // ============================================

@@ -46,9 +46,10 @@
                 <select id="filtroSeccion" class="form-select form-select-sm" style="width:160px;" onchange="filtrarSeccion()">
                     <option value="todas">Todas las secciones</option>
                     <option value="operacion">Operación</option>
-                     <option value="bodega">Bodega</option>
                      <option value="catalogos">Catálogos</option>
+                     <option value="bodega">Bodega</option>
                     <option value="consumibles">Consumibles</option>
+                    <option value="mobiliario">Mobiliario</option>
                     <option value="administracion">Administración</option>
                 </select>
                 <span id="rol-seleccionado-label" class="badge text-white"
@@ -75,20 +76,7 @@
                 </div>
                 <div id="modulos-operacion"></div>
             </div>
-
-            <!-- Sección Bodega (colapsable) -->
-            <div id="seccion-bodega" style="display:none;">
-                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
-                    style="cursor:pointer;" onclick="toggleSeccion('bodega')">
-                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
-                        <i class="fa-solid fa-folder-open me-1"></i>Bodega
-                    </small>
-                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-bodega"
-                        style="font-size:11px;transition:transform .2s;"></i>
-                </div>
-                <div id="modulos-bodega"></div>
-            </div>
-            <!-- Sección Catálogos (colapsable) -->
+                  <!-- Sección Catálogos (colapsable) -->
             <div id="seccion-catalogos" style="display:none;">
                 <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
                     style="cursor:pointer;" onclick="toggleSeccion('catalogos')">
@@ -100,17 +88,17 @@
                 </div>
                 <div id="modulos-catalogos"></div>
             </div>
-            <!-- Sección Administración (colapsable) -->
-            <div id="seccion-administracion" style="display:none;">
+            <!-- Sección Bodega (colapsable) -->
+            <div id="seccion-bodega" style="display:none;">
                 <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
-                    style="cursor:pointer;" onclick="toggleSeccion('administracion')">
+                    style="cursor:pointer;" onclick="toggleSeccion('bodega')">
                     <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
-                        <i class="fa-solid fa-shield-halved me-1"></i>Administración
+                        <i class="fa-solid fa-folder-open me-1"></i>Bodega
                     </small>
-                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-administracion"
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-bodega"
                         style="font-size:11px;transition:transform .2s;"></i>
                 </div>
-                <div id="modulos-administracion"></div>
+                <div id="modulos-bodega"></div>
             </div>
             <!-- Sección Consumibles (colapsable) -->
              <div id="seccion-consumibles" style="display:none;">
@@ -124,9 +112,35 @@
                 </div>
                 <div id="modulos-consumibles"></div>
             </div>
+            <!-- Sección Mobiliario (colapsable) -->
+            <div id="seccion-mobiliario" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
+                    style="cursor:pointer;" onclick="toggleSeccion('mobiliario')">
+                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
+                        <i class="fa-solid fa-chair me-1"></i>Mobiliario
+                    </small>
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-mobiliario"
+                        style="font-size:11px;transition:transform .2s;"></i>
+                </div>
+                <div id="modulos-mobiliario"></div>
+            </div>
+            <!-- Sección Administración (colapsable) -->
+            <div id="seccion-administracion" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
+                    style="cursor:pointer;" onclick="toggleSeccion('administracion')">
+                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
+                        <i class="fa-solid fa-shield-halved me-1"></i>Administración
+                    </small>
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-administracion"
+                        style="font-size:11px;transition:transform .2s;"></i>
+                </div>
+                <div id="modulos-administracion"></div>
+            </div>
 
         </div>
 </div>
+
+
         <!-- Footer con botón guardar -->
         <div id="footer-guardar" class="card-footer bg-white border-top py-3 d-flex justify-content-end gap-2"
             style="display:none !important;">
