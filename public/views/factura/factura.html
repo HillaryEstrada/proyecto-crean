@@ -37,12 +37,12 @@
                 <thead class="text-white text-center" style="background-color:#1a3c5e;">
                     <tr style="font-size:12px;font-weight:600;">
                         <th class="py-3 px-3" style="width:40px;">#</th>
-                        <th class="py-3 px-3">N° FACTURA</th>
-                        <th class="py-3 px-3">PROVEEDOR</th>
                         <th class="py-3 px-3">TIPO ACTIVO</th>
                         <th class="py-3 px-3">MODELO</th>
+                        <th class="py-3 px-3">N° FACTURA</th>
+                        <th class="py-3 px-3">FECHA FACTURA</th>
                         <th class="py-3 px-3 text-center">VALOR FACTURA</th>
-                        <th class="py-3 px-3 text-center">FECHA</th>
+                        <th class="py-3 px-3">PROVEEDOR</th>
                         <th class="py-3 px-3 text-center">GARANTÍA</th>
                         <th class="py-3 px-3 text-center">PDF</th>
                         <th class="py-3 px-3 text-center" style="width:80px;">ACCIONES</th>
@@ -193,11 +193,8 @@
                 <div class="p-3 rounded-3 mb-3" style="background:#f0f9ff;border:0.5px solid #bae6fd;">
                     <p style="font-size:12px;color:#0369a1;margin:0;">
                         <i class="fa-solid fa-circle-info me-1"></i>
-                        Al menos una condición es obligatoria. La garantía vence cuando se cumpla la primera.
+                        Opcional. Si se indica, la garantía vence cuando se cumpla la primera condición.
                     </p>
-                </div>
-                <div class="text-danger d-none small mb-2" id="err_garantia">
-                    Debes indicar al menos una condición de garantía
                 </div>
 
                 <div class="row g-3">
@@ -250,7 +247,76 @@
                 <i class="fa-solid fa-floppy-disk me-1"></i>
                 <span id="btnGuardarLabel">Guardar factura</span>
             </button>
+            </div>
         </div>
+    </div>
+        <!-- ── MODAL: DETALLE DE FACTURA ── -->
+    <div class="modal fade" id="modalDetalleFactura" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fa-solid fa-file-invoice me-2"></i>Detalle de Factura
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
 
+            <div class="modal-body p-4">
+
+                <!-- DATOS DE FACTURA -->
+            <p class="fw-semibold mb-3"
+                style="font-size:11px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                <i class="fa-solid fa-receipt me-1"></i>Datos de la factura
+            </p>
+            <div class="row g-2 mb-3">
+                <span id="detalle_tipo" class="d-none"></span>
+                <span id="detalle_modelo" class="d-none"></span>
+                <div class="col-6">
+                    <div class="text-muted" style="font-size:11px;">N° Factura</div>
+                    <div class="fw-semibold" style="font-size:13px;color:#1a3c5e;" id="detalle_numero">—</div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted" style="font-size:11px;">Proveedor</div>
+                    <div style="font-size:13px;" id="detalle_proveedor">—</div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted" style="font-size:11px;">Valor</div>
+                    <div style="font-size:13px;" id="detalle_valor">—</div>
+                </div>
+                <div class="col-6">
+                    <div class="text-muted" style="font-size:11px;">Fecha Factura</div>
+                    <div style="font-size:13px;" id="detalle_fecha">—</div>
+                </div>
+                <div class="col-12">
+                    <div class="text-muted" style="font-size:11px;">Garantía</div>
+                    <div style="font-size:13px;" id="detalle_garantia">—</div>
+                </div>
+            </div>
+
+                <hr class="my-3">
+
+                <!-- AUDITORÍA -->
+                <p class="fw-semibold mb-3"
+                    style="font-size:11px;color:#1a3c5e;text-transform:uppercase;letter-spacing:.05em;">
+                    <i class="fa-solid fa-shield-halved me-1"></i>Auditoría
+                </p>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:11px;">Registrado por</div>
+                        <div style="font-size:13px;" id="detalle_reg_por">—</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-muted" style="font-size:11px;">Fecha de registro</div>
+                        <div style="font-size:13px;" id="detalle_reg_fecha">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cerrar
+                </button>
+            </div>
+        </div> 
     </div>
 </div>

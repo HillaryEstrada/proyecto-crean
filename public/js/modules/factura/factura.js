@@ -60,7 +60,7 @@
             if (f.garantia_limite_km)      garantiaParts.push(`${f.garantia_limite_km}km`);
             const garantiaText = garantiaParts.length
                 ? garantiaParts.join(' / ')
-                : '—';
+                : '<span class="badge bg-secondary" style="font-size:11px;">Sin garantía</span>';
 
             const badgeTipo = f.tipo_activo === 'maquinaria'
                 ? `<span class="badge" style="background:#1a3c5e;font-size:11px;">
@@ -76,37 +76,40 @@
                 : '—';
 
             return `
-            <tr>
-                <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
-                <td class="px-3">
-                    <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                        ${f.numero_factura || '—'}
-                    </span>
-                </td>
-                <td class="px-3 text-muted" style="font-size:13px;">${f.proveedor_nombre || '—'}</td>
-                <td class="px-3 text-center">${badgeTipo}</td>
-                <td class="px-3 text-muted" style="font-size:12px;">
-                    ${[ f.modelo_referencia].filter(Boolean).join(' · ') || '—'}
-                </td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${f.costo_adquisicion
-                        ? '$' + parseFloat(f.costo_adquisicion).toLocaleString('es-MX', { minimumFractionDigits: 2 })
-                        : '—'}
-                </td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">${fecha}</td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">${garantiaText}</td>
-                <td class="px-3 text-center">
-                    ${f.pdf_factura
-                        ? `<a href="${f.pdf_factura}" target="_blank" class="btn btn-sm btn-outline-danger">
-                               <i class="fa-solid fa-file-pdf"></i></a>`
-                        : '<span class="text-muted">—</span>'}
-                </td>
-                <td class="px-3 text-center">
-                    <button class="btn btn-sm btn-outline-primary" onclick="editarFactura(${f.pk_factura})">
-                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
-                    </button>
-                </td>
-            </tr>`;
+                    <tr>
+                        <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                        <td class="px-3 text-center">${badgeTipo}</td>
+                        <td class="px-3 text-muted" style="font-size:12px;">${f.modelo_referencia || '—'}</td>
+                        <td class="px-3">
+                            <span class="px-3 text-center text-muted" style="font-size:13px;">
+                                ${f.numero_factura || '—'}
+                            </span>
+                        </td>
+                        <td class="px-3 text-center text-muted" style="font-size:13px;">${fecha}</td>
+                        <td class="px-3 text-center text-muted" style="font-size:13px;">
+                            ${f.costo_adquisicion
+                                ? '$' + parseFloat(f.costo_adquisicion).toLocaleString('es-MX', { minimumFractionDigits: 2 })
+                                : '—'}
+                        </td>
+                        <td class="px-3 text-muted" style="font-size:13px;">${f.proveedor_nombre || '—'}</td>
+                        <td class="px-3 text-center text-muted" style="font-size:12px;">${garantiaText}</td>
+                        <td class="px-3 text-center">
+                            ${f.pdf_factura
+                                ? `<a href="${f.pdf_factura}" target="_blank" class="btn btn-sm btn-outline-danger">
+                                    <i class="fa-solid fa-file-pdf"></i></a>`
+                                : '<span class="text-muted">—</span>'}
+                        </td>
+                        <td class="px-3 text-center" style="white-space:nowrap;">
+                            <button class="btn btn-sm btn-outline-secondary me-1" title="Ver detalle"
+                                onclick="verDetalleFactura(${f.pk_factura})">
+                                <i class="fa-solid fa-eye" style="font-size:11px;"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-primary" title="Editar"
+                                onclick="editarFactura(${f.pk_factura})">
+                                <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                            </button>
+                        </td>
+                    </tr>`;
         }).join('');
 
         initPaginacion({ tbodyId: 'facBody', filasPorPagina: 10, sufijo: 'fac' });
@@ -121,7 +124,71 @@
             return (!q || txt.includes(q)) && (!tipo || f.tipo_activo === tipo);
         }));
     };
+    // ── VER DETALLE ──
+        window.verDetalleFactura = async function (id) {
+            try {
+                const f = await fetchWithAuth(`/factura/${id}/detalle`);
 
+                // Formatear fecha factura
+                const fechaFac = f.fecha_factura
+                    ? (() => { const [y,m,d] = String(f.fecha_factura).slice(0,10).split('-'); return `${d}/${m}/${y}`; })()
+                    : '—';
+
+                // Formatear fecha registro con hora
+                const fechaReg = f.fecha_registro
+                    ? (() => {
+                        const dt = new Date(f.fecha_registro);
+                        const d  = String(dt.getDate()).padStart(2,'0');
+                        const mo = String(dt.getMonth()+1).padStart(2,'0');
+                        const y  = dt.getFullYear();
+                        const h  = String(dt.getHours()).padStart(2,'0');
+                        const mi = String(dt.getMinutes()).padStart(2,'0');
+                        return `${d}/${mo}/${y} ${h}:${mi}`;
+                    })()
+                    : '—';
+
+                // Garantía
+                const garantiaParts = [];
+                if (f.garantia_duracion_dias)  garantiaParts.push(`${f.garantia_duracion_dias} días`);
+                if (f.garantia_limite_horas)   garantiaParts.push(`${f.garantia_limite_horas} hrs`);
+                if (f.garantia_limite_km)      garantiaParts.push(`${f.garantia_limite_km} km`);
+                const garantiaText = garantiaParts.length ? garantiaParts.join(' / ') : 'Sin garantía';
+
+                // Valor
+                const valor = f.costo_adquisicion
+                    ? '$' + parseFloat(f.costo_adquisicion).toLocaleString('es-MX', { minimumFractionDigits: 2 })
+                    : '—';
+
+                // Badge tipo activo
+                const badgeModal = f.tipo_activo === 'maquinaria'
+                ? `<span class="badge" style="background:#1a3c5e;font-size:12px;padding:6px 10px;">
+                    <i class="fa-solid fa-tractor me-1"></i>Maquinaria</span>`
+                : `<span class="badge bg-info text-dark" style="font-size:12px;padding:6px 10px;">
+                    <i class="fa-solid fa-car me-1"></i>Vehículo</span>`;
+
+                document.getElementById('detalle_numero').textContent    = f.numero_factura || '—';
+                document.getElementById('detalle_proveedor').textContent = f.proveedor_nombre || '—';
+                document.getElementById('detalle_valor').textContent     = valor;
+                document.getElementById('detalle_fecha').textContent     = fechaFac;
+                document.getElementById('detalle_tipo').innerHTML = badgeModal;
+                document.getElementById('detalle_modelo').innerHTML =
+                    `<span class="fw-semibold" style="font-size:14px;color:#1a3c5e;">
+                        ${f.modelo_referencia || '—'}
+                    </span>`;
+                document.getElementById('detalle_garantia').textContent  = garantiaText;
+                document.getElementById('detalle_reg_por').textContent   = f.registrado_por_usuario || '—';
+                document.getElementById('detalle_reg_fecha').textContent = fechaReg;
+
+                const tituloModal = f.tipo_activo === 'maquinaria'
+                    ? `<i class="fa-solid fa-tractor me-2"></i>Maquinaria — ${f.modelo_referencia || '—'}`
+                    : `<i class="fa-solid fa-car me-2"></i>Vehículo — ${f.modelo_referencia || '—'}`;
+
+                document.querySelector('#modalDetalleFactura .modal-title').innerHTML = tituloModal;
+                new bootstrap.Modal(document.getElementById('modalDetalleFactura')).show();
+            } catch (e) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el detalle' });
+            }
+    };
     // ── TIPO ACTIVO CHANGE (dinámico en formulario) ──
     window.onTipoActivoChange = function () {
         const tipo = document.getElementById('f_tipo_activo').value;
@@ -257,10 +324,6 @@
         if (!tipo_activo) {
             document.getElementById('err_tipo_activo').classList.remove('d-none'); valido = false;
         } else document.getElementById('err_tipo_activo').classList.add('d-none');
-
-        if (tipo_activo && !dias && !horas && !km) {
-            document.getElementById('err_garantia').classList.remove('d-none'); valido = false;
-        } else document.getElementById('err_garantia').classList.add('d-none');
 
         if (!valido) return;
 

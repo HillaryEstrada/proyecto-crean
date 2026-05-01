@@ -55,7 +55,11 @@
                 <td class="px-3 text-muted" style="font-size:13px;">${p.telefono || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.correo || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.direccion || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${p.registrado_por_usuario && p.fecha_registro
+                        ? (() => { const s = String(p.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${p.registrado_por_usuario} • ${d}/${m}/${y}`; })()
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarProveedor(${p.pk_proveedor})">
@@ -100,12 +104,15 @@
             <td class="px-3 text-muted" style="font-size:13px;">${p.telefono || '—'}</td>
             <td class="px-3 text-muted" style="font-size:13px;">${p.correo || '—'}</td>
             <td class="px-3 text-muted" style="font-size:13px;">${p.direccion || '—'}</td>
-            <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+            <td class="px-3 text-center text-muted" style="font-size:12px;">
+                ${p.registrado_por_usuario && p.fecha_registro
+                    ? (() => { const s = String(p.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${p.registrado_por_usuario} • ${d}/${m}/${y}`; })()
+                    : '—'}
+            </td>
             <td class="px-3 text-center" style="white-space:nowrap;">
                 <button class="btn btn-sm btn-outline-success" title="Reactivar"
                     onclick="reactivarProveedor(${p.pk_proveedor}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
                     <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                    Reactivar
                 </button>
             </td>
         </tr>`).join('')
@@ -175,12 +182,15 @@
                     <td class="px-3 text-muted" style="font-size:13px;">${p.telefono || '—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${p.correo || '—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${p.direccion || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                            ${p.registrado_por_usuario && p.fecha_registro
+                                ? (() => { const s = String(p.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${p.registrado_por_usuario} • ${d}/${m}/${y}`; })()
+                                : '—'}
+                        </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarProveedor(${p.pk_proveedor}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -246,46 +256,81 @@
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
     window.guardarProveedor = async function () {
-        const id       = document.getElementById('f_pk_proveedor').value;
-        const nombre   = document.getElementById('f_nombre').value.trim();
-        const telefono = document.getElementById('f_telefono').value.trim();
-        const correo   = document.getElementById('f_correo').value.trim();
-        const direccion = document.getElementById('f_direccion').value.trim();
+    const id        = document.getElementById('f_pk_proveedor').value;
+    const nombre    = document.getElementById('f_nombre').value.trim();
+    const telefono  = document.getElementById('f_telefono').value.trim();
+    const correo    = document.getElementById('f_correo').value.trim();
+    const direccion = document.getElementById('f_direccion').value.trim();
 
-        if (!nombre) {
-            document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+    // 1 ── Nombre vacío
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('f_nombre').focus();
+        return;
+    }
+    document.getElementById('err_nombre').classList.add('d-none');
+
+    // ── Teléfono obligatorio ──
+    if (!telefono) {
+    document.getElementById('err_telefono').textContent = 'Campo requerido';
+    document.getElementById('err_telefono').classList.remove('d-none');
+    document.getElementById('f_telefono').focus();
+    return;
+    }
+    // ← AGREGA ESTO:
+    if (telefono.replace(/\D/g, '').length < 10) {
+        document.getElementById('err_telefono').textContent = 'El teléfono debe tener 10 dígitos';
+        document.getElementById('err_telefono').classList.remove('d-none');
+        document.getElementById('f_telefono').focus();
+        return;
+    }
+    document.getElementById('err_telefono').classList.add('d-none');
+    // 2 ── Formato nombre
+    const erroresNombre = validarFormato(nombre);
+    if (erroresNombre.length) {
+        Swal.fire({ icon: 'warning', title: 'Revisa el nombre',
+            html: erroresNombre.map(e => `<div>• ${e}</div>`).join(''),
+            confirmButtonColor: '#1a3c5e' });
+        document.getElementById('f_nombre').focus();
+        return;
+    }
+
+    // 3 ── Correo
+    if (correo && !validarCorreo(correo)) {
+        Swal.fire({ icon: 'warning', title: 'Correo inválido',
+            text: 'Ingresa un correo válido. Ej: contacto@proveedor.com',
+            confirmButtonColor: '#1a3c5e' });
+        document.getElementById('f_correo').focus();
+        return;
+    }
+
+    // 4 ── Guardar
+    try {
+        const payload = {
+            nombre,
+            telefono:  telefono  || null,
+            correo:    correo    || null,
+            direccion: direccion || null
+        };
+
+        if (id) {
+            await fetchWithAuth(`/proveedor/${id}`, 'PUT', payload);
+            Swal.fire({ icon: 'success', title: 'Actualizado',
+                text: 'Proveedor actualizado exitosamente',
+                timer: 2000, showConfirmButton: false });
+        } else {
+            await fetchWithAuth('/proveedor', 'POST', payload);
+            Swal.fire({ icon: 'success', title: 'Registrado',
+                text: 'Proveedor creado exitosamente',
+                timer: 2000, showConfirmButton: false });
         }
-        document.getElementById('err_nombre').classList.add('d-none');
 
-        try {
-            const payload = {
-                nombre,
-                telefono:  telefono  || null,
-                correo:    correo    || null,
-                direccion: direccion || null
-            };
-
-            if (id) {
-                await fetchWithAuth(`/proveedor/${id}`, 'PUT', payload);
-                Swal.fire({ icon: 'success', title: 'Actualizado',
-                    text: 'Proveedor actualizado exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            } else {
-                await fetchWithAuth('/proveedor', 'POST', payload);
-                Swal.fire({ icon: 'success', title: 'Registrado',
-                    text: 'Proveedor creado exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            }
-
-            cancelarFormulario();
-            listar();
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-        }
-    };
-
+        cancelarFormulario();
+        listar();
+    } catch (error) {
+        Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+    }
+};
     // ============================================
     // ABRIR MODAL DESACTIVAR
     // ============================================

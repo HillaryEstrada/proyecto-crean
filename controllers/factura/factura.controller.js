@@ -88,9 +88,17 @@ function validarGarantia(body) {
     if (tipo_activo === 'vehiculo' && garantia_limite_horas)
         return 'Vehículo no puede tener garantia_limite_horas';
 
-    if (!garantia_duracion_dias && !garantia_limite_horas && !garantia_limite_km)
-        return 'Debe indicar al menos una condición de garantía (días, horas o km)';
-
     return null;
-}
+};
 
+// Obtener detalle completo para modal (con auditoría)
+exports.obtenerDetalle = async (req, res) => {
+    try {
+        const data = await factura.obtenerPorId(req.params.id);
+        if (!data.rows.length)
+            return res.status(404).json({ error: 'Factura no encontrada' });
+        res.json(data.rows[0]);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};

@@ -18,7 +18,7 @@ const modulosJS = {
     'inventario/bodega_producto':     'modules/inventario/bodega_producto',
     'productor/productor':            'modules/productor/productor',
     'inventario/bodega_movimiento':   'modules/inventario/bodega_movimiento',
-    'inventario/mobiliario':          'modules/inventario/mobiliario',
+    'mobiliario/mobiliario':          'modules/mobiliario/mobiliario',
     'ejido/ejido':                    'modules/ejido/ejido',
     'predio/predio':                  'modules/predio/predio',
     'inventario/bodega_movimiento': 'modules/inventario/bodega_movimiento',
@@ -39,6 +39,8 @@ const modulosJS = {
 
     // ====== ADMINISTRACIÓN ======
         'admin/empleados':  'modules/admin/empleados',
+        'admin/tipo_contrato': 'modules/admin/tipo_contrato',
+        'admin/motivo_baja':   'modules/admin/motivo_baja',
         'admin/users':      'modules/admin/users',
         'admin/modulos':    'modules/admin/modulos',
 };

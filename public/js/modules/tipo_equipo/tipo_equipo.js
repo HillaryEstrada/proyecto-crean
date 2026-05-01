@@ -54,12 +54,9 @@
                         ${t.nombre||'—'}
                     </span>
                 </td>
-                <td class="px-3 text-muted" style="font-size:13px;">
-                    ${t.registrado_por_usuario||'—'}
-                </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
-                    ${t.fecha_registro
-                        ? new Date(t.fecha_registro).toLocaleDateString('es-MX')
+                    ${t.registrado_por_usuario && t.fecha_registro
+                        ? (() => { const s = String(t.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${t.registrado_por_usuario} • ${d}/${m}/${y}`; })()
                         : '—'}
                 </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
@@ -128,19 +125,15 @@
                             ${t.nombre||'—'}
                         </span>
                     </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">
-                        ${t.registrado_por_usuario||'—'}
-                    </td>
                     <td class="px-3 text-center text-muted" style="font-size:12px;">
-                        ${t.fecha_registro
-                            ? (() => { const s = String(t.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${d}/${m}/${y}`; })()
+                        ${t.registrado_por_usuario && t.fecha_registro
+                            ? (() => { const s = String(t.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${t.registrado_por_usuario} • ${d}/${m}/${y}`; })()
                             : '—'}
                     </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarTipo(${t.pk_tipo_equipo}, '${(t.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -183,19 +176,15 @@
                             ${t.nombre||'—'}
                         </span>
                     </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">
-                        ${t.registrado_por_usuario||'—'}
-                    </td>
                     <td class="px-3 text-center text-muted" style="font-size:12px;">
-                        ${t.fecha_registro
-                            ? new Date(t.fecha_registro).toLocaleDateString('es-MX')
+                        ${t.registrado_por_usuario && t.fecha_registro
+                            ? (() => { const s = String(t.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${t.registrado_por_usuario} • ${d}/${m}/${y}`; })()
                             : '—'}
                     </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarTipo(${t.pk_tipo_equipo}, '${(t.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -255,12 +244,36 @@
         const id     = document.getElementById('f_pk_tipo_equipo').value;
         const nombre = document.getElementById('f_nombre').value.trim();
 
+    
         if (!nombre) {
             document.getElementById('err_nombre').classList.remove('d-none');
             document.getElementById('f_nombre').focus();
             return;
         }
         document.getElementById('err_nombre').classList.add('d-none');
+
+        if (/^\d+$/.test(nombre)) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Nombre inválido',
+        text: 'El nombre no puede ser solo números',
+        confirmButtonColor: '#1a3c5e'
+    });
+    document.getElementById('f_nombre').focus();
+    return;
+}
+
+// Si empieza con letra, debe ser mayúscula
+if (/^[a-záéíóúñ]/i.test(nombre) && nombre[0] !== nombre[0].toUpperCase()) {
+    Swal.fire({
+        icon: 'warning',
+        title: 'Nombre inválido',
+        text: 'Si el nombre empieza con letra, debe ser mayúscula',
+        confirmButtonColor: '#1a3c5e'
+    });
+    document.getElementById('f_nombre').focus();
+    return;
+}
 
         try {
             if (id) {

@@ -79,5 +79,20 @@ module.exports = {
         `SELECT pk_proveedor FROM proveedor
          WHERE nombre = $1 ${idActual ? `AND pk_proveedor != $2` : ''}`,
         idActual ? [nombre, idActual] : [nombre]
-    )
+    ),
+        verificarMaquinariaActiva: (id) => Conexion.query(
+        `SELECT COUNT(*) FROM maquinaria 
+        WHERE fk_factura IN (
+            SELECT pk_factura FROM factura WHERE fk_proveedor = $1
+        ) AND estado_operativo != 'baja'`,
+        [id]
+    ),
+
+    verificarVehiculosActivos: (id) => Conexion.query(
+        `SELECT COUNT(*) FROM vehiculo 
+        WHERE fk_factura IN (
+            SELECT pk_factura FROM factura WHERE fk_proveedor = $1
+        ) AND estado_operativo != 'baja'`,
+        [id]
+    ),
 };

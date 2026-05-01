@@ -53,12 +53,9 @@
                 <td class="px-3 text-muted" style="font-size:13px;">
                     ${u.descripcion || '—'}
                 </td>
-                <td class="px-3 text-muted" style="font-size:13px;">
-                    ${u.registrado_por_usuario || '—'}
-                </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
-                     ${u.fecha_registro
-                        ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                    ${u.registrado_por_usuario && u.fecha_registro
+                        ? (() => { const s = String(u.fecha_registro).slice(0,10); const [y,m,d] = s.split('-'); return `${u.registrado_por_usuario} • ${d}/${m}/${y}`; })()
                         : '—'}
                 </td>
                 <td class="px-3 text-center">
@@ -130,6 +127,37 @@
         document.getElementById('err_nombre').classList.add('d-none');
     };
 
+
+    // ============================================
+    // VALIDAR FORMATO DE TEXTO
+    // ============================================
+    function validarFormato(texto) {
+        const errores = [];
+        if (texto.length < 4) {
+        errores.push('El nombre debe tener al menos 4 caracteres');
+        }
+        // Primera letra mayúscula
+        if (texto && texto[0] !== texto[0].toUpperCase()) {
+            errores.push('Debe comenzar con mayúscula');
+        }
+
+        // Dobles espacios
+        if (/\s{2,}/.test(texto)) {
+            errores.push('No debe tener espacios dobles');
+        }
+
+        // Espacios al inicio o al final (después del trim ya no aplica, pero por si acaso)
+        if (texto !== texto.trim()) {
+            errores.push('No debe tener espacios al inicio o al final');
+        }
+
+        // Solo números sin texto
+        if (/^\d+$/.test(texto)) {
+            errores.push('El nombre no puede ser solo números');
+        }
+
+        return errores;
+    }
     // ============================================
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
@@ -144,6 +172,18 @@
             return;
         }
         document.getElementById('err_nombre').classList.add('d-none');
+
+        const erroresFormato = validarFormato(nombre);
+        if (erroresFormato.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Revisa el nombre',
+                html: erroresFormato.map(e => `<div>• ${e}</div>`).join(''),
+                confirmButtonColor: '#1a3c5e'
+            });
+            document.getElementById('f_nombre').focus();
+            return;
+        }
 
         try {
             if (id) {

@@ -195,19 +195,21 @@
             <table class="table table-hover align-middle mb-0 table-bordered" style="min-width:900px;">
                 <thead class="text-white text-center" style="background-color:#1a3c5e;">
                     <tr style="font-size:11.5px;font-weight:600;">
-                        <th class="py-3 px-3"># PRO</th>
-                        <th class="py-3 px-3">N° ECO</th>
-                        <th class="py-3 px-3">TIPO</th>
-                        <th class="py-3 px-3">MARCA / MODELO</th>
-                        <th class="py-3 px-3 text-center">TIPO BAJA</th>
-                        <th class="py-3 px-3">MOTIVO</th>
-                        <th class="py-3 px-3">AUTORIZADO POR</th>
-                        <th class="py-3 px-3 text-center">FECHA BAJA</th>
-                    </tr>
+                    <th class="py-3 px-3"># PRO</th>
+                    <th class="py-3 px-3">N° ECO</th>
+                    <th class="py-3 px-3">TIPO</th>
+                    <th class="py-3 px-3">MARCA / MODELO</th>
+                    <th class="py-3 px-3 text-center">TIPO BAJA</th>
+                    <th class="py-3 px-3">ACTA DE BAJA</th>
+                    <th class="py-3 px-3">MOTIVO</th>
+                    <th class="py-3 px-3">AUTORIZADO POR</th>
+                    <th class="py-3 px-3 text-center">FECHA BAJA</th>
+                    <th class="py-3 px-3 text-center" style="width:80px;">ACCIONES</th>
+                </tr>
                 </thead>
                 <tbody id="bajasBody" class="bg-white">
                     <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
+                        <td colspan="10" class="text-center py-4 text-muted">
                             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                         </td>
                     </tr>
@@ -458,7 +460,7 @@
                             </label>
                             <div class="input-group">
                                 <input type="number" id="w_gasolina_litros" class="form-control"
-                                    placeholder="0" min="0" step="0.01">
+                                    placeholder="0" min="0">
                                 <span class="input-group-text text-muted" style="font-size:12px;">L</span>
                             </div>
                         </div>
@@ -563,6 +565,76 @@
                 </button>
                 <button class="btn btn-danger rounded-pill px-4" onclick="confirmarBajaModal()">
                     <i class="fa-solid fa-ban me-1"></i>Confirmar Baja
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: EDITAR BAJA ── -->
+<div class="modal fade" id="modalEditarBaja" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-pen me-2"></i>Editar Baja
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="editBajaPk">
+                <input type="hidden" id="editBajaPdfActual">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo de Baja <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="editBajaTipo">
+                        <option value="">Seleccionar…</option>
+                        <option value="venta">Venta</option>
+                        <option value="donacion">Donación</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="baja_tecnica">Baja Técnica</option>
+                        <option value="perdida">Pérdida</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_edit_tipo">Campo requerido</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo</label>
+                    <textarea class="form-control" id="editBajaMotivo" rows="3"
+                        placeholder="Describe la razón de la baja…"></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Autorizado por</label>
+                    <input type="text" id="editBajaAutorizado" class="form-control"
+                        placeholder="Ej: Ing. Roberto Flores">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Acta de baja</label>
+                    <div class="d-flex align-items-center gap-2 p-3 rounded-3"
+                        style="background:#f8fafc;border:0.5px dashed #cbd5e1;">
+                        <i class="fa-solid fa-file-pdf text-danger"></i>
+                        <span class="text-muted small flex-grow-1" id="editDocBajaLabel">Sin documento seleccionado</span>
+                        <label class="btn btn-sm btn-outline-secondary mb-0" style="cursor:pointer;">
+                            <i class="fa-solid fa-upload me-1"></i>Seleccionar PDF
+                            <input type="file" id="editBajaDocInput" accept=".pdf"
+                                style="display:none" onchange="previsualizarEditDocBaja(this)">
+                        </label>
+                    </div>
+                    <div class="mt-2 d-none" id="editPdfActualContainer">
+                        <small class="text-muted">PDF actual: </small>
+                        <a id="editPdfActualLink" href="#" target="_blank" class="small">
+                            <i class="fa-solid fa-file-pdf text-danger me-1"></i>Ver PDF actual
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn rounded-pill px-4 text-white fw-semibold"
+                    style="background:#1a3c5e;" onclick="guardarEditBaja()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Guardar cambios
                 </button>
             </div>
         </div>

@@ -14,6 +14,7 @@ router.use(verificarToken);
 // ── LECTURA — cualquier usuario autenticado ──
 router.get('/', controller.listar);
 router.get('/todas', controller.listarTodas);
+router.get('/:id/detalle', controller.obtenerDetalle);
 router.get('/:id', controller.obtenerPorId);
 
 // ── ESCRITURA — solo con módulo asignado ──

@@ -1,0 +1,440 @@
+<!-- ============================================
+     VISTA: mobiliario.html
+     ============================================ -->
+
+<!-- ── CABECERA ── -->
+<div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
+    <div>
+        <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
+            <i class="fa-solid fa-chair me-2 fs-2"></i>Mobiliario
+        </h4>
+        <p class="text-muted mb-0 fs-5">Control de muebles, asignaciones y préstamos</p>
+    </div>
+    <button class="btn text-white fw-semibold" id="btnNuevoMueble" style="background:#1a3c5e;"
+        onclick="abrirFormularioMueble()">
+        <i class="fa-solid fa-plus me-1"></i>Nuevo mueble
+    </button>
+</div>
+
+<!-- ── TABS ── -->
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+        <button class="nav-link active d-flex align-items-center gap-2"
+            id="tabMuebles" onclick="switchTab('muebles')">
+            <i class="fa-solid fa-chair"></i>Inventario
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabPrestamos" onclick="switchTab('prestamos')">
+            <i class="fa-solid fa-handshake"></i>Préstamos
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabMovimientos" onclick="switchTab('movimientos')">
+            <i class="fa-solid fa-clock-rotate-left"></i>Historial
+        </button>
+    </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabBajas" onclick="switchTab('bajas')">
+            <i class="fa-solid fa-ban"></i>Bajas
+        </button>
+    </li>
+</ul>
+
+
+<!-- ══════════════════════════════════════
+     TAB: INVENTARIO
+══════════════════════════════════════ -->
+<div id="vistaMueblesTab">
+
+    <div class="row g-3 mb-4" id="tarjetasMuebles"></div>
+
+    <!-- TABLA -->
+    <div id="vistaTabla">
+        <div class="d-flex gap-2 mb-3 flex-wrap">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchMueble"
+                    placeholder="Buscar por nombre, número económico…" oninput="filtrarMuebles()">
+            </div>
+            <select class="form-select" style="width:auto;" id="filtroEstadoOp" onchange="filtrarMuebles()">
+                <option value="">Todos los estados</option>
+                <option value="disponible">Disponible</option>
+                <option value="prestado">Prestado</option>
+                <option value="mantenimiento">Mantenimiento</option>
+            </select>
+            <select class="form-select" style="width:auto;" id="filtroEstadoFis" onchange="filtrarMuebles()">
+                <option value="">Estado físico</option>
+                <option value="bueno">Bueno</option>
+                <option value="regular">Regular</option>
+                <option value="malo">Malo</option>
+            </select>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3" style="width:110px;">NO. ECONÓMICO</th>
+                            <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3" style="width:110px;">MARCA</th>
+                            <th class="py-3 px-3" style="width:130px;">UBICACIÓN</th>
+                            <th class="py-3 px-3" style="width:150px;">RESPONSABLE</th>
+                            <th class="py-3 px-3 text-center" style="width:90px;">ESTADO FÍS.</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">ESTADO OPER.</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="muebleBody" class="bg-white">
+                        <tr><td colspan="9" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-mob" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-mob" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-mob" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-mob" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-mob" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-mob" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-mob" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO MUEBLE INLINE -->
+    <div id="vistaFormulario" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="px-4 py-3 text-white" style="background:#1a3c5e;">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-chair me-2"></i>
+                    <span id="formTituloMueble">Nuevo Mueble</span>
+                </h6>
+            </div>
+            <div class="p-4">
+                <input type="hidden" id="f_pk_mobiliario">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Número Económico <span class="text-danger">*</span></label>
+                        <input type="text" id="f_numero_economico" class="form-control" placeholder="Ej: MOB-001">
+                        <div class="text-danger d-none small mt-1" id="err_numero_economico">Campo requerido</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="f_nombre" class="form-control" placeholder="Ej: Silla giratoria">
+                        <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Marca</label>
+                        <input type="text" id="f_marca" class="form-control" placeholder="Ej: Torino">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Modelo</label>
+                        <input type="text" id="f_modelo" class="form-control" placeholder="Ej: Ejecutivo 500">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Número de serie</label>
+                        <input type="text" id="f_numero_serie" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Estado físico</label>
+                        <select id="f_estado_fisico" class="form-select">
+                            <option value="bueno">Bueno</option>
+                            <option value="regular">Regular</option>
+                            <option value="malo">Malo</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Ubicación <span class="text-danger">*</span></label>
+                        <select id="f_fk_ubicacion" class="form-select"><option value="">Seleccionar…</option></select>
+                        <div class="text-danger d-none small mt-1" id="err_ubicacion">Campo requerido</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Responsable</label>
+                        <select id="f_fk_responsable" class="form-select"><option value="">Sin asignar</option></select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>
+                        <textarea id="f_descripcion" class="form-control" rows="2" placeholder="Descripción opcional…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormulario()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn text-white fw-semibold px-4" style="background:#1a3c5e;" onclick="guardarMueble()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i><span id="btnGuardarLabel">Guardar mueble</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /vistaMueblesTab -->
+
+
+<!-- ══════════════════════════════════════
+     TAB: PRÉSTAMOS
+══════════════════════════════════════ -->
+<div id="vistaPrestamosTab" class="d-none">
+
+    <div class="row g-3 mb-4" id="tarjetasPrestamos"></div>
+
+    <!-- TABLA PRÉSTAMOS -->
+    <div id="vistaTablaPresta">
+        <div class="d-flex gap-2 mb-3 flex-wrap justify-content-between">
+            <div class="flex-grow-1 position-relative" style="min-width:200px;">
+                <i class="fa-solid fa-magnifying-glass text-muted"
+                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+                <input type="text" class="form-control ps-4" id="searchPrestamo"
+                    placeholder="Buscar por responsable, motivo…" oninput="filtrarPrestamos()">
+            </div>
+            <select class="form-select" style="width:auto;" id="filtroEstadoPresta" onchange="filtrarPrestamos()">
+                <option value="">Todos</option>
+                <option value="activo">Activos</option>
+                <option value="finalizado">Finalizados</option>
+                <option value="cancelado">Cancelados</option>
+            </select>
+            <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+                onclick="abrirFormularioPrestamo()">
+                <i class="fa-solid fa-plus me-1"></i>Nuevo préstamo
+            </button>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;">
+                            <th class="py-3 px-3" style="width:40px;">#</th>
+                            <th class="py-3 px-3" style="width:110px;">FECHA INICIO</th>
+                            <th class="py-3 px-3" style="width:110px;">FECHA FIN</th>
+                            <th class="py-3 px-3">RESPONSABLE</th>
+                            <th class="py-3 px-3 text-center" style="width:80px;">MUEBLES</th>
+                            <th class="py-3 px-3">MOTIVO</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ESTADO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">ACCIONES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="prestamoBody" class="bg-white">
+                        <tr><td colspan="8" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-pres" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-pres" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-pres" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-pres" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-pres" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-pres" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-pres" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FORMULARIO PRÉSTAMO INLINE -->
+    <div id="vistaFormularioPrestamo" class="d-none">
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="px-4 py-3 text-white" style="background:#1a3c5e;">
+                <h6 class="mb-0 fw-semibold">
+                    <i class="fa-solid fa-handshake me-2"></i>Nuevo Préstamo
+                </h6>
+            </div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Responsable</label>
+                        <select id="fp_fk_responsable" class="form-select"><option value="">Sin asignar</option></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Fecha inicio <span class="text-danger">*</span></label>
+                        <input type="date" id="fp_fecha_inicio" class="form-control">
+                        <div class="text-danger d-none small mt-1" id="err_fecha_inicio">Campo requerido</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Fecha fin estimada</label>
+                        <input type="date" id="fp_fecha_fin" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo</label>
+                        <textarea id="fp_motivo" class="form-control" rows="2" placeholder="Ej: Evento de capacitación…"></textarea>
+                    </div>
+
+                    <!-- Selector de muebles disponibles -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Muebles a prestar <span class="text-danger">*</span>
+                        </label>
+                        <div class="text-danger d-none small mb-1" id="err_mobiliarios">Selecciona al menos un mueble</div>
+                        <div class="card border" style="border-radius:8px;max-height:280px;overflow-y:auto;">
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead style="position:sticky;top:0;background:#f8fafc;z-index:1;">
+                                    <tr style="font-size:11px;">
+                                        <th class="px-3 py-2" style="width:40px;">
+                                            <input type="checkbox" id="checkTodosMuebles" onchange="toggleTodosMuebles(this)">
+                                        </th>
+                                        <th class="px-3 py-2">NO. ECONÓMICO</th>
+                                        <th class="px-3 py-2">NOMBRE</th>
+                                        <th class="px-3 py-2">UBICACIÓN</th>
+                                        <th class="px-3 py-2 text-center">ESTADO FÍS.</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="listaMueblesDisponibles">
+                                    <tr><td colspan="5" class="text-center py-3 text-muted">
+                                        <div class="spinner-border spinner-border-sm me-1"></div>Cargando…
+                                    </td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-muted mt-1" style="font-size:11px;">
+                            <span id="contadorSeleccionados">0</span> mueble(s) seleccionado(s)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormularioPrestamo()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button type="button" class="btn text-white fw-semibold px-4" style="background:#1a3c5e;" onclick="guardarPrestamo()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Registrar préstamo
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /vistaPrestamosTab -->
+
+
+<!-- ══════════════════════════════════════
+     TAB: HISTORIAL DE MOVIMIENTOS
+══════════════════════════════════════ -->
+<div id="vistaMovimientosTab" class="d-none">
+
+    <div class="d-flex gap-2 mb-3 flex-wrap">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchMov"
+                placeholder="Buscar por mueble, motivo…" oninput="filtrarMovimientos()">
+        </div>
+        <select class="form-select" style="width:auto;" id="filtroTipoMov" onchange="filtrarMovimientos()">
+            <option value="">Todos los tipos</option>
+            <option value="alta">Alta</option>
+            <option value="asignacion">Asignación</option>
+            <option value="reasignacion">Reasignación</option>
+            <option value="traslado">Traslado</option>
+            <option value="baja">Baja</option>
+        </select>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">FECHA</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">TIPO</th>
+                        <th class="py-3 px-3">MUEBLE</th>
+                        <th class="py-3 px-3">RESP. ANTERIOR</th>
+                        <th class="py-3 px-3">RESP. NUEVO</th>
+                        <th class="py-3 px-3">UBICACIÓN ANT.</th>
+                        <th class="py-3 px-3">UBICACIÓN NUEVA</th>
+                        <th class="py-3 px-3">MOTIVO</th>
+                    </tr>
+                </thead>
+                <tbody id="movBody" class="bg-white">
+                    <tr><td colspan="9" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                <div id="info-registros-mov" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-mov" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-mov" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /vistaMovimientosTab -->
+
+
+<!-- ══════════════════════════════════════
+     TAB: BAJAS
+══════════════════════════════════════ -->
+<div id="vistaBajasTab" class="d-none">
+    <div class="d-flex gap-2 mb-3">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="searchBaja"
+                placeholder="Buscar…" oninput="filtrarBajas()">
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3" style="width:110px;">NO. ECONÓMICO</th>
+                        <th class="py-3 px-3">NOMBRE</th>
+                        <th class="py-3 px-3" style="width:110px;">MARCA</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">ESTADO FÍS.</th>
+                        <th class="py-3 px-3" style="width:130px;">ÚLTIMA UBICACIÓN</th>
+                        <th class="py-3 px-3" style="width:150px;">ÚLTIMO RESPONSABLE</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                    </tr>
+                </thead>
+                <tbody id="bajaBody" class="bg-white">
+                    <tr><td colspan="8" class="text-center py-4 text-muted">
+                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                    </td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-baja" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-baja" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-baja" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-baja" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-baja" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-baja" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-baja" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div><!-- /vistaBajasTab -->
