@@ -68,14 +68,14 @@
                             <th class="py-3 px-3 text-center" style="width:90px;">TIPO</th>
                             <th class="py-3 px-3">BODEGA</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">TOTAL KG</th>
-                            <th class="py-3 px-3 text-center" style="width:70px;">PRODS.</th>
-                            <th class="py-3 px-3">MOTIVO</th>
+                            <th class="py-3 px-3">PRODUCTO(S)</th>
+                            <th class="py-3 px-3 text-center" style="width:110px;">MOTIVO</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="movBody" class="bg-white">
                         <tr>
-                            <td colspan="9" class="text-center py-4 text-muted">
+                            <td colspan="10" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -149,8 +149,14 @@
 
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo</label>
-                        <input type="text" id="f_motivo" class="form-control"
-                            placeholder="Ej: Cosecha temporada 2025">
+                        <select id="f_motivo" class="form-select">
+                            <option value="">— Sin motivo —</option>
+                            <option value="Recepción">Recepción</option>
+                            <option value="Entrega">Entrega</option>
+                            <option value="Ajuste">Ajuste</option>
+                            <option value="Merma">Merma</option>
+                            <option value="Traslado">Traslado</option>
+                        </select>
                     </div>
                 </div>
             </div>

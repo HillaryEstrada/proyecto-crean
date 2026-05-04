@@ -12,9 +12,9 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO inventario_articulo
-            (nombre, descripcion, fk_partida, fk_unidad, fk_almacen, stock_minimo, categoria, stock, registrado_por)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-         RETURNING *`,
+            (nombre, descripcion, fk_partida, fk_unidad, fk_almacen, stock_minimo, categoria, stock, registrado_por, codigo_barras)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+        RETURNING *`,
         [
             data.nombre,
             data.descripcion    || null,
@@ -24,7 +24,8 @@ module.exports = {
             data.stock_minimo   || 0,
             data.categoria      || null,
             data.stock_inicial  || 0,
-            data.registrado_por || null
+            data.registrado_por || null,
+            data.codigo_barras  || null
         ]
     ),
 
@@ -36,8 +37,8 @@ module.exports = {
         const params   = [];
 
         if (nombre) {
-            params.push(`%${nombre}%`);
-            conditions.push(`ia.nombre ILIKE $${params.length}`);
+        params.push(`%${nombre}%`);
+        conditions.push(`(ia.nombre ILIKE $${params.length} OR ia.codigo_barras ILIKE $${params.length})`);
         }
         if (categoria) {
             params.push(categoria);
@@ -210,6 +211,31 @@ module.exports = {
     obtenerStock: (client, id) => client.query(
         `SELECT stock FROM inventario_articulo WHERE pk_articulo = $1 FOR UPDATE`,
         [id]
+    ),
+
+     // ============================================
+    // Buscar por código de barras
+    // ============================================
+    buscarPorCodigo: (codigo) => Conexion.query(
+        `SELECT
+            ia.pk_articulo,
+            ia.nombre,
+            ia.stock,
+            ia.codigo_barras,
+            u.nombre AS unidad
+         FROM inventario_articulo ia
+         LEFT JOIN unidad_medida u ON u.pk_unidad = ia.fk_unidad
+         WHERE ia.codigo_barras = $1 AND ia.estado = 1`,
+        [codigo]
+    ),
+
+    // ============================================
+    // Verificar código de barras duplicado
+    // ============================================
+    existeCodigoBarras: (codigo, idActual = null) => Conexion.query(
+        `SELECT pk_articulo FROM inventario_articulo
+         WHERE codigo_barras = $1 ${idActual ? `AND pk_articulo != $2` : ''}`,
+        idActual ? [codigo, idActual] : [codigo]
     )
 
 };
