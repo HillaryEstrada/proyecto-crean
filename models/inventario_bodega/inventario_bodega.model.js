@@ -14,6 +14,8 @@ module.exports = {
     getInventario: () => Conexion.query(
         `SELECT
             i.pk_inventario,
+            i.fk_producto,
+            i.fk_bodega,
             p.nombre        AS producto,
             p.tipo_grano,
             p.variedad,

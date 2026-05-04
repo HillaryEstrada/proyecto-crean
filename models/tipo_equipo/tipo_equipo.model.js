@@ -104,6 +104,24 @@ module.exports = {
         `SELECT pk_tipo_equipo FROM tipo_equipo
          WHERE LOWER(nombre) = LOWER($1)`,
         [nombre]
+    ),
+
+    // ============================================
+    // Verificar maquinaria activa con este tipo
+    // ============================================
+    verificarMaquinariaActiva: (id) => Conexion.query(
+    `SELECT COUNT(*) FROM maquinaria 
+     WHERE fk_tipo = $1 AND estado_operativo != 'baja'`,
+    [id]
+    ),
+
+    // ============================================
+    // Verificar vehículos activos con este tipo
+    // ============================================
+    verificarVehiculosActivos: (id) => Conexion.query(
+    `SELECT COUNT(*) FROM vehiculo 
+     WHERE fk_tipo = $1 AND estado_operativo != 'baja'`,
+    [id]
     )
 
 };

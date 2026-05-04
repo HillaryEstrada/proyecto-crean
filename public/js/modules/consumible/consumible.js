@@ -19,6 +19,7 @@
         await cargarCatalogos();
         await listarArticulos();
         await cargarStockBajo();
+        switchTabPrincipal('movimientos');
     }, 20, 'consumible/consumible');
 
     // ════════════════════════════════════════
@@ -41,8 +42,9 @@
         llenarSelect('f_fk_partida',    _partidas,  'clave',       'nombre');
         llenarSelect('f_fk_area',       _areas,     'pk_area',     'nombre');
         llenarSelect('f_recibido_por',  _empleados, 'pk_empleado', e => `${e.nombre} ${e.apellido_paterno}`);
-        llenarSelect('f_entregado_por', _usuarios,  'pk_user',     'username');
+        llenarSelect('bc_fk_partida',   _partidas,  'clave',       'nombre');
     }
+
 
     // ════════════════════════════════════════
     // LISTAR ARTÍCULOS ACTIVOS
@@ -140,7 +142,7 @@
                 <td class="px-3 text-center">${badgeEstado(a.estado_stock)}</td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-secondary me-1" title="Registrar movimiento"
-                        onclick="abrirFormularioMovimiento(${a.pk_articulo})">
+                        onclick="abrirFormularioMovimientoRapido(${a.pk_articulo})">
                         <i class="fa-solid fa-arrow-right-arrow-left" style="font-size:11px;"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
@@ -170,13 +172,13 @@
     }
 
     window.filtrarTabla = function () {
-        const q         = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        const categoria = document.getElementById('filtroCategoria')?.value || '';
-        const estado    = document.getElementById('filtroEstado')?.value || '';
-        renderTablaArticulos(_articulos.filter(a => {
-            const txt = `${a.nombre} ${a.almacen || ''}`.toLowerCase();
-            return (!q || txt.includes(q)) && (!categoria || a.categoria === categoria) && (!estado || a.estado_stock === estado);
-        }));
+    const q         = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const categoria = document.getElementById('filtroCategoria')?.value || '';
+    const estado    = document.getElementById('filtroEstado')?.value || '';
+    renderTablaArticulos(_articulos.filter(a => {
+        const txt = `${a.nombre} ${a.almacen || ''} ${a.codigo_barras || ''}`.toLowerCase();
+        return (!q || txt.includes(q)) && (!categoria || a.categoria === categoria) && (!estado || a.estado_stock === estado);
+    }));
     };
 
     // ════════════════════════════════════════
@@ -261,8 +263,8 @@
             document.getElementById(tabEls[t])?.classList.toggle('active', t === tab);
         });
 
-        const btnNuevo = document.getElementById('btnNuevoArticulo');
-        if (btnNuevo) btnNuevo.classList.toggle('d-none', tab !== 'articulos');
+        const btnNuevoMov = document.getElementById('btnNuevoMovimiento');
+        if (btnNuevoMov) btnNuevoMov.classList.toggle('d-none', tab !== 'movimientos');
 
         // Cerrar formularios inline al cambiar tab
         document.getElementById('vistaFormulario')?.classList.add('d-none');
@@ -278,7 +280,7 @@
     // FORMULARIO ARTÍCULO
     // ════════════════════════════════════════
     function resetFormularioArticulo() {
-        ['f_pk_articulo','f_nombre','f_categoria','f_fk_unidad','f_fk_almacen','f_fk_partida','f_descripcion']
+        ['f_pk_articulo','f_nombre','f_categoria','f_fk_unidad','f_fk_almacen','f_fk_partida','f_descripcion','f_codigo_barras']
             .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
         document.getElementById('f_stock_inicial').value = '';
         document.getElementById('f_stock_minimo').value  = '';
@@ -308,6 +310,7 @@
             document.getElementById('f_fk_almacen').value    = a.fk_almacen || '';
             document.getElementById('f_fk_partida').value    = a.fk_partida || '';
             document.getElementById('f_descripcion').value   = a.descripcion || '';
+            document.getElementById('f_codigo_barras').value = a.codigo_barras || '';
             document.getElementById('f_stock_inicial').value = a.stock;
             document.getElementById('f_stock_inicial').disabled = true;
             document.getElementById('notaStockInicial').classList.add('d-none');
@@ -333,6 +336,7 @@
         const categoria = document.getElementById('f_categoria').value;
         const fk_unidad  = document.getElementById('f_fk_unidad').value;
         const fk_almacen = document.getElementById('f_fk_almacen').value;
+        const codigo_barras = document.getElementById('f_codigo_barras')?.value.trim() || null;
 
         let valido = true;
         if (!nombre)     { document.getElementById('err_nombre').classList.remove('d-none');    valido = false; }
@@ -346,7 +350,7 @@
         if (!valido) return;
 
         const payload = {
-            nombre, categoria, fk_unidad, fk_almacen,
+            nombre, categoria, fk_unidad, fk_almacen, codigo_barras,
             fk_partida:    document.getElementById('f_fk_partida').value || null,
             stock_minimo:  parseInt(document.getElementById('f_stock_minimo').value)  || 0,
             stock_inicial: parseInt(document.getElementById('f_stock_inicial').value) || 0,
@@ -443,8 +447,8 @@
                 <td class="px-3 text-center">${badgeTipo(m.tipo_movimiento)}</td>
                 <td class="px-3 fw-semibold" style="color:#1a3c5e;font-size:13px;">${m.articulo || '—'}</td>
                 <td class="px-3 text-center fw-semibold" style="font-size:13px;color:${color};">${signo}${m.cantidad}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${m.area || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${m.recibido_por || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${m.area?.trim() || '—'}</td>
+                <td class="px-3 text-muted" style="font-size:13px;">${m.recibido_por?.trim() || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:12px;max-width:200px;">${m.motivo || '—'}</td>
             </tr>`;
         }).join('');
@@ -471,15 +475,16 @@
     // FORMULARIO MOVIMIENTO
     // ════════════════════════════════════════
     function resetFormularioMovimiento() {
-        document.getElementById('f_tipo_movimiento').value = '';
-        document.getElementById('f_fk_articulo').value     = '';
+        limpiarBarcode();
+        document.getElementById('f_tipo_movimiento').value  = '';
+        const selArt = document.getElementById('f_fk_articulo');
+        if (selArt) { selArt.value = ''; selArt.disabled = false; }
         document.getElementById('f_cantidad').value        = 1;
         document.getElementById('f_referencia').value      = '';
         document.getElementById('f_fk_area').value         = '';
         document.getElementById('f_recibido_por').value    = '';
-        document.getElementById('f_entregado_por').value   = '';
         document.getElementById('f_motivo').value          = '';
-        ['err_tipo_mov','err_articulo','err_cantidad','err_area','err_recibido','err_entregado','err_motivo']
+        ['err_tipo_mov','err_articulo','err_cantidad','err_area','err_recibido','err_motivo']
             .forEach(id => document.getElementById(id)?.classList.add('d-none'));
         document.getElementById('camposSalida').classList.add('d-none');
         ['card_entrada','card_salida','card_baja'].forEach(id => {
@@ -515,24 +520,6 @@
         document.getElementById('err_tipo_mov').classList.add('d-none');
     };
 
-    window.abrirFormularioMovimiento = function (articuloId = null) {
-        resetFormularioMovimiento();
-        // Cambiar al tab movimientos
-        switchTabPrincipal('movimientos');
-        if (articuloId) {
-            const sel = document.getElementById('f_fk_articulo');
-            if (sel) sel.value = articuloId;
-        }
-        document.getElementById('vistaTablaMovimientos').classList.add('d-none');
-        document.getElementById('vistaFormularioMovimiento').classList.remove('d-none');
-    };
-
-    window.cancelarFormularioMovimiento = function () {
-        resetFormularioMovimiento();
-        document.getElementById('vistaFormularioMovimiento').classList.add('d-none');
-        document.getElementById('vistaTablaMovimientos').classList.remove('d-none');
-    };
-
     window.guardarMovimiento = async function () {
         const tipo        = document.getElementById('f_tipo_movimiento').value;
         const fk_articulo = document.getElementById('f_fk_articulo').value;
@@ -554,8 +541,6 @@
             else                                                      document.getElementById('err_area').classList.add('d-none');
             if (!document.getElementById('f_recibido_por').value)  { document.getElementById('err_recibido').classList.remove('d-none');  valido = false; }
             else                                                      document.getElementById('err_recibido').classList.add('d-none');
-            if (!document.getElementById('f_entregado_por').value) { document.getElementById('err_entregado').classList.remove('d-none'); valido = false; }
-            else                                                      document.getElementById('err_entregado').classList.add('d-none');
         }
         if (!valido) return;
 
@@ -567,7 +552,6 @@
         if (tipo === 'salida') {
             payload.fk_area       = parseInt(document.getElementById('f_fk_area').value)       || null;
             payload.recibido_por  = parseInt(document.getElementById('f_recibido_por').value)  || null;
-            payload.entregado_por = parseInt(document.getElementById('f_entregado_por').value) || null;
         }
 
         try {
@@ -597,9 +581,9 @@
     }
 
     // ════════════════════════════════════════
-// HISTORIAL DE ARTÍCULO
-// ════════════════════════════════════════
-window.verHistorialArticulo = async function (id, nombre) {
+    // HISTORIAL DE ARTÍCULO
+    // ════════════════════════════════════════
+    window.verHistorialArticulo = async function (id, nombre) {
     const { value: confirm } = await Swal.fire({
         title: `<span style="font-size:16px;color:#1a3c5e;">Historial de movimientos</span>`,
         html: `
@@ -651,8 +635,8 @@ window.verHistorialArticulo = async function (id, nombre) {
                                         <td class="px-2 text-center fw-semibold" style="color:${color};">
                                             ${signo}${m.cantidad}
                                         </td>
-                                        <td class="px-2 text-muted">${m.area || '—'}</td>
-                                        <td class="px-2 text-muted">${m.recibido_por || '—'}</td>
+                                        <td class="px-2 text-muted">${m.area?.trim() || '—'}</td>
+                                        <td class="px-2 text-muted">${m.recibido_por?.trim() || '—'}</td>
                                         <td class="px-2 text-muted">${m.motivo || '—'}</td>
                                     </tr>`;
                                 }).join('')}
@@ -668,4 +652,167 @@ window.verHistorialArticulo = async function (id, nombre) {
     });
 };
 
+    // ════════════════════════════════════════
+    // CÓDIGO DE BARRAS
+    // ════════════════════════════════════════
+    const barcodeInput = document.getElementById('barcodeInput');
+    if (barcodeInput) {
+        barcodeInput.addEventListener('keydown', async function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+            const codigo = this.value.trim();
+            if (!codigo) return;
+
+            const status = document.getElementById('barcodeStatus');
+            status.style.display = 'block';
+            status.innerHTML = `<span class="text-muted"><div class="spinner-border spinner-border-sm me-1"></div>Buscando…</span>`;
+
+            try {
+                const res = await fetchWithAuth(`/articulos/codigo/${encodeURIComponent(codigo)}`);
+
+                if (res.existe) {
+                    // Producto encontrado — autoseleccionar
+                    const sel = document.getElementById('f_fk_articulo');
+                    if (sel) sel.value = res.data.pk_articulo;
+                    status.innerHTML = `<span style="color:#2d7a4f;">
+                        <i class="fa-solid fa-circle-check me-1"></i>
+                        Producto detectado: <strong>${res.data.nombre}</strong>
+                        — Stock actual: ${res.data.stock} ${res.data.unidad || ''}
+                    </span>`;
+                    this.value = '';
+                    document.getElementById('f_cantidad')?.focus();
+                } else {
+                    // Producto no existe — abrir modal
+                    status.innerHTML = `<span style="color:#c0392b;">
+                        <i class="fa-solid fa-circle-xmark me-1"></i>
+                        Código no registrado — completa los datos para crearlo
+                    </span>`;
+                    // Llenar modal
+                    document.getElementById('bc_codigo').value         = codigo;
+                    document.getElementById('bc_nombre').value         = '';
+                    document.getElementById('bc_categoria').value      = '';
+                    document.getElementById('bc_stock_inicial').value  = '';
+                    document.getElementById('bc_stock_minimo').value   = '';
+                    ['bc_err_nombre','bc_err_categoria','bc_err_unidad','bc_err_almacen']
+                        .forEach(id => document.getElementById(id)?.classList.add('d-none'));
+
+                    // Poblar selects del modal con los catálogos ya cargados
+                    llenarSelect('bc_fk_unidad',  _unidades,  'pk_unidad',  'nombre');
+                    llenarSelect('bc_fk_almacen', _almacenes, 'pk_almacen', 'nombre');
+
+                    new bootstrap.Modal(document.getElementById('modalNuevoArticuloBarcode')).show();
+                    this.value = '';
+                }
+            } catch (e) {
+                status.innerHTML = `<span style="color:#c0392b;">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Error al buscar el código
+                </span>`;
+            }
+        });
+    }
+
+    window.limpiarBarcode = function () {
+        const input  = document.getElementById('barcodeInput');
+        const status = document.getElementById('barcodeStatus');
+        if (input)  input.value = '';
+        if (status) { status.style.display = 'none'; status.innerHTML = ''; }
+    };
+
+    window.crearArticuloDesdeBarcode = async function () {
+        const codigo    = document.getElementById('bc_codigo').value;
+        const nombre    = document.getElementById('bc_nombre').value.trim();
+        const categoria = document.getElementById('bc_categoria').value;
+        const fk_unidad  = document.getElementById('bc_fk_unidad').value;
+        const fk_almacen = document.getElementById('bc_fk_almacen').value;
+
+        let valido = true;
+        if (!nombre)    { document.getElementById('bc_err_nombre').classList.remove('d-none');    valido = false; }
+        else              document.getElementById('bc_err_nombre').classList.add('d-none');
+        if (!categoria) { document.getElementById('bc_err_categoria').classList.remove('d-none'); valido = false; }
+        else              document.getElementById('bc_err_categoria').classList.add('d-none');
+        if (!fk_unidad) { document.getElementById('bc_err_unidad').classList.remove('d-none');    valido = false; }
+        else              document.getElementById('bc_err_unidad').classList.add('d-none');
+        if (!fk_almacen){ document.getElementById('bc_err_almacen').classList.remove('d-none');   valido = false; }
+        else              document.getElementById('bc_err_almacen').classList.add('d-none');
+        if (!valido) return;
+
+        try {
+            const payload = {
+                nombre, categoria, fk_unidad, fk_almacen,
+                codigo_barras:  codigo,
+                stock_inicial:  parseInt(document.getElementById('bc_stock_inicial').value) || 0,
+                stock_minimo:   parseInt(document.getElementById('bc_stock_minimo').value)  || 0
+            };
+
+            const nuevo = await fetchWithAuth('/articulos', 'POST', payload);
+
+            bootstrap.Modal.getInstance(
+                document.getElementById('modalNuevoArticuloBarcode')
+            ).hide();
+
+            // Recargar artículos y autoseleccionar el nuevo
+            await listarArticulos();
+            const sel = document.getElementById('f_fk_articulo');
+            if (sel && nuevo.data) sel.value = nuevo.data.pk_articulo;
+
+            const status = document.getElementById('barcodeStatus');
+            if (status) {
+                status.style.display = 'block';
+                status.innerHTML = `<span style="color:#2d7a4f;">
+                    <i class="fa-solid fa-circle-check me-1"></i>
+                    Artículo creado y seleccionado: <strong>${nombre}</strong>
+                </span>`;
+            }
+
+            document.getElementById('f_cantidad')?.focus();
+
+            Swal.fire({ icon: 'success', title: 'Creado',
+                text: `Artículo "${nombre}" creado exitosamente`,
+                timer: 2000, showConfirmButton: false });
+
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+        }
+    };
+
+        window.abrirFormularioMovimiento = function (articuloId = null) {
+        resetFormularioMovimiento();
+        switchTabPrincipal('movimientos');
+        document.getElementById('seccionBarcode')?.classList.remove('d-none');
+        document.getElementById('f_fk_articulo').disabled = false;
+        if (articuloId) {
+            const sel = document.getElementById('f_fk_articulo');
+            if (sel) sel.value = articuloId;
+        }
+        document.getElementById('vistaTablaMovimientos').classList.add('d-none');
+        document.getElementById('vistaFormularioMovimiento').classList.remove('d-none');
+        setTimeout(() => document.getElementById('barcodeInput')?.focus(), 100);
+    };
+
+    window.abrirFormularioMovimientoRapido = function (articuloId) {
+        resetFormularioMovimiento();
+        switchTabPrincipal('movimientos');
+        document.getElementById('vistaTablaMovimientos').classList.add('d-none');
+        document.getElementById('vistaFormularioMovimiento').classList.remove('d-none');
+        document.getElementById('seccionBarcode')?.classList.add('d-none');
+        limpiarBarcode();
+        setTimeout(() => {
+            const sel = document.getElementById('f_fk_articulo');
+            if (sel) {
+                sel.value = articuloId;
+                sel.disabled = true;
+            }
+            document.getElementById('f_cantidad')?.focus();
+        }, 50);
+    };
+
+        window.cancelarFormularioMovimiento = function () {
+        resetFormularioMovimiento();
+        // Restaurar escáner y artículo al cancelar
+        document.getElementById('seccionBarcode')?.classList.remove('d-none');
+        document.getElementById('f_fk_articulo').disabled = false;
+        document.getElementById('vistaFormularioMovimiento').classList.add('d-none');
+        document.getElementById('vistaTablaMovimientos').classList.remove('d-none');
+    };
+    
 })();

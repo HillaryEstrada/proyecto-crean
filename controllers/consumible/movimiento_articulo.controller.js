@@ -29,7 +29,6 @@ exports.registrar = async (req, res) => {
         if (tipo_movimiento === 'salida') {
             if (!fk_area)       return res.status(400).json({ error: 'El área es obligatoria para salidas' });
             if (!recibido_por)  return res.status(400).json({ error: 'El empleado que recibe es obligatorio para salidas' });
-            if (!entregado_por) return res.status(400).json({ error: 'El usuario que entrega es obligatorio para salidas' });
         }
 
         await client.query('BEGIN');
@@ -58,7 +57,7 @@ exports.registrar = async (req, res) => {
             cantidad:       parseInt(cantidad),
             motivo,
             registrado_por: req.user.id,
-            entregado_por:  entregado_por || null,
+            entregado_por:  entregado_por || req.user.id,
             recibido_por:   recibido_por  || null,
             fk_area:        fk_area       || null,
             referencia:     referencia    || null

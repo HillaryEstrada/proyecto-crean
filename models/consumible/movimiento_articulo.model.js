@@ -44,7 +44,9 @@ exports.historialPorArticulo = async (fk_articulo) => {
             ar.nombre           AS area,
             u_reg.username      AS registrado_por,
             u_ent.username      AS entregado_por,
-            CONCAT(e.nombre, ' ', e.apellido_paterno) AS recibido_por
+            CASE WHEN e.pk_empleado IS NOT NULL 
+        THEN CONCAT(e.nombre, ' ', e.apellido_paterno) 
+        ELSE NULL END AS recibido_por
          FROM movimiento_articulo ma
          INNER JOIN inventario_articulo ia ON ia.pk_articulo = ma.fk_articulo
          LEFT JOIN  area              ar  ON ar.pk_area      = ma.fk_area
@@ -92,7 +94,9 @@ exports.historialGeneral = async ({ tipo, fecha_inicio, fecha_fin } = {}) => {
             ar.nombre           AS area,
             u_reg.username      AS registrado_por,
             u_ent.username      AS entregado_por,
-            CONCAT(e.nombre, ' ', e.apellido_paterno) AS recibido_por
+            CASE WHEN e.pk_empleado IS NOT NULL 
+            THEN CONCAT(e.nombre, ' ', e.apellido_paterno) 
+            ELSE NULL END AS recibido_por
          FROM movimiento_articulo ma
          INNER JOIN inventario_articulo ia ON ia.pk_articulo = ma.fk_articulo
          LEFT JOIN  area              ar  ON ar.pk_area      = ma.fk_area

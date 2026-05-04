@@ -1,3 +1,8 @@
+// ============================================
+// CONTROLADOR: proveedor.controller.js
+// Descripción: Funciones para gestionar proveedores
+// ============================================
+
 const proveedor = require('../../models/proveedor/proveedor.model');
 
 exports.crear = async (req, res) => {

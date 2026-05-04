@@ -234,11 +234,15 @@
                 <td class="px-3 text-center fw-semibold" style="font-size:13px;color:${kgColor};">
                     ${kgSign}${parseFloat(m.total_kg || 0).toLocaleString('es-MX')} kg
                 </td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    <span class="badge bg-light text-dark border">${m.total_productos || 0} prod.</span>
-                </td>
                 <td class="px-3 text-muted" style="font-size:12px;max-width:200px;">
-                    ${m.motivo || '—'}
+                    ${m.productos_resumen || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;">
+                    ${m.motivo
+                        ? `<span class="badge" style="background:#e8f0fe;color:#1a3c5e;border:1px solid #1a3c5e30;font-size:11px;">
+                            ${m.motivo}
+                        </span>`
+                        : '<span class="text-muted">—</span>'}
                 </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-secondary me-1" title="Ver detalle"
@@ -1119,6 +1123,7 @@ function recolectarDetalles() {
     // VER DETALLE DE PRODUCTO EN INVENTARIO
     // ════════════════════════════════════════
     window.verDetalleProducto = async function (fk_producto, fk_bodega, producto, bodega) {
+        console.log('verDetalleProducto:', fk_producto, fk_bodega);
         // Buscar el registro de inventario
         const inv = _inventario.find(i => (i.fk_producto || i.pk_inventario) == fk_producto && (i.fk_bodega || 0) == fk_bodega)
             || _inventario.find(i => i.producto === producto && i.bodega === bodega)
@@ -1168,84 +1173,41 @@ function recolectarDetalles() {
             const historial = await fetchWithAuth(`/movimiento_bodega/historial/${fk_producto}/${fk_bodega}`);
 
             document.getElementById('modalProdBody').innerHTML = `
-                <!-- Tarjetas resumen -->
-                <div class="row g-3 mb-4">
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body p-3 text-center">
-                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Stock Actual</div>
-                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${stk.toLocaleString('es-MX')}</div>
-                                <div class="text-muted" style="font-size:11px;">kilogramos</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body p-3 text-center">
-                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Humedad</div>
-                                <div class="fw-bold" style="font-size:22px;color:${humColor};">
-                                    ${hum !== null ? hum.toFixed(1) + '%' : '—'}
-                                </div>
-                                <div style="font-size:11px;color:${humColor};">${hum !== null ? (hum > 13 ? '⚠ Alta' : '✓ Nivel óptimo') : 'Sin datos'}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body p-3 text-center">
-                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Calidad</div>
-                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${calidad}</div>
-                                <div class="text-muted" style="font-size:11px;">${calidadTxt}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-6 col-md-3">
-                        <div class="card border-0 bg-light h-100">
-                            <div class="card-body p-3 text-center">
-                                <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Ocupación Bodega</div>
-                                <div class="fw-bold" style="font-size:22px;color:#1a3c5e;">${pct !== null ? pct + '%' : '—'}</div>
-                                <div class="text-muted" style="font-size:11px;">${cap > 0 ? stk.toLocaleString('es-MX') + ' / ' + cap.toLocaleString('es-MX') + ' kg' : 'Sin capacidad'}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Historial -->
-                <h6 class="fw-semibold mb-3" style="color:#1a3c5e;">
-                    <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de movimientos
-                </h6>
-                ${historial.length ? `
-                <div class="table-responsive">
-                    <table class="table table-hover table-sm mb-0" style="font-size:12px;">
-                        <thead style="background:#f8fafc;">
-                            <tr>
-                                <th class="px-3 py-2">Fecha</th>
-                                <th class="px-3 py-2">Folio</th>
-                                <th class="px-3 py-2 text-center">Tipo</th>
-                                <th class="px-3 py-2 text-center">Cantidad</th>
-                                <th class="px-3 py-2 text-center">Humedad</th>
-                                <th class="px-3 py-2">Motivo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${historial.map(h => {
-                                const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
-                                const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
-                                return `<tr>
-                                    <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
-                                    <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
-                                    <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
-                                        ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
-                                        : '<span class="badge bg-danger"  style="font-size:10px;">↑ Salida</span>'}</td>
-                                    <td class="px-3 text-center fw-semibold" style="color:${color};">${signo}${parseFloat(h.cantidad_kg).toLocaleString('es-MX')} kg</td>
-                                    <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
-                                    <td class="px-3 text-muted">${h.motivo || '—'}</td>
-                                </tr>`;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>` : '<p class="text-muted text-center py-3">Sin movimientos registrados para este producto en esta bodega.</p>'}
-            `;
+            <h6 class="fw-semibold mb-3" style="color:#1a3c5e;">
+                <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de movimientos
+            </h6>
+            ${historial.length ? `
+            <div class="table-responsive">
+                <table class="table table-hover table-sm mb-0" style="font-size:12px;">
+                    <thead style="background:#f8fafc;">
+                        <tr>
+                            <th class="px-3 py-2">Fecha</th>
+                            <th class="px-3 py-2">Folio</th>
+                            <th class="px-3 py-2 text-center">Tipo</th>
+                            <th class="px-3 py-2 text-center">Cantidad</th>
+                            <th class="px-3 py-2 text-center">Humedad</th>
+                            <th class="px-3 py-2">Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${historial.map(h => {
+                            const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
+                            const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
+                            return `<tr>
+                                <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
+                                <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
+                                <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
+                                    ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
+                                    : '<span class="badge bg-danger" style="font-size:10px;">↑ Salida</span>'}</td>
+                                <td class="px-3 text-center fw-semibold" style="color:${color};">${signo}${parseFloat(h.cantidad_kg).toLocaleString('es-MX')} kg</td>
+                                <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
+                                <td class="px-3 text-muted">${h.motivo || '—'}</td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            </div>` : '<p class="text-muted text-center py-3">Sin movimientos registrados para este producto en esta bodega.</p>'}
+        `;
 
         } catch (e) {
             document.getElementById('modalProdBody').innerHTML =

@@ -1,3 +1,8 @@
+// ============================================
+// MODELO: proveedor.model.js
+// Descripción: Consultas SQL para el modelo de proveedor
+// ============================================
+
 const Conexion = require('../../config/database');
 
 module.exports = {

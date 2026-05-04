@@ -256,20 +256,25 @@ module.exports = {
     // ============================================
     // Listar todos los movimientos (con totales)
     // ============================================
-    listar: () => Conexion.query(
+        listar: () => Conexion.query(
         `SELECT
             mb.*,
             b.nombre                AS bodega_nombre,
             usr.username            AS registrado_por_usuario,
             COUNT(d.pk_detalle_bodega) AS total_productos,
-            COALESCE(SUM(d.cantidad_kg), 0) AS total_kg
-         FROM movimiento_bodega mb
-         LEFT JOIN bodega b        ON mb.fk_bodega       = b.pk_bodega
-         LEFT JOIN users usr       ON mb.registrado_por  = usr.pk_user
-         LEFT JOIN detalle_movimiento_bodega d
-                                   ON d.fk_movimiento_bodega = mb.pk_movimiento_bodega
-         GROUP BY mb.pk_movimiento_bodega, b.nombre, usr.username
-         ORDER BY mb.fecha DESC`
+            COALESCE(SUM(d.cantidad_kg), 0) AS total_kg,
+            STRING_AGG(
+                DISTINCT CONCAT(bp.nombre, CASE WHEN bp.variedad IS NOT NULL THEN ' — ' || bp.variedad ELSE '' END),
+                ', '
+            ) AS productos_resumen
+        FROM movimiento_bodega mb
+        LEFT JOIN bodega b        ON mb.fk_bodega       = b.pk_bodega
+        LEFT JOIN users usr       ON mb.registrado_por  = usr.pk_user
+        LEFT JOIN detalle_movimiento_bodega d
+                                ON d.fk_movimiento_bodega = mb.pk_movimiento_bodega
+        LEFT JOIN bodega_producto bp ON d.fk_producto = bp.pk_producto
+        GROUP BY mb.pk_movimiento_bodega, b.nombre, usr.username
+        ORDER BY mb.fecha DESC`
     ),
 
     // ============================================

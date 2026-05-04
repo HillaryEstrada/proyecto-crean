@@ -15,6 +15,7 @@ router.get('/',           controller.listar);
 router.get('/stock-bajo', controller.stockBajo);
 router.get('/categorias', controller.listarCategorias);
 router.get('/inactivos',  controller.listarInactivos);
+router.get('/codigo/:codigo', controller.buscarPorCodigo);
 router.get('/:id',        controller.obtenerPorId);
 
 // ── Escritura ──────────────────────────────
