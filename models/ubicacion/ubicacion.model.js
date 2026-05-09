@@ -10,12 +10,12 @@ module.exports = {
     // Crear ubicación
     crear: (data) => Conexion.query(
         `INSERT INTO ubicacion
-        (nombre, descripcion, registrado_por)
-        VALUES($1, $2, $3)
+        (nombre, tipo, descripcion, registrado_por)
+        VALUES($1, $2, $3, $4)
         RETURNING *`,
         [
-            data.nombre,
-            data.descripcion || null,
+            data.nombre, data.tipo || null, 
+            data.descripcion || null, 
             data.registrado_por
         ]
     ),
@@ -28,7 +28,19 @@ module.exports = {
         FROM ubicacion u
         LEFT JOIN users us ON u.registrado_por = us.pk_user
         WHERE u.estado = 1
-        ORDER BY u.nombre ASC`
+        ORDER BY u.tipo ASC, u.nombre ASC`
+    ),
+
+    // Listar por tipo (exterior / interior)
+    listarPorTipo: (tipo) => Conexion.query(
+        `SELECT
+            u.*,
+            us.username as registrado_por_usuario
+        FROM ubicacion u
+        LEFT JOIN users us ON u.registrado_por = us.pk_user
+        WHERE u.estado = 1 AND u.tipo = $1
+        ORDER BY u.nombre ASC`,
+        [tipo]
     ),
 
     // Listar todas (activas e inactivas)
@@ -38,7 +50,7 @@ module.exports = {
             us.username as registrado_por_usuario
         FROM ubicacion u
         LEFT JOIN users us ON u.registrado_por = us.pk_user
-        ORDER BY u.nombre ASC`
+        ORDER BY u.tipo ASC, u.nombre ASC`
     ),
 
     // Obtener por ID
@@ -55,12 +67,12 @@ module.exports = {
     // Actualizar ubicación
     actualizar: (id, data) => Conexion.query(
         `UPDATE ubicacion
-        SET nombre=$1, descripcion=$2
-        WHERE pk_ubicacion=$3
+        SET nombre=$1, tipo=$2, descripcion=$3
+        WHERE pk_ubicacion=$4
         RETURNING *`,
         [
-            data.nombre,
-            data.descripcion || null,
+            data.nombre, data.tipo || null, 
+            data.descripcion || null, 
             id
         ]
     ),

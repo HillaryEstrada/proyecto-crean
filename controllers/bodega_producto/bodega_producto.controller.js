@@ -11,20 +11,12 @@ const Producto = require('../../models/bodega_producto/bodega_producto.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        // Verificar si el nombre ya existe
-        const existe = await Producto.existeNombre(req.body.nombre);
+        const existe = await Producto.existeCombinacion(req.body.nombre, req.body.variedad || null);
         if (existe.rows.length) {
-            return res.status(400).json({ error: 'Ya existe un producto con ese nombre' });
+            return res.status(400).json({ error: 'Ya existe un producto con ese nombre y variedad' });
         }
-
-        const resultado = await Producto.crear({
-            ...req.body,
-            registrado_por: req.user.id
-        });
-        res.json({
-            mensaje: 'Producto creado exitosamente',
-            data: resultado.rows[0]
-        });
+        const resultado = await Producto.crear({ ...req.body, registrado_por: req.user.id });
+        res.json({ mensaje: 'Producto creado exitosamente', data: resultado.rows[0] });
     } catch (error) {
         console.error('Error al crear producto:', error);
         res.status(500).json({ error: error.message });
@@ -78,25 +70,15 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        // Verificar nombre duplicado en otro registro
         if (req.body.nombre) {
-            const existe = await Producto.existeNombre(req.body.nombre);
-            const duplicado = existe.rows.find(
-                row => row.pk_producto !== parseInt(req.params.id)
-            );
-            if (duplicado) {
-                return res.status(400).json({ error: 'Ya existe un producto con ese nombre' });
+            const existe = await Producto.existeCombinacion(req.body.nombre, req.body.variedad || null, req.params.id);
+            if (existe.rows.length) {
+                return res.status(400).json({ error: 'Ya existe un producto con ese nombre y variedad' });
             }
         }
-
         const resultado = await Producto.actualizar(req.params.id, req.body);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Producto no encontrado' });
-        }
-        res.json({
-            mensaje: 'Producto actualizado exitosamente',
-            data: resultado.rows[0]
-        });
+        if (!resultado.rows.length) return res.status(404).json({ error: 'Producto no encontrado' });
+        res.json({ mensaje: 'Producto actualizado exitosamente', data: resultado.rows[0] });
     } catch (error) {
         console.error('Error al actualizar producto:', error);
         res.status(500).json({ error: error.message });

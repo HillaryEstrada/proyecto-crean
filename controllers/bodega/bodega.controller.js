@@ -11,16 +11,13 @@ const Bodega = require('../../models/bodega/bodega.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        const resultado = await Bodega.crear({
-            ...req.body,
-            registrado_por: req.user.id
-        });
-        res.json({
-            mensaje: 'Bodega creada exitosamente',
-            data: resultado.rows[0]
-        });
+        const existe = await Bodega.existeNombre(req.body.nombre);
+        if (existe.rows.length) {
+            return res.status(400).json({ error: 'Ya existe una bodega con ese nombre' });
+        }
+        const resultado = await Bodega.crear({ ...req.body, registrado_por: req.user.id });
+        res.json({ mensaje: 'Bodega creada exitosamente', data: resultado.rows[0] });
     } catch (error) {
-        console.error('Error al crear bodega:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -72,16 +69,16 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        const resultado = await Bodega.actualizar(req.params.id, req.body);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Bodega no encontrada' });
+        if (req.body.nombre) {
+            const existe = await Bodega.existeNombre(req.body.nombre, req.params.id);
+            if (existe.rows.length) {
+                return res.status(400).json({ error: 'Ya existe una bodega con ese nombre' });
+            }
         }
-        res.json({
-            mensaje: 'Bodega actualizada exitosamente',
-            data: resultado.rows[0]
-        });
+        const resultado = await Bodega.actualizar(req.params.id, req.body);
+        if (!resultado.rows.length) return res.status(404).json({ error: 'Bodega no encontrada' });
+        res.json({ mensaje: 'Bodega actualizada exitosamente', data: resultado.rows[0] });
     } catch (error) {
-        console.error('Error al actualizar bodega:', error);
         res.status(500).json({ error: error.message });
     }
 };

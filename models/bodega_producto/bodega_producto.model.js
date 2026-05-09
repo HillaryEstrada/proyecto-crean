@@ -53,13 +53,13 @@ module.exports = {
     // ============================================
     // Actualizar producto
     // ============================================
-    actualizar: (id, data) => Conexion.query(
+        actualizar: (id, data) => Conexion.query(
         `UPDATE bodega_producto
         SET
             nombre      = COALESCE($1, nombre),
-            tipo_grano  = COALESCE($2, tipo_grano),
-            variedad    = COALESCE($3, variedad),
-            descripcion = COALESCE($4, descripcion)
+            tipo_grano  = $2,
+            variedad    = $3,
+            descripcion = $4
         WHERE pk_producto = $5
         RETURNING *`,
         [
@@ -107,12 +107,14 @@ module.exports = {
     ),
 
     // ============================================
-    // Verificar si el nombre ya existe
+    // Verificar si la combinación de nombre y variedad ya existe
     // ============================================
-    existeNombre: (nombre) => Conexion.query(
+    existeCombinacion: (nombre, variedad, idActual = null) => Conexion.query(
         `SELECT pk_producto FROM bodega_producto
-         WHERE LOWER(nombre) = LOWER($1)`,
-        [nombre]
+        WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1))
+        AND LOWER(TRIM(COALESCE(variedad, ''))) = LOWER(TRIM(COALESCE($2, '')))
+        ${idActual ? 'AND pk_producto != $3' : ''}`,
+        idActual ? [nombre, variedad, idActual] : [nombre, variedad]
     )
 
 };

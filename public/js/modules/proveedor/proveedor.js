@@ -215,6 +215,7 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ============================================
@@ -236,6 +237,7 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ============================================
@@ -250,6 +252,9 @@
         document.getElementById('f_correo').value       = '';
         document.getElementById('f_direccion').value    = '';
         document.getElementById('err_nombre').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        document.getElementById('err_telefono').classList.add('d-none');
+        document.getElementById('err_telefono').textContent = 'Campo requerido';
     };
 
     // ============================================
@@ -277,7 +282,7 @@
     document.getElementById('f_telefono').focus();
     return;
     }
-    // ← AGREGA ESTO:
+
     if (telefono.replace(/\D/g, '').length < 10) {
         document.getElementById('err_telefono').textContent = 'El teléfono debe tener 10 dígitos';
         document.getElementById('err_telefono').classList.remove('d-none');
@@ -288,12 +293,12 @@
     // 2 ── Formato nombre
     const erroresNombre = validarFormato(nombre);
     if (erroresNombre.length) {
-        Swal.fire({ icon: 'warning', title: 'Revisa el nombre',
-            html: erroresNombre.map(e => `<div>• ${e}</div>`).join(''),
-            confirmButtonColor: '#1a3c5e' });
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = erroresNombre[0];
         document.getElementById('f_nombre').focus();
         return;
     }
+    document.getElementById('err_nombre').classList.add('d-none');
 
     // 3 ── Correo
     if (correo && !validarCorreo(correo)) {

@@ -27,6 +27,16 @@
             <input type="text" class="form-control ps-4" id="searchInput"
                 placeholder="Buscar por nombre…" oninput="filtrarTabla()">
         </div>
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-filter text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <select class="form-control ps-4" id="tipoFilter" onchange="filtrarTabla()">
+                <option value="">Todos los tipos</option>
+                <option value="exterior">Exterior</option>
+                <option value="interior">Interior</option>
+            </select>
+        </div>
     </div>
 
     <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
@@ -36,6 +46,7 @@
                     <tr style="font-size:12px;font-weight:600;">
                         <th class="py-3 px-3" style="width:50px;">#</th>
                         <th class="py-3 px-3">UBICACIÓN</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">TIPO</th>
                         <th class="py-3 px-3">DESCRIPCIÓN</th>
                         <th class="py-3 px-3 text-center">CREADO</th>
                         <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
@@ -86,7 +97,7 @@
             <input type="hidden" id="f_pk_ubicacion">
 
             <div class="row g-3">
-                <div class="col-12">
+                <div class="col-8">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Nombre <span class="text-danger">*</span>
                     </label>
@@ -94,8 +105,18 @@
                         placeholder="Ej: Bodega principal">
                     <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
                 </div>
-
-                <div class="col-12">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo <span class="text-danger">*</span>
+                    </label>
+                    <select id="f_tipo" class="form-select">
+                        <option value="">Seleccionar…</option>
+                        <option value="exterior">Exterior</option>
+                        <option value="interior">Interior</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_tipo">Campo requerido</div>
+                </div>
+                <div class="col-8">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                         Descripción
                     </label>

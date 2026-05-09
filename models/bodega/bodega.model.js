@@ -104,6 +104,13 @@ module.exports = {
          WHERE pk_bodega = $1
          RETURNING *`,
         [id]
+    ),
+
+    existeNombre: (nombre, idActual = null) => Conexion.query(
+    `SELECT pk_bodega FROM bodega
+     WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1))
+     ${idActual ? 'AND pk_bodega != $2' : ''}`,
+    idActual ? [nombre, idActual] : [nombre]
     )
 
 };

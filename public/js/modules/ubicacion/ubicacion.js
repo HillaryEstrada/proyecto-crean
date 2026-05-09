@@ -50,6 +50,13 @@
                         ${u.nombre || '—'}
                     </span>
                 </td>
+                <td class="px-3 text-center">
+                    ${u.tipo === 'exterior'
+                        ? `<span class="badge" style="background:#2d7a4f;font-size:11px;">Exterior</span>`
+                        : u.tipo === 'interior'
+                        ? `<span class="badge" style="background:#1a3c5e;font-size:11px;">Interior</span>`
+                        : `<span class="text-muted" style="font-size:12px;">—</span>`}
+                </td>
                 <td class="px-3 text-muted" style="font-size:13px;">
                     ${u.descripcion || '—'}
                 </td>
@@ -87,6 +94,8 @@
         document.getElementById('f_pk_ubicacion').value        = '';
         document.getElementById('f_nombre').value              = '';
         document.getElementById('f_descripcion').value         = '';
+        document.getElementById('f_tipo').value = '';
+        document.getElementById('err_tipo').classList.add('d-none');
         document.getElementById('formTitulo').textContent      = 'Registrar Ubicación';
         document.getElementById('btnGuardarLabel').textContent = 'Guardar ubicación';
         document.getElementById('err_nombre').classList.add('d-none');
@@ -105,6 +114,8 @@
 
         document.getElementById('f_pk_ubicacion').value       = u.pk_ubicacion;
         document.getElementById('f_nombre').value             = u.nombre || '';
+        document.getElementById('f_tipo').value = u.tipo || '';
+        document.getElementById('err_tipo').classList.add('d-none');
         document.getElementById('f_descripcion').value        = u.descripcion || '';
         document.getElementById('formTitulo').textContent     = `Editando: ${u.nombre}`;
         document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
@@ -125,6 +136,8 @@
         document.getElementById('f_nombre').value        = '';
         document.getElementById('f_descripcion').value   = '';
         document.getElementById('err_nombre').classList.add('d-none');
+        document.getElementById('f_tipo').value = '';
+        document.getElementById('err_tipo').classList.add('d-none');
     };
 
 
@@ -161,38 +174,44 @@
     // ============================================
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
-    window.guardarUbicacion = async function () {
+        window.guardarUbicacion = async function () {
         const id          = document.getElementById('f_pk_ubicacion').value;
         const nombre      = document.getElementById('f_nombre').value.trim();
         const descripcion = document.getElementById('f_descripcion').value.trim();
+        const tipo = document.getElementById('f_tipo').value;
 
         if (!nombre) {
             document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = 'Campo requerido';
             document.getElementById('f_nombre').focus();
             return;
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+
+        if (!tipo) {
+            document.getElementById('err_tipo').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('err_tipo').classList.add('d-none');
+
 
         const erroresFormato = validarFormato(nombre);
         if (erroresFormato.length) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Revisa el nombre',
-                html: erroresFormato.map(e => `<div>• ${e}</div>`).join(''),
-                confirmButtonColor: '#1a3c5e'
-            });
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = erroresFormato[0];
             document.getElementById('f_nombre').focus();
             return;
         }
 
+        document.getElementById('err_nombre').classList.add('d-none');
+
         try {
             if (id) {
-                await fetchWithAuth(`/ubicacion/${id}`, 'PUT', { nombre, descripcion });
+                await fetchWithAuth(`/ubicacion/${id}`, 'PUT', { nombre, tipo, descripcion });
                 Swal.fire({ icon: 'success', title: 'Actualizada',
                     text: 'Ubicación actualizada exitosamente',
                     timer: 2000, showConfirmButton: false });
             } else {
-                await fetchWithAuth('/ubicacion', 'POST', { nombre, descripcion });
+                await fetchWithAuth('/ubicacion', 'POST', { nombre, tipo, descripcion });
                 Swal.fire({ icon: 'success', title: 'Registrada',
                     text: 'Ubicación creada exitosamente',
                     timer: 2000, showConfirmButton: false });

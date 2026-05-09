@@ -11,7 +11,7 @@ exports.crear = async (req, res) => {
     try {
         const resultado = await ubicacion.crear({
             ...req.body,
-            registrado_por: req.user.id  // <-- esto faltaba
+            registrado_por: req.user.id 
         });
         res.json({ mensaje: 'Ubicación creada exitosamente', data: resultado.rows[0] });
     } catch (error) {
@@ -23,7 +23,10 @@ exports.crear = async (req, res) => {
 // Listar ubicaciones activas
 exports.listar = async (req, res) => {
     try {
-        const data = await ubicacion.listar();
+        const { tipo } = req.query;
+        const data = tipo
+            ? await ubicacion.listarPorTipo(tipo)
+            : await ubicacion.listar();
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });

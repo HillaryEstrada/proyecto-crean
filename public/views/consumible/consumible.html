@@ -1,5 +1,6 @@
 <!-- ============================================
      VISTA: consumible.html
+     Descripción: Gestión de consumibles (artículos y movimientos)
      ============================================ -->
 
 <!-- ── CABECERA ── -->
@@ -10,7 +11,7 @@
         </h4>
         <p class="text-muted mb-0 fs-5">Control de papelería y productos de limpieza</p>
     </div>
-  <div class="d-flex gap-2">
+    <div class="d-flex gap-2">
         <button class="btn text-white fw-semibold d-none" id="btnNuevoMovimiento" style="background:#1a3c5e;"
             onclick="abrirFormularioMovimiento()">
             <i class="fa-solid fa-plus me-1"></i>Nuevo movimiento
@@ -32,13 +33,249 @@
             <i class="fa-solid fa-circle-check"></i>Inventario
         </button>
     </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabValesEmpleado" onclick="switchTabPrincipal('vales')">
+            <i class="fa-solid fa-ticket-simple"></i>Vales x Empleado
+        </button>
+    </li>
 </ul>
+
+
+<!-- ══════════════════════════════════════
+     TAB: MOVIMIENTOS
+══════════════════════════════════════ -->
+<div id="vistaMovimientosTab">
+
+    <div class="row g-3 mb-4" id="tarjetasMovimientos"></div>
+
+    <div id="vistaTablaMovimientos">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex gap-2 flex-wrap flex-grow-1 justify-content-end">
+                <div class="position-relative" style="min-width:200px;flex-grow:1;">
+                    <i class="fa-solid fa-magnifying-glass text-muted"
+                        style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
+                    <input type="text" class="form-control ps-4" id="searchMovInput"
+                        placeholder="Buscar por artículo, motivo, folio…" oninput="filtrarMovimientos()">
+                </div>
+                <select class="form-select" style="width:auto;" id="filtroTipoMov" onchange="filtrarMovimientos()">
+                    <option value="">Todos los tipos</option>
+                    <option value="entrada">Entrada</option>
+                    <option value="salida">Salida</option>
+                    <option value="baja">Baja</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 table-bordered">
+                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                        <tr style="font-size:12px;font-weight:600;"></tr>
+                    </thead>
+                    <tbody id="movBody" class="bg-white">
+                        <tr><td colspan="7" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-3 pt-3 pb-3 bg-light border-top">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
+                    <div id="info-registros-mov" class="small text-muted"></div>
+                    <div class="d-flex align-items-center gap-2">
+                        <button id="btn-primero-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-mov" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-mov" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Formulario movimiento inline -->
+<div id="vistaFormularioMovimiento" class="d-none">
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between"
+            id="formHeaderMovimiento" style="background:#1a3c5e;">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Registrar Movimiento
+            </h6>
+            <span class="badge" id="formTipoMovBadge" style="font-size:12px;background:rgba(255,255,255,0.2);">Sin tipo</span>
+        </div>
+
+        <!-- Tarjetas de tipo SIEMPRE visibles -->
+        <div class="p-4 pb-0">
+            <input type="hidden" id="f_tipo_movimiento">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Tipo de movimiento <span class="text-danger">*</span></label>
+            <div class="d-flex gap-3 mb-1">
+                <div id="card_entrada" onclick="seleccionarTipoMov('entrada')"
+                    class="flex-fill text-center p-3 rounded-3"
+                    style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                    <i class="fa-solid fa-arrow-down fa-lg mb-1" style="color:#2d7a4f;"></i>
+                    <div class="fw-semibold" style="font-size:13px;color:#2d7a4f;">Entrada</div>
+                    <div class="text-muted" style="font-size:11px;">Recepción de artículos</div>
+                </div>
+                <div id="card_salida" onclick="seleccionarTipoMov('salida')"
+                    class="flex-fill text-center p-3 rounded-3"
+                    style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                    <i class="fa-solid fa-arrow-up fa-lg mb-1" style="color:#c0392b;"></i>
+                    <div class="fw-semibold" style="font-size:13px;color:#c0392b;">Salida</div>
+                    <div class="text-muted" style="font-size:11px;">Entrega a área</div>
+                </div>
+                <div id="card_baja" onclick="seleccionarTipoMov('baja')"
+                    class="flex-fill text-center p-3 rounded-3"
+                    style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
+                    <i class="fa-solid fa-times-circle fa-lg mb-1" style="color:#e67e22;"></i>
+                    <div class="fw-semibold" style="font-size:13px;color:#e67e22;">Baja</div>
+                    <div class="text-muted" style="font-size:11px;">Merma / destrucción</div>
+                </div>
+            </div>
+            <div class="text-danger d-none small mt-1 mb-3" id="err_tipo_mov">Selecciona el tipo de movimiento</div>
+        </div>
+
+        <!-- Resto del formulario, oculto hasta seleccionar tipo -->
+        <div id="camposMovimiento" class="d-none">
+            <div class="p-4">
+
+                <!-- Escáner de código de barras -->
+                <div id="seccionBarcode" class="p-3 mb-3 rounded-3" style="background:#f0f9ff;border:1px solid #bae6fd;">
+                    <label class="form-label fw-semibold mb-2" style="font-size:12px;color:#1a3c5e;">
+                        <i class="fa-solid fa-barcode me-1"></i>Escanear código de barras
+                        <small class="text-muted fw-normal">(escribe o escanea y presiona <kbd>Enter</kbd>)</small>
+                    </label>
+                    <div class="d-flex gap-2">
+                        <input type="text" id="barcodeInput" class="form-control"
+                            placeholder="Escanea o escribe el código y presiona Enter…"
+                            style="font-family:monospace;letter-spacing:.05em;">
+                        <button type="button" class="btn btn-outline-secondary px-3" onclick="limpiarBarcode()">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                    <div id="barcodeStatus" class="mt-2" style="font-size:12px;display:none;"></div>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Artículo -->
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Artículo <span class="text-danger">*</span></label>
+                        <select id="f_fk_articulo" class="form-select"><option value="">Seleccionar…</option></select>
+                        <div class="text-danger d-none small mt-1" id="err_articulo">Campo requerido</div>
+                    </div>
+
+                    <!-- Cantidad -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Cantidad <span class="text-danger">*</span></label>
+                        <input type="number" id="f_cantidad" class="form-control" value="1" min="1">
+                        <div class="text-danger d-none small mt-1" id="err_cantidad">Debe ser mayor a 0</div>
+                    </div>
+
+                    <!-- Nº Factura — solo ENTRADA -->
+                    <div class="col-md-4 d-none" id="campoEntrada">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Nº Factura <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="f_numero_factura" class="form-control" placeholder="Ej: FAC-2026-001">
+                        <div class="text-danger d-none small mt-1" id="err_numero_factura">Campo requerido</div>
+                    </div>
+                    <div class="col-md-3 d-none" id="campoFechaFactura">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Fecha factura <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" id="f_fecha_factura" class="form-control">
+                        <div class="text-danger d-none small mt-1" id="err_fecha_factura">Campo requerido</div>
+                    </div>
+                    <div class="col-md-5 d-none" id="campoArchivoFactura">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            <i class="fa-solid fa-paperclip me-1"></i>Archivo Factura
+                            <small class="text-muted fw-normal">(opcional)</small>
+                        </label>
+                        <input type="file" id="f_archivo_factura" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png" style="font-size:13px;">
+                        <small class="text-muted">PDF o imagen</small>
+                    </div>
+                    <!-- Folio Memorándum — ENTRADA y SALIDA -->
+                    <div class="col-md-4 d-none" id="campoMemorandum">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Folio Memorándum <small class="text-muted">(opcional)</small>
+                        </label>
+                        <input type="text" id="f_folio_memorandum" class="form-control" placeholder="Ej: MEMO CREAN-037-2025">
+                    </div>
+                    <div class="col-md-4 d-none" id="campoTipoBaja">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Tipo de baja <span class="text-danger">*</span>
+                        </label>
+                        <select id="f_tipo_baja" class="form-select">
+                            <option value="">Seleccionar…</option>
+                            <option value="merma">Merma</option>
+                            <option value="dano">Daño</option>
+                            <option value="perdida">Pérdida</option>
+                            <option value="vencimiento">Vencimiento</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                        <div class="text-danger d-none small mt-1" id="err_tipo_baja">Campo requerido</div>
+                    </div>
+                    <div class="col-md-5 d-none" id="campoArchivoActa">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            <i class="fa-solid fa-file-circle-check me-1"></i>Acta / evidencia
+                            <small class="text-muted fw-normal">(destrucción o merma)</small>
+                        </label>
+                        <input type="file" id="f_archivo_acta" class="form-control"
+                            accept=".pdf,.jpg,.jpeg,.png" style="font-size:13px;">
+                        <small class="text-muted">PDF o imagen</small>
+                    </div>
+                    <!-- Campos solo SALIDA -->
+                    <div id="camposSalida" class="col-12 d-none">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Área <span class="text-danger">*</span></label>
+                                <select id="f_fk_area" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_area">Campo requerido</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Entregado a <span class="text-danger">*</span></label>
+                                <select id="f_recibido_por" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_recibido">Campo requerido</div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Autorizado por <span class="text-danger">*</span></label>
+                                <select id="f_autorizado_por" class="form-select"><option value="">Seleccionar…</option></select>
+                                <div class="text-danger d-none small mt-1" id="err_autorizado">Campo requerido</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Motivo -->
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo <span class="text-danger">*</span></label>
+                        <textarea id="f_motivo" class="form-control" rows="2" placeholder="Ej: Uso en impresora de administración…"></textarea>
+                        <div class="text-danger d-none small mt-1" id="err_motivo">Campo requerido</div>
+                    </div>
+                </div>
+            </div>
+            <div class="px-4 pb-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormularioMovimiento()">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold px-4"
+                    style="background:#1a3c5e;" onclick="guardarMovimiento()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Registrar movimiento
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div><!-- /vistaMovimientosTab -->
 
 
 <!-- ══════════════════════════════════════
      TAB: ARTÍCULOS ACTIVOS
 ══════════════════════════════════════ -->
-<div id="vistaArticulosTab">
+<div id="vistaArticulosTab" class="d-none">
 
     <div class="row g-3 mb-4" id="tarjetasArticulos"></div>
 
@@ -56,11 +293,6 @@
                 <input type="text" class="form-control ps-4" id="searchInput"
                     placeholder="Buscar por nombre o código de barras…" oninput="filtrarTabla()">
             </div>
-            <select class="form-select" style="width:auto;" id="filtroCategoria" onchange="filtrarTabla()">
-                <option value="">Todas las categorías</option>
-                <option value="Papelería">Papelería</option>
-                <option value="Productos de limpieza">Productos de limpieza</option>
-            </select>
             <select class="form-select" style="width:auto;" id="filtroEstado" onchange="filtrarTabla()">
                 <option value="">Todos los estados</option>
                 <option value="ok">Stock lleno</option>
@@ -76,17 +308,16 @@
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:40px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
-                            <th class="py-3 px-3" style="width:130px;">CATEGORÍA</th>
                             <th class="py-3 px-3" style="width:100px;">UNIDAD</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">STOCK ACTUAL</th>
                             <th class="py-3 px-3 text-center" style="width:70px;">MÍN.</th>
-                            <th class="py-3 px-3" style="width:130px;">UBICACIÓN</th>
+                            <th class="py-3 px-3" style="width:130px;">ALMACEN</th>
                             <th class="py-3 px-3 text-center" style="width:90px;">ESTADO</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="articuloBody" class="bg-white">
-                        <tr><td colspan="9" class="text-center py-4 text-muted">
+                        <tr><td colspan="7" class="text-center py-4 text-muted">
                             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                         </td></tr>
                     </tbody>
@@ -121,27 +352,18 @@
                 <input type="hidden" id="f_pk_articulo">
                 <div class="row g-3">
                     <div class="col-md-4">
-            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre <span class="text-danger">*</span></label>
-            <input type="text" id="f_nombre" class="form-control" placeholder="Ej: Papel Bond A4">
-            <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                    <i class="fa-solid fa-barcode me-1"></i>Código de barras
-                    <small class="text-muted fw-normal">(opcional)</small>
-                </label>
-                <input type="text" id="f_codigo_barras" class="form-control"
-                    placeholder="Escanea o escribe el código..."
-                    style="font-family:monospace;letter-spacing:.05em;">
-            </div>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre <span class="text-danger">*</span></label>
+                        <input type="text" id="f_nombre" class="form-control" placeholder="Ej: Papel Bond A4">
+                        <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                    </div>
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Categoría <span class="text-danger">*</span></label>
-                        <select id="f_categoria" class="form-select">
-                            <option value="">Seleccionar…</option>
-                            <option value="Papelería">Papelería</option>
-                            <option value="Productos de limpieza">Productos de limpieza</option>
-                        </select>
-                        <div class="text-danger d-none small mt-1" id="err_categoria">Campo requerido</div>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            <i class="fa-solid fa-barcode me-1"></i>Código de barras
+                            <small class="text-muted fw-normal">(opcional)</small>
+                        </label>
+                        <input type="text" id="f_codigo_barras" class="form-control"
+                            placeholder="Escanea o escribe el código…"
+                            style="font-family:monospace;letter-spacing:.05em;">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Unidad de medida <span class="text-danger">*</span></label>
@@ -157,14 +379,25 @@
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock mínimo</label>
                         <input type="number" id="f_stock_minimo" class="form-control" min="0">
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Almacén / Ubicación <span class="text-danger">*</span></label>
-                        <select id="f_fk_almacen" class="form-select"><option value="">Seleccionar…</option></select>
-                        <div class="text-danger d-none small mt-1" id="err_almacen">Campo requerido</div>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
                         <select id="f_fk_partida" class="form-select"><option value="">Sin partida</option></select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Ubicación exterior <small class="text-muted fw-normal">(opcional)</small>
+                        </label>
+                        <select id="f_fk_ubicacion_exterior" class="form-select" onchange="if(this.value){ document.getElementById('f_fk_ubicacion_interior').value=''; }">
+                            <option value="">Sin ubicación exterior</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Ubicación interior <small class="text-muted">(opcional)</small>
+                        </label>
+                        <select id="f_fk_ubicacion_interior" class="form-select" onchange="if(this.value){ document.getElementById('f_fk_ubicacion_exterior').value=''; }">
+                            <option value="">Sin ubicación interior</option>
+                        </select>
                     </div>
                     <div class="col-12">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>
@@ -182,238 +415,100 @@
             </div>
         </div>
     </div>
+
 </div><!-- /vistaArticulosTab -->
 
 
 <!-- ══════════════════════════════════════
-     TAB: MOVIMIENTOS
+     TAB: VALES POR EMPLEADO
 ══════════════════════════════════════ -->
-<div id="vistaMovimientosTab" class="d-none">
+<!-- ══════════════════════════════════════
+     TAB: VALES POR EMPLEADO
+══════════════════════════════════════ -->
+<div id="vistaValesEmpleadoTab" class="d-none">
 
-    <div class="row g-3 mb-4" id="tarjetasMovimientos"></div>
-
-    <!-- POR: -->
-<div id="vistaTablaMovimientos">
-    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-        <div class="d-flex gap-2 flex-wrap flex-grow-1 justify-content-end">
-            <div class="position-relative" style="min-width:200px;flex-grow:1;">
-                <i class="fa-solid fa-magnifying-glass text-muted"
-                    style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
-                <input type="text" class="form-control ps-4" id="searchMovInput"
-                    placeholder="Buscar por artículo, motivo…" oninput="filtrarMovimientos()">
+    <div class="card border-0 shadow-sm mb-3 p-3" style="border-radius:12px;">
+        <div class="d-flex gap-2 align-items-end flex-wrap">
+            <div style="flex:1;min-width:200px;">
+                <label class="form-label fw-semibold mb-1" style="font-size:12px;color:#1a3c5e;">Empleado</label>
+                <select id="sel_empleado_vales" class="form-select" onchange="cargarValesEmpleado()">
+                    <option value="">Seleccionar empleado…</option>
+                </select>
             </div>
-            <select class="form-select" style="width:auto;" id="filtroTipoMov" onchange="filtrarMovimientos()">
-                <option value="">Todos los tipos</option>
-                <option value="entrada">Entrada</option>
-                <option value="salida">Salida</option>
-                <option value="baja">Baja</option>
-            </select>
+            <div style="width:120px;">
+                <label class="form-label fw-semibold mb-1" style="font-size:12px;color:#1a3c5e;">Año</label>
+                <select id="sel_anio_vales" class="form-select" onchange="cargarValesEmpleado()">
+                    <option value="">Todos</option>
+                </select>
+            </div>
+            <div style="width:180px;">
+                <label class="form-label fw-semibold mb-1" style="font-size:12px;color:#1a3c5e;">Área</label>
+                <select id="sel_area_vales" class="form-select" onchange="cargarValesEmpleado()">
+                    <option value="">Todas las áreas</option>
+                </select>
+            </div>
+            <div>
+                <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+                    onclick="imprimirReporteEmpleado()">
+                    <i class="fa-solid fa-print me-1"></i>Imprimir reporte
+                </button>
+            </div>
         </div>
     </div>
+
+    <div id="vistaValesResultado" class="d-none">
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 table-bordered">
-                    <thead class="text-white text-center" style="background-color:#1a3c5e;">
-                        <tr style="font-size:12px;font-weight:600;">
-                            <th class="py-3 px-3" style="width:40px;">#</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA</th>
-                            <th class="py-3 px-3 text-center" style="width:90px;">TIPO</th>
+                    <thead class="text-white" style="background-color:#1a3c5e;font-size:12px;font-weight:600;">
+                        <tr>
+                            <th class="py-3 px-3">FOLIO VALE</th>
+                            <th class="py-3 px-3">FECHA Y HORA</th>
                             <th class="py-3 px-3">ARTÍCULO</th>
-                            <th class="py-3 px-3 text-center" style="width:90px;">CANTIDAD</th>
-                            <th class="py-3 px-3" style="width:120px;">ÁREA</th>
-                            <th class="py-3 px-3" style="width:140px;">RECIBIÓ</th>
+                            <th class="py-3 px-3 text-center">CANTIDAD</th>
+                            <th class="py-3 px-3">ÁREA</th>
+                            <th class="py-3 px-3">AUTORIZADO POR</th>
                             <th class="py-3 px-3">MOTIVO</th>
                         </tr>
                     </thead>
-                    <tbody id="movBody" class="bg-white">
-                        <tr><td colspan="8" class="text-center py-4 text-muted">
-                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
-                        </td></tr>
-                    </tbody>
+                    <tbody id="valesEmpleadoBody" class="bg-white"></tbody>
                 </table>
             </div>
-            <div class="px-3 pt-3 pb-3 bg-light border-top">
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
-                    <div id="info-registros-mov" class="small text-muted"></div>
-                    <div class="d-flex align-items-center gap-2">
-                        <button id="btn-primero-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
-                        <button id="btn-anterior-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
-                        <span id="pagina-info-mov" class="small text-muted">Página 1 de 1</span>
-                        <input type="number" id="pagina-input-mov" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
-                        <button id="btn-siguiente-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
-                        <button id="btn-ultimo-mov" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
-                    </div>
-                </div>
+            <div class="px-3 py-2 bg-light border-top">
+                <div id="info-vales-empleado" class="small text-muted"></div>
             </div>
         </div>
     </div>
 
-    <!-- Formulario movimiento inline -->
-    <div id="vistaFormularioMovimiento" class="d-none">
-        <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
-            <div class="px-4 py-3 text-white d-flex align-items-center justify-content-between"
-                id="formHeaderMovimiento" style="background:#1a3c5e;">
-                <h6 class="mb-0 fw-semibold">
-                    <i class="fa-solid fa-arrow-right-arrow-left me-2"></i>Registrar Movimiento
-                </h6>
-                <span class="badge" id="formTipoMovBadge" style="font-size:12px;background:rgba(255,255,255,0.2);">Sin tipo</span>
+</div><!-- /vistaValesEmpleadoTab -->
+
+<!-- ── MODAL: VER DETALLE MOVIMIENTO ── -->
+<div class="modal fade" id="modalDetalleMovimiento" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" id="detalleMovHeader" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-arrow-right-arrow-left me-2"></i>
+                    <span id="detalleMovTitle">Detalle del movimiento</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="p-4">
-
-                <!-- ── ESCÁNER DE CÓDIGO DE BARRAS ── -->
-                <div id="seccionBarcode" class="p-3 mb-3 rounded-3" style="background:#f0f9ff;border:1px solid #bae6fd;">
-                    <label class="form-label fw-semibold mb-2" style="font-size:12px;color:#1a3c5e;">
-                    <i class="fa-solid fa-barcode me-1"></i>Escanear código de barras
-                    <small class="text-muted fw-normal">(escribe o escanea y presiona <kbd>Enter</kbd>)</small>
-                </label>
-                    <div class="d-flex gap-2">
-                        <input type="text" id="barcodeInput" class="form-control"
-                            placeholder="Escanea o escribe el código y presiona Enter…"
-                            style="font-family:monospace;letter-spacing:.05em;">
-                        <button type="button" class="btn btn-outline-secondary px-3" onclick="limpiarBarcode()">
-                            <i class="fa-solid fa-xmark"></i>
-                        </button>
-                    </div>
-                    <div id="barcodeStatus" class="mt-2" style="font-size:12px;display:none;"></div>
-                </div>
-                <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Tipo de movimiento <span class="text-danger">*</span></label>
-                        <input type="hidden" id="f_tipo_movimiento">
-                        <div class="d-flex gap-3 mb-1">
-                            <div id="card_entrada" onclick="seleccionarTipoMov('entrada')"
-                                class="flex-fill text-center p-3 rounded-3"
-                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
-                                <i class="fa-solid fa-arrow-down fa-lg mb-1" style="color:#2d7a4f;"></i>
-                                <div class="fw-semibold" style="font-size:13px;color:#2d7a4f;">Entrada</div>
-                                <div class="text-muted" style="font-size:11px;">Recepción de artículos</div>
-                            </div>
-                            
-                            <div id="card_salida" onclick="seleccionarTipoMov('salida')"
-                                class="flex-fill text-center p-3 rounded-3"
-                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
-                                <i class="fa-solid fa-arrow-up fa-lg mb-1" style="color:#c0392b;"></i>
-                                <div class="fw-semibold" style="font-size:13px;color:#c0392b;">Salida</div>
-                                <div class="text-muted" style="font-size:11px;">Entrega a área</div>
-                            </div>
-                            <div id="card_baja" onclick="seleccionarTipoMov('baja')"
-                                class="flex-fill text-center p-3 rounded-3"
-                                style="cursor:pointer;border:2px solid #dee2e6;transition:all .2s;">
-                                <i class="fa-solid fa-times-circle fa-lg mb-1" style="color:#e67e22;"></i>
-                                <div class="fw-semibold" style="font-size:13px;color:#e67e22;">Baja</div>
-                                <div class="text-muted" style="font-size:11px;">Merma / destrucción</div>
-                            </div>
-                        </div>
-                        <div class="text-danger d-none small mt-1" id="err_tipo_mov">Selecciona el tipo de movimiento</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Artículo <span class="text-danger">*</span></label>
-                        <select id="f_fk_articulo" class="form-select"><option value="">Seleccionar…</option></select>
-                        <div class="text-danger d-none small mt-1" id="err_articulo">Campo requerido</div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Cantidad <span class="text-danger">*</span></label>
-                        <input type="number" id="f_cantidad" class="form-control" value="1" min="1">
-                        <div class="text-danger d-none small mt-1" id="err_cantidad">Debe ser mayor a 0</div>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Referencia <small class="text-muted">(opcional)</small></label>
-                        <input type="text" id="f_referencia" class="form-control" placeholder="Ej: Folio factura…">
-                    </div>
-                    <!-- Campos solo SALIDA -->
-                    <div id="camposSalida" class="col-12 d-none">
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Área <span class="text-danger">*</span></label>
-                                <select id="f_fk_area" class="form-select"><option value="">Seleccionar…</option></select>
-                                <div class="text-danger d-none small mt-1" id="err_area">Campo requerido</div>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Recibido por (empleado) <span class="text-danger">*</span></label>
-                                <select id="f_recibido_por" class="form-select"><option value="">Seleccionar…</option></select>
-                                <div class="text-danger d-none small mt-1" id="err_recibido">Campo requerido</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Motivo <span class="text-danger">*</span></label>
-                        <textarea id="f_motivo" class="form-control" rows="2" placeholder="Ej: Uso en impresora de administración…"></textarea>
-                        <div class="text-danger d-none small mt-1" id="err_motivo">Campo requerido</div>
-                    </div>
-                </div>
-            </div>
-            <div class="px-4 pb-4 d-flex justify-content-between">
-                <button type="button" class="btn btn-secondary px-4" onclick="cancelarFormularioMovimiento()">
-                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
-                </button>
-                <button type="button" id="btnGuardarMovimiento" class="btn text-white fw-semibold px-4"
-                    style="background:#1a3c5e;" onclick="guardarMovimiento()">
-                    <i class="fa-solid fa-floppy-disk me-1"></i>Registrar movimiento
-                </button>
-            </div>
-        </div>
-    </div>
-
-</div><!-- /vistaMovimientosTab -->
-
-
-<!-- ══════════════════════════════════════
-     TAB: INACTIVOS
-══════════════════════════════════════ -->
-<div id="vistaInactivosTab" class="d-none">
-    <div class="d-flex gap-2 mb-3 flex-wrap">
-        <div class="flex-grow-1 position-relative" style="min-width:200px;">
-            <i class="fa-solid fa-magnifying-glass text-muted"
-                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
-            <input type="text" class="form-control ps-4" id="searchInactivos"
-                placeholder="Buscar por nombre o código de barras…" oninput="filtrarInactivos()">
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 table-bordered">
-                <thead class="text-white text-center" style="background-color:#1a3c5e;">
-                    <tr style="font-size:12px;font-weight:600;">
-                        <th class="py-3 px-3" style="width:40px;">#</th>
-                        <th class="py-3 px-3">NOMBRE</th>
-                        <th class="py-3 px-3" style="width:130px;">CATEGORÍA</th>
-                        <th class="py-3 px-3" style="width:100px;">UNIDAD</th>
-                        <th class="py-3 px-3 text-center" style="width:100px;">STOCK</th>
-                        <th class="py-3 px-3" style="width:130px;">UBICACIÓN</th>
-                        <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
-                    </tr>
-                </thead>
-                <tbody id="articuloBodyInactivos" class="bg-white">
-                    <tr><td colspan="7" class="text-center py-4 text-muted">
-                        <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
-                    </td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div class="px-3 pt-3 pb-3 bg-light border-top">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div id="info-registros-art-inactivos" class="small text-muted"></div>
-                <div class="d-flex align-items-center gap-2">
-                    <button id="btn-primero-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
-                    <button id="btn-anterior-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
-                    <span id="pagina-info-art-inactivos" class="small text-muted">Página 1 de 1</span>
-                    <input type="number" id="pagina-input-art-inactivos" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
-                    <button id="btn-siguiente-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
-                    <button id="btn-ultimo-art-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+            <div class="modal-body p-4" id="detalleMovBody">
+                <div class="text-center py-4">
+                    <div class="spinner-border" style="color:#1a3c5e;" role="status"></div>
                 </div>
             </div>
         </div>
     </div>
-</div><!-- /vistaInactivosTab -->
+</div>
 
-<!-- ── MODAL: PRODUCTO NO REGISTRADO ── -->
+<!-- ── MODAL: PRODUCTO NO REGISTRADO (barcode) ── -->
 <div class="modal fade" id="modalNuevoArticuloBarcode" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
             <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
                 <h5 class="modal-title fw-semibold">
-                    <i class="fa-solid fa-barcode me-2"></i>Producto no registrado
+                    <i class="fa-solid fa-barcode me-2"></i>Registrar nuevo artículo
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -430,29 +525,15 @@
                         <input type="text" id="bc_codigo" class="form-control" readonly
                             style="font-family:monospace;background:#f8f9fa;">
                     </div>
-                    <div class="col-md-8">
+                    <div class="col-md-7">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre <span class="text-danger">*</span></label>
                         <input type="text" id="bc_nombre" class="form-control" placeholder="Ej: Hojas blancas">
                         <div class="text-danger d-none small mt-1" id="bc_err_nombre">Campo requerido</div>
                     </div>
-                    <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Categoría <span class="text-danger">*</span></label>
-                        <select id="bc_categoria" class="form-select">
-                            <option value="">Seleccionar…</option>
-                            <option value="Papelería">Papelería</option>
-                            <option value="Productos de limpieza">Productos de limpieza</option>
-                        </select>
-                        <div class="text-danger d-none small mt-1" id="bc_err_categoria">Campo requerido</div>
-                    </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Unidad <span class="text-danger">*</span></label>
                         <select id="bc_fk_unidad" class="form-select"><option value="">Seleccionar…</option></select>
                         <div class="text-danger d-none small mt-1" id="bc_err_unidad">Campo requerido</div>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Almacén <span class="text-danger">*</span></label>
-                        <select id="bc_fk_almacen" class="form-select"><option value="">Seleccionar…</option></select>
-                        <div class="text-danger d-none small mt-1" id="bc_err_almacen">Campo requerido</div>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock inicial</label>
@@ -462,15 +543,41 @@
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock mínimo</label>
                         <input type="number" id="bc_stock_minimo" class="form-control" placeholder="0" min="0">
                     </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
-                        <select id="bc_fk_partida" class="form-select"><option value="">Sin partida</option></select>
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>
-                        <textarea id="bc_descripcion" class="form-control" rows="2" placeholder="Descripción opcional…"></textarea>
-                    </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold d-block" style="font-size:12px;color:#1a3c5e;">
+                                Almacén <span class="text-danger">*</span>
+                                <small class="text-muted fw-normal">— selecciona solo uno</small>
+                            </label>
+                            <!-- Alerta de validación -->
+                            <div class="text-danger d-none small mb-2" id="bc_err_ubicacion">
+                                <i class="fa-solid fa-triangle-exclamation me-1"></i>Debes seleccionar al menos un almacén
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted" style="font-size:11px;">Ubicación exterior</label>
+                                    <select id="bc_fk_ubicacion_exterior" class="form-select"
+                                        onchange="if(this.value){ document.getElementById('bc_fk_ubicacion_interior').value=''; }">
+                                        <option value="">Sin ubicación exterior</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label text-muted" style="font-size:11px;">Ubicación interior</label>
+                                    <select id="bc_fk_ubicacion_interior" class="form-select"
+                                        onchange="if(this.value){ document.getElementById('bc_fk_ubicacion_exterior').value=''; }">
+                                        <option value="">Sin ubicación interior</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    <div class="col-md-5">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
+                    <select id="bc_fk_partida" class="form-select"><option value="">Sin partida</option></select>
                 </div>
+                <div class="col-md-7">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>
+                    <textarea id="bc_descripcion" class="form-control" rows="2" placeholder="Descripción opcional…"></textarea>
+                </div>
+            </div>
             </div>
             <div class="modal-footer bg-light border-top">
                 <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">

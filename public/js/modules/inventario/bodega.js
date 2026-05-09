@@ -35,7 +35,7 @@
 
         if (!data.length) {
             tabla.innerHTML = `
-                <tr><td colspan="8" class="text-center py-5 text-muted">
+                <tr><td colspan="7" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-house-chimney fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay bodegas registradas
                 </td></tr>`;
@@ -65,10 +65,8 @@
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                     ${b.descripcion || '—'}
                 </td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${b.registrado_por_usuario || '—'}
-                </td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${b.registrado_por_usuario || '—'} •<br>
                     ${b.fecha_registro
                         ? new Date(b.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
@@ -138,7 +136,7 @@
         const cuerpo = document.getElementById('inhabBody');
         const info   = document.getElementById('info-registros-inhab');
         if (!cuerpo) return;
-        cuerpo.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">
+        cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">
             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
         try {
             const data               = await fetchWithAuth('/bodega/inhabilitadas');
@@ -146,7 +144,7 @@
 
             if (!_registrosInhabilitados.length) {
                 cuerpo.innerHTML = `
-                    <tr><td colspan="7" class="text-center py-5 text-muted">
+                    <tr><td colspan="6" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                         No hay bodegas inhabilitadas
                     </td></tr>`;
@@ -171,10 +169,8 @@
                     <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                         ${b.descripcion || '—'}
                     </td>
-                    <td class="px-3 text-center text-muted" style="font-size:13px;">
-                        ${b.registrado_por_usuario || '—'}
-                    </td>
-                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${b.registrado_por_usuario || '—'} •<br>
                         ${b.fecha_registro
                             ? new Date(b.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                             : '—'}
@@ -219,10 +215,8 @@
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                     ${b.descripcion || '—'}
                 </td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${b.registrado_por_usuario || '—'}
-                </td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${b.registrado_por_usuario || '—'} •<br>
                     ${b.fecha_registro
                         ? new Date(b.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
@@ -254,6 +248,8 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_capacidad').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ─────────────────────────────────────────
@@ -275,6 +271,8 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_capacidad').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ─────────────────────────────────────────
@@ -289,50 +287,67 @@
         document.getElementById('f_estado').value       = 'Operativo';
         document.getElementById('f_descripcion').value  = '';
         document.getElementById('err_nombre').classList.add('d-none');
+        document.getElementById('err_capacidad').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ─────────────────────────────────────────
     // GUARDAR (CREAR O ACTUALIZAR) — igual que tipo_equipo
     // ─────────────────────────────────────────
     window.guardarBodega = async function () {
-        const id          = document.getElementById('f_pk_bodega').value;
-        const nombre      = document.getElementById('f_nombre').value.trim();
-        const capacidad   = document.getElementById('f_capacidad_kg').value;
-        const estado      = document.getElementById('f_estado').value;
-        const descripcion = document.getElementById('f_descripcion').value.trim();
+    const id          = document.getElementById('f_pk_bodega').value;
+    const nombre      = document.getElementById('f_nombre').value.trim();
+    const capacidad   = parseFloat(document.getElementById('f_capacidad_kg').value);
+    const estado      = document.getElementById('f_estado').value;
+    const descripcion = document.getElementById('f_descripcion').value.trim();
 
-        if (!nombre) {
+    let valido = true;
+
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        valido = false;
+    } else {
+        const erroresNombre = validarFormato(nombre);
+        if (erroresNombre.length) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = erroresNombre[0];
+            valido = false;
+        } else {
+            document.getElementById('err_nombre').classList.add('d-none');
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+    }
 
-        const payload = {
-            nombre,
-            capacidad_kg: capacidad !== '' ? capacidad : null,
-            estado,
-            descripcion:  descripcion || null
-        };
+    if (!capacidad || capacidad <= 0) {
+        document.getElementById('err_capacidad').classList.remove('d-none');
+        valido = false;
+    } else {
+        document.getElementById('err_capacidad').classList.add('d-none');
+    }
 
-        try {
-            if (id) {
-                await fetchWithAuth(`/bodega/${id}`, 'PUT', payload);
-                Swal.fire({ icon: 'success', title: 'Actualizada',
-                    text: 'Bodega actualizada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            } else {
-                await fetchWithAuth('/bodega', 'POST', payload);
-                Swal.fire({ icon: 'success', title: 'Registrada',
-                    text: 'Bodega creada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            }
-            cancelarFormulario();
-            listar();
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+    if (!valido) return;
+
+    const payload = { nombre, capacidad_kg: capacidad, estado, descripcion: descripcion || null };
+
+    try {
+        if (id) {
+            await fetchWithAuth(`/bodega/${id}`, 'PUT', payload);
+            Swal.fire({ icon: 'success', title: 'Actualizada', text: 'Bodega actualizada exitosamente', timer: 2000, showConfirmButton: false });
+        } else {
+            await fetchWithAuth('/bodega', 'POST', payload);
+            Swal.fire({ icon: 'success', title: 'Registrada', text: 'Bodega creada exitosamente', timer: 2000, showConfirmButton: false });
         }
-    };
+        cancelarFormulario();
+        listar();
+    } catch (error) {
+        if (error.error?.includes('nombre') || error.message?.includes('nombre')) {
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = 'Ya existe una bodega con ese nombre';
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+        }
+    }
+};
 
     // ─────────────────────────────────────────
     // INHABILITAR

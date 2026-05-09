@@ -64,14 +64,13 @@
                             <th class="py-3 px-3" style="width:140px;">TIPO DE GRANO</th>
                             <th class="py-3 px-3" style="width:130px;">VARIEDAD</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="prodBody" class="bg-white">
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -121,14 +120,13 @@
                             <th class="py-3 px-3" style="width:140px;">TIPO DE GRANO</th>
                             <th class="py-3 px-3" style="width:130px;">VARIEDAD</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="prodBodyInactivos" class="bg-white">
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -183,19 +181,15 @@
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Tipo de Grano
-                    </label>
-                    <input type="text" id="f_tipo_grano" class="form-control"
-                        placeholder="Ej: Cereal">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Tipo de Grano</label>
+                    <input type="text" id="f_tipo_grano" class="form-control" placeholder="Ej: Cereal">
+                    <div class="text-danger d-none small mt-1" id="err_tipo_grano">Campo inválido</div>
                 </div>
 
                 <div class="col-md-3">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Variedad
-                    </label>
-                    <input type="text" id="f_variedad" class="form-control"
-                        placeholder="Ej: H-59">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Variedad</label>
+                    <input type="text" id="f_variedad" class="form-control" placeholder="Ej: H-59">
+                    <div class="text-danger d-none small mt-1" id="err_variedad">Campo inválido</div>
                 </div>
 
                 <div class="col-12">
