@@ -206,6 +206,7 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ============================================
@@ -224,6 +225,7 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ============================================
@@ -235,64 +237,50 @@
         document.getElementById('f_pk_tipo_equipo').value = '';
         document.getElementById('f_nombre').value         = '';
         document.getElementById('err_nombre').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
     };
 
     // ============================================
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
     window.guardarTipo = async function() {
-        const id     = document.getElementById('f_pk_tipo_equipo').value;
-        const nombre = document.getElementById('f_nombre').value.trim();
+    const id     = document.getElementById('f_pk_tipo_equipo').value;
+    const nombre = document.getElementById('f_nombre').value.trim();
 
-    
-        if (!nombre) {
-            document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        document.getElementById('f_nombre').focus();
+        return;
+    }
+
+    const erroresNombre = validarFormato(nombre);
+    if (erroresNombre.length) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = erroresNombre[0];
+        document.getElementById('f_nombre').focus();
+        return;
+    }
+    document.getElementById('err_nombre').classList.add('d-none');
+
+    try {
+        if (id) {
+            await fetchWithAuth(`/tipo-equipo/${id}`, 'PUT', { nombre });
+            Swal.fire({ icon:'success', title:'Actualizado',
+                text:'Tipo de equipo actualizado exitosamente',
+                timer:2000, showConfirmButton:false });
+        } else {
+            await fetchWithAuth('/tipo-equipo', 'POST', { nombre });
+            Swal.fire({ icon:'success', title:'Registrado',
+                text:'Tipo de equipo creado exitosamente',
+                timer:2000, showConfirmButton:false });
         }
-        document.getElementById('err_nombre').classList.add('d-none');
-
-        if (/^\d+$/.test(nombre)) {
-    Swal.fire({
-        icon: 'warning',
-        title: 'Nombre inválido',
-        text: 'El nombre no puede ser solo números',
-        confirmButtonColor: '#1a3c5e'
-    });
-    document.getElementById('f_nombre').focus();
-    return;
-}
-
-// Si empieza con letra, debe ser mayúscula
-if (/^[a-záéíóúñ]/i.test(nombre) && nombre[0] !== nombre[0].toUpperCase()) {
-    Swal.fire({
-        icon: 'warning',
-        title: 'Nombre inválido',
-        text: 'Si el nombre empieza con letra, debe ser mayúscula',
-        confirmButtonColor: '#1a3c5e'
-    });
-    document.getElementById('f_nombre').focus();
-    return;
-}
-
-        try {
-            if (id) {
-                await fetchWithAuth(`/tipo-equipo/${id}`, 'PUT', { nombre });
-                Swal.fire({ icon:'success', title:'Actualizado',
-                    text:'Tipo de equipo actualizado exitosamente',
-                    timer:2000, showConfirmButton:false });
-            } else {
-                await fetchWithAuth('/tipo-equipo', 'POST', { nombre });
-                Swal.fire({ icon:'success', title:'Registrado',
-                    text:'Tipo de equipo creado exitosamente',
-                    timer:2000, showConfirmButton:false });
-            }
-            cancelarFormulario();
-            listar();
-        } catch(error) {
-            Swal.fire({ icon:'error', title:'Error', text:error.message });
-        }
-    };
+        cancelarFormulario();
+        listar();
+    } catch(error) {
+        Swal.fire({ icon:'error', title:'Error', text:error.message });
+    }
+};
 
     // ============================================
     // ABRIR MODAL DESACTIVAR

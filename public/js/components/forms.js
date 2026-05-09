@@ -14,7 +14,7 @@ window.mostrarFormulario = function () {
 // ============================================
 window.validarFormato = function (texto) {
     const errores = [];
-    if (!texto || texto.length < 5)                   errores.push('Debe tener al menos 5 caracteres');
+    if (!texto || texto.length < 3)                   errores.push('Debe tener al menos 3 caracteres');
     if (texto && texto[0] !== texto[0].toUpperCase()) errores.push('Debe comenzar con mayúscula');
     if (/\s{2,}/.test(texto))                         errores.push('No debe tener espacios dobles');
     if (/^\d+$/.test(texto))                          errores.push('No puede ser solo números');

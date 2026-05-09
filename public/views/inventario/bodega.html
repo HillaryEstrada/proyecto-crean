@@ -66,14 +66,13 @@
                             <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
                             <th class="py-3 px-3 text-center" style="width:150px;">ESTADO</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="bodBody" class="bg-white">
                         <tr>
-                            <td colspan="8" class="text-center py-4 text-muted">
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -122,14 +121,13 @@
                             <th class="py-3 px-3">NOMBRE</th>
                             <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="inhabBody" class="bg-white">
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="6" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -190,19 +188,19 @@
                     <select id="f_estado" class="form-select">
                         <option value="Operativo">Operativo</option>
                         <option value="En mantenimiento">En mantenimiento</option>
-                        <option value="Inhabilitada">Inhabilitada</option>
                     </select>
                 </div>
 
                 <div class="col-12">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Capacidad (kg)
+                        Capacidad (kg) <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
                         <input type="number" id="f_capacidad_kg" class="form-control"
-                            placeholder="0.00" min="0" step="0.01">
+                            placeholder="0.00" min="0.01" step="0.01">
                         <span class="input-group-text text-muted" style="font-size:12px;">kg</span>
                     </div>
+                    <div class="text-danger d-none small mt-1" id="err_capacidad">La capacidad es obligatoria y debe ser mayor a 0</div>
                 </div>
 
                 <div class="col-12">

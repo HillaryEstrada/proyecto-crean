@@ -14,7 +14,9 @@ exports.registrar = async (req, res) => {
     try {
         const {
             fk_articulo, tipo_movimiento, cantidad, motivo,
-            entregado_por, recibido_por, fk_area, referencia
+            recibido_por, fk_area, referencia,
+            numero_factura, fecha_factura, folio_memorandum, autorizado_por,
+            archivo_factura, archivo_acta, tipo_baja
         } = req.body;
 
         if (!fk_articulo)               return res.status(400).json({ error: 'El artículo es obligatorio' });
@@ -26,9 +28,13 @@ exports.registrar = async (req, res) => {
         if (!tiposValidos.includes(tipo_movimiento))
             return res.status(400).json({ error: 'Tipo de movimiento inválido. Use: entrada, salida o baja' });
 
+        if (tipo_movimiento === 'entrada' && !numero_factura)
+            return res.status(400).json({ error: 'El número de factura es obligatorio para entradas' });
+
         if (tipo_movimiento === 'salida') {
-            if (!fk_area)       return res.status(400).json({ error: 'El área es obligatoria para salidas' });
-            if (!recibido_por)  return res.status(400).json({ error: 'El empleado que recibe es obligatorio para salidas' });
+            if (!fk_area)        return res.status(400).json({ error: 'El área es obligatoria para salidas' });
+            if (!recibido_por)   return res.status(400).json({ error: 'El empleado que recibe es obligatorio para salidas' });
+            if (!autorizado_por) return res.status(400).json({ error: 'El empleado que autoriza es obligatorio para salidas' });
         }
 
         await client.query('BEGIN');
@@ -50,26 +56,44 @@ exports.registrar = async (req, res) => {
             }
         }
 
-        const tipoParaStock = tipo_movimiento === 'entrada' ? 'entrada' : 'salida';
+        let folio_vale = null;
+        if (tipo_movimiento === 'salida') {
+            folio_vale = await movimientoModel.generarFolioVale(client);
+        }
+
+        const fecha_autorizacion = autorizado_por ? new Date() : null;
+        const tipoParaStock      = tipo_movimiento === 'entrada' ? 'entrada' : 'salida';
 
         const movimiento = await movimientoModel.registrar(client, {
             fk_articulo, tipo_movimiento,
-            cantidad:       parseInt(cantidad),
+            cantidad:         parseInt(cantidad),
             motivo,
-            registrado_por: req.user.id,
-            entregado_por:  entregado_por || req.user.id,
-            recibido_por:   recibido_por  || null,
-            fk_area:        fk_area       || null,
-            referencia:     referencia    || null
+            registrado_por:   req.user.id,
+            entregado_por:    req.user.id,
+            recibido_por:     recibido_por     || null,
+            fk_area:          fk_area          || null,
+            referencia:       referencia       || null,
+            numero_factura:   numero_factura   || null,
+            fecha_factura:    fecha_factura    || null, 
+            folio_memorandum: folio_memorandum || null,
+            folio_vale,
+            autorizado_por:   autorizado_por   || null,
+            fecha_autorizacion,
+            archivo_factura:  archivo_factura  || null,
+            archivo_acta:     archivo_acta     || null,
+            tipo_baja:       tipo_baja         || null
         });
 
-        const nuevoStock = await articuloModel.actualizarStock(client, fk_articulo, parseInt(cantidad), tipoParaStock);
+        const nuevoStock = await articuloModel.actualizarStock(
+            client, fk_articulo, parseInt(cantidad), tipoParaStock
+        );
 
         await client.query('COMMIT');
 
         res.json({
-            mensaje: 'Movimiento registrado exitosamente',
-            data: movimiento.rows[0],
+            mensaje:           'Movimiento registrado exitosamente',
+            data:              movimiento.rows[0],
+            folio_vale,
             stock_actualizado: nuevoStock.rows[0].stock
         });
 
@@ -82,7 +106,7 @@ exports.registrar = async (req, res) => {
 };
 
 // ============================================
-// Historial por artículo  ← FALTABA ESTO
+// Historial por artículo
 // ============================================
 exports.historialPorArticulo = async (req, res) => {
     try {
@@ -100,6 +124,17 @@ exports.historialGeneral = async (req, res) => {
     try {
         const { tipo, fecha_inicio, fecha_fin } = req.query;
         const data = await movimientoModel.historialGeneral({ tipo, fecha_inicio, fecha_fin });
+        res.json(data.rows);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// Historial por empleado
+exports.historialPorEmpleado = async (req, res) => {
+    try {
+        const { anio, fk_area } = req.query;
+        const data = await movimientoModel.historialPorEmpleado(req.params.id, { anio, fk_area });
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });

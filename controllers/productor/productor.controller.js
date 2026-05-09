@@ -11,9 +11,19 @@ const Productor = require('../../models/productor/productor.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        // Verificar si el nombre ya existe
-        const existe = await Productor.existeNombre(req.body.nombre);
-        if (existe.rows.length) {
+        if (!req.body.curp) {
+            return res.status(400).json({ error: 'La CURP es obligatoria' });
+        }
+
+        // Verificar CURP duplicada
+        const existeCurp = await Productor.existeCurp(req.body.curp);
+        if (existeCurp.rows.length) {
+            return res.status(400).json({ error: 'Ya existe un productor con esa CURP' });
+        }
+
+        // Verificar nombre duplicado
+        const existeNombre = await Productor.existeNombre(req.body.nombre);
+        if (existeNombre.rows.length) {
             return res.status(400).json({ error: 'Ya existe un productor con ese nombre' });
         }
 
@@ -78,13 +88,18 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        // Verificar nombre duplicado en otro registro
+        // Verificar CURP duplicada
+        if (req.body.curp) {
+            const existeCurp = await Productor.existeCurp(req.body.curp, req.params.id);
+            if (existeCurp.rows.length) {
+                return res.status(400).json({ error: 'Ya existe un productor con esa CURP' });
+            }
+        }
+
+        // Verificar nombre duplicado
         if (req.body.nombre) {
-            const existe = await Productor.existeNombre(req.body.nombre);
-            const duplicado = existe.rows.find(
-                row => row.pk_productor !== parseInt(req.params.id)
-            );
-            if (duplicado) {
+            const existeNombre = await Productor.existeNombre(req.body.nombre, req.params.id);
+            if (existeNombre.rows.length) {
                 return res.status(400).json({ error: 'Ya existe un productor con ese nombre' });
             }
         }

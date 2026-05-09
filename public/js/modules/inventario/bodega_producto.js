@@ -87,10 +87,8 @@
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                     ${p.descripcion || '—'}
                 </td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${p.registrado_por_usuario || '—'}
-                </td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} •<br>
                     ${p.fecha_registro
                         ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
@@ -185,10 +183,8 @@
                     <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                         ${p.descripcion || '—'}
                     </td>
-                    <td class="px-3 text-center text-muted" style="font-size:13px;">
-                        ${p.registrado_por_usuario || '—'}
-                    </td>
-                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${p.registrado_por_usuario || '—'} •<br>
                         ${p.fecha_registro
                             ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                             : '—'}
@@ -233,7 +229,8 @@
                 <td class="px-3 text-muted text-center" style="font-size:13px;">${p.variedad || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">${p.descripcion || '—'}</td>
                 <td class="px-3 text-center text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} •<br>
                     ${p.fecha_registro
                         ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
@@ -265,6 +262,9 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        document.getElementById('err_tipo_grano').classList.add('d-none');
+        document.getElementById('err_variedad').classList.add('d-none');
     };
 
     // ─────────────────────────────────────────
@@ -286,6 +286,9 @@
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        document.getElementById('err_tipo_grano').classList.add('d-none');
+        document.getElementById('err_variedad').classList.add('d-none');
     };
 
     // ─────────────────────────────────────────
@@ -300,52 +303,98 @@
         document.getElementById('f_variedad').value    = '';
         document.getElementById('f_descripcion').value = '';
         document.getElementById('err_nombre').classList.add('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        document.getElementById('err_tipo_grano').classList.add('d-none');
+        document.getElementById('err_variedad').classList.add('d-none');
     };
 
     // ─────────────────────────────────────────
     // GUARDAR (CREAR O ACTUALIZAR)
     // ─────────────────────────────────────────
     window.guardarProducto = async function () {
-        const id          = document.getElementById('f_pk_producto').value;
-        const nombre      = document.getElementById('f_nombre').value.trim();
-        const tipo_grano  = document.getElementById('f_tipo_grano').value.trim();
-        const variedad    = document.getElementById('f_variedad').value.trim();
-        const descripcion = document.getElementById('f_descripcion').value.trim();
+    const id          = document.getElementById('f_pk_producto').value;
+    const nombre      = document.getElementById('f_nombre').value.trim();
+    const tipo_grano  = document.getElementById('f_tipo_grano').value.trim();
+    const variedad    = document.getElementById('f_variedad').value.trim();
+    const descripcion = document.getElementById('f_descripcion').value.trim();
 
-        if (!nombre) {
+    let valido = true;
+
+    // Nombre
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        valido = false;
+    } else {
+        const errores = validarFormato(nombre);
+        if (errores.length) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = errores[0];
+            valido = false;
+        } else {
+            document.getElementById('err_nombre').classList.add('d-none');
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+    }
 
-        const payload = {
-            nombre,
-            tipo_grano:  tipo_grano  || null,
-            variedad:    variedad    || null,
-            descripcion: descripcion || null
-        };
+    // Tipo de grano (opcional pero si se llena, validar formato)
+    if (tipo_grano) {
+        const erroresTipo = validarFormato(tipo_grano);
+        if (erroresTipo.length) {
+            document.getElementById('err_tipo_grano').classList.remove('d-none');
+            document.getElementById('err_tipo_grano').textContent = erroresTipo[0];
+            valido = false;
+        } else {
+            document.getElementById('err_tipo_grano').classList.add('d-none');
+        }
+    } else {
+        document.getElementById('err_tipo_grano').classList.add('d-none');
+    }
+
+    // Variedad (opcional pero si se llena, validar formato)
+    if (variedad) {
+        const erroresVariedad = validarFormato(variedad);
+        if (erroresVariedad.length) {
+            document.getElementById('err_variedad').classList.remove('d-none');
+            document.getElementById('err_variedad').textContent = erroresVariedad[0];
+            valido = false;
+        } else {
+            document.getElementById('err_variedad').classList.add('d-none');
+        }
+    } else {
+        document.getElementById('err_variedad').classList.add('d-none');
+    }
+
+    if (!valido) return;
+
+    const payload = {
+        nombre,
+        tipo_grano:  tipo_grano  || null,
+        variedad:    variedad    || null,
+        descripcion: descripcion || null
+    };
 
         try {
             if (id) {
                 await fetchWithAuth(`/bodega_producto/${id}`, 'PUT', payload);
-                Swal.fire({ icon: 'success', title: 'Actualizado',
-                    text: 'Producto actualizado exitosamente',
-                    timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Actualizado', text: 'Producto actualizado exitosamente', timer: 2000, showConfirmButton: false });
             } else {
                 await fetchWithAuth('/bodega_producto', 'POST', payload);
-                Swal.fire({ icon: 'success', title: 'Registrado',
-                    text: 'Producto creado exitosamente',
-                    timer: 2000, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Registrado', text: 'Producto creado exitosamente', timer: 2000, showConfirmButton: false });
             }
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
+        const msg = error.error || error.message || '';
+        if (msg.includes('nombre') && msg.includes('variedad')) {
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = msg;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
         }
-    };
+    }
+};
 
-    // ─────────────────────────────────────────
+// ─────────────────────────────────────────
     // DESACTIVAR
     // ─────────────────────────────────────────
     window.abrirDesactivar = function (id, nombre) {
@@ -367,6 +416,7 @@
             Swal.fire({ icon: 'error', title: 'Error', text: error.message });
         }
     };
+
 
     // ─────────────────────────────────────────
     // REACTIVAR

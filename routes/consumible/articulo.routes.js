@@ -11,15 +11,18 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 router.use(verificarToken);
 
 // ── Consultas ──────────────────────────────
-router.get('/',           controller.listar);
-router.get('/stock-bajo', controller.stockBajo);
-router.get('/categorias', controller.listarCategorias);
-router.get('/inactivos',  controller.listarInactivos);
+router.get('/',               controller.listar);
+router.get('/stock-bajo',     controller.stockBajo);
+router.get('/inactivos',      controller.listarInactivos);
 router.get('/codigo/:codigo', controller.buscarPorCodigo);
-router.get('/:id',        controller.obtenerPorId);
+router.get('/:id',            controller.obtenerPorId);
 
 // ── Escritura ──────────────────────────────
-router.post('/',                verificarModulo('consumible/consumible'), controller.crear);
-router.put('/:id',              verificarModulo('consumible/consumible'), controller.actualizar);
+router.post('/',     verificarModulo('consumible/consumible'), controller.crear);
+router.put('/:id',   verificarModulo('consumible/consumible'), controller.actualizar);
+
+// ── Baja lógica / reactivar ────────────────
+router.patch('/:id/desactivar', verificarModulo('consumible/consumible'), controller.desactivar);
+router.patch('/:id/reactivar',  verificarModulo('consumible/consumible'), controller.reactivar);
 
 module.exports = router;

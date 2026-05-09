@@ -10,11 +10,11 @@ const articulo = require('../../models/consumible/articulo.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        const { nombre, fk_unidad, fk_almacen } = req.body;
+        const { nombre, fk_unidad, fk_ubicacion_exterior } = req.body;
 
         if (!nombre)     return res.status(400).json({ error: 'El nombre es obligatorio' });
         if (!fk_unidad)  return res.status(400).json({ error: 'La unidad de medida es obligatoria' });
-        if (!fk_almacen) return res.status(400).json({ error: 'El almacén es obligatorio' });
+
         if (req.body.codigo_barras) {
             const existeCodigo = await articulo.existeCodigoBarras(req.body.codigo_barras);
             if (existeCodigo.rows.length) {
@@ -39,8 +39,8 @@ exports.crear = async (req, res) => {
 // ============================================
 exports.listar = async (req, res) => {
     try {
-        const { nombre, categoria } = req.query;
-        const data = await articulo.listar({ nombre, categoria });
+        const { nombre } = req.query;
+        const data = await articulo.listar({ nombre });
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -111,18 +111,6 @@ exports.actualizar = async (req, res) => {
 };
 
 // ============================================
-// Listar categorías únicas
-// ============================================
-exports.listarCategorias = async (req, res) => {
-    try {
-        const data = await articulo.listarCategorias();
-        res.json(data.rows.map(r => r.categoria));
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// ============================================
 // Buscar artículo por código de barras
 // ============================================
 exports.buscarPorCodigo = async (req, res) => {
@@ -132,6 +120,36 @@ exports.buscarPorCodigo = async (req, res) => {
             return res.json({ existe: false });
         }
         res.json({ existe: true, data: data.rows[0] });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// Desactivar artículo (baja lógica)
+// ============================================
+exports.desactivar = async (req, res) => {
+    try {
+        const resultado = await articulo.desactivar(req.params.id);
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Artículo no encontrado' });
+        }
+        res.json({ mensaje: 'Artículo desactivado exitosamente', data: resultado.rows[0] });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+// ============================================
+// Reactivar artículo
+// ============================================
+exports.reactivar = async (req, res) => {
+    try {
+        const resultado = await articulo.reactivar(req.params.id);
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Artículo no encontrado' });
+        }
+        res.json({ mensaje: 'Artículo reactivado exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

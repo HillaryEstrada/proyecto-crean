@@ -57,16 +57,18 @@
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:40px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3" style="width:160px;">CURP</th>
                             <th class="py-3 px-3" style="width:140px;">TELÉFONO</th>
+                            <th class="py-3 px-3" style="width:130px;">EJIDO</th>
+                            <th class="py-3 px-3" style="width:130px;">PREDIO</th>
                             <th class="py-3 px-3">OBSERVACIONES</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="prodBody" class="bg-white">
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="9" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -113,16 +115,18 @@
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:40px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
+                            <th class="py-3 px-3" style="width:160px;">CURP</th>
                             <th class="py-3 px-3" style="width:140px;">TELÉFONO</th>
+                            <th class="py-3 px-3" style="width:130px;">EJIDO</th>
+                            <th class="py-3 px-3" style="width:130px;">PREDIO</th>
                             <th class="py-3 px-3">OBSERVACIONES</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">REGISTRADO POR</th>
-                            <th class="py-3 px-3 text-center" style="width:110px;">FECHA REGISTRO</th>
-                            <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
+                            <th class="py-3 px-3 text-center" style="width:100px;">ACCIONES</th>
                         </tr>
                     </thead>
                     <tbody id="prodBodyInactivos" class="bg-white">
                         <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
+                            <td colspan="9" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                             </td>
                         </tr>
@@ -164,35 +168,135 @@
         </div>
 
         <div class="p-4">
-            <input type="hidden" id="f_pk_productor">
+    <input type="hidden" id="f_pk_productor">
 
-            <div class="row g-3">
-                <div class="col-md-8">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Nombre <span class="text-danger">*</span>
-                    </label>
-                    <input type="text" id="f_nombre" class="form-control"
-                        placeholder="Ej: Juan García López">
-                    <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                Nombre <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="f_nombre" class="form-control"
+                placeholder="Ej: Juan García López">
+            <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                CURP <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="f_curp" class="form-control"
+                placeholder="Ej: AAAA000000HXXXXX00"
+                style="text-transform:uppercase;" maxlength="18">
+            <div class="text-danger d-none small mt-1" id="err_curp">Campo requerido</div>
+        </div>
+
+        <div class="col-md-4">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                Teléfono
+            </label>
+            <input type="text" id="f_telefono" class="form-control"
+                placeholder="Ej: 311-123-4567" oninput="formatearTelefono(this)" maxlength="12">
+            <div class="text-danger d-none small mt-1" id="err_telefono">Campo requerido</div>
+        </div>
+
+        <div class="col-12">
+            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                Observaciones
+            </label>
+            <textarea id="f_observaciones" class="form-control" rows="3"
+                placeholder="Notas adicionales sobre el productor…"></textarea>
+        </div>
+        <div class="col-md-6">
+        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+            Ejido
+        </label>
+        <select id="f_fk_ejido" class="form-select">
+            <option value="">— Sin ejido —</option>
+        </select>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+            Predio
+        </label>
+        <select id="f_fk_predio" class="form-select">
+            <option value="">— Sin predio —</option>
+        </select>
+    </div>
+
+        <!-- ── SECCIÓN EJIDO (opcional) ── -->
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background:#f8f9fa;border:1px solid #dee2e6;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        <i class="fa-solid fa-land-mine-on me-1"></i>Registrar ejido al mismo tiempo
+                        <small class="text-muted fw-normal">(opcional)</small>
+                    </span>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="toggle_ejido"
+                            onchange="toggleSeccionEjido()">
+                    </div>
                 </div>
-
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Teléfono
-                    </label>
-                    <input type="text" id="f_telefono" class="form-control"
-                        placeholder="Ej: 311 123 4567">
-                </div>
-
-                <div class="col-12">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Observaciones
-                    </label>
-                    <textarea id="f_observaciones" class="form-control" rows="3"
-                        placeholder="Notas adicionales sobre el productor…"></textarea>
+                <div id="seccionEjido" class="d-none">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre ejido <span class="text-danger">*</span></label>
+                            <input type="text" id="ej_nombre" class="form-control" placeholder="Ej: Ejido El Progreso">
+                            <div class="text-danger d-none small mt-1" id="err_ej_nombre">Campo requerido</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Municipio</label>
+                            <input type="text" id="ej_municipio" class="form-control" placeholder="Ej: Tepic">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Estado</label>
+                            <input type="text" id="ej_estado_geo" class="form-control" placeholder="Ej: Nayarit">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Dirección</label>
+                            <textarea id="ej_direccion" class="form-control" rows="1" placeholder="Opcional…"></textarea>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- ── SECCIÓN PREDIO (opcional) ── -->
+        <div class="col-12">
+            <div class="p-3 rounded-3" style="background:#f8f9fa;border:1px solid #dee2e6;">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        <i class="fa-solid fa-map-location-dot me-1"></i>Registrar predio al mismo tiempo
+                        <small class="text-muted fw-normal">(opcional)</small>
+                    </span>
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" id="toggle_predio"
+                            onchange="toggleSeccionPredio()">
+                    </div>
+                </div>
+                <div id="seccionPredio" class="d-none">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre predio <span class="text-danger">*</span></label>
+                            <input type="text" id="pr_nombre" class="form-control" placeholder="Ej: Predio El Mezquite">
+                            <div class="text-danger d-none small mt-1" id="err_pr_nombre">Campo requerido</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Ejido al que pertenece</label>
+                            <select id="pr_fk_ejido" class="form-select">
+                                <option value="">— Sin ejido —</option>
+                            </select>
+                            <small class="text-muted" style="font-size:11px;">
+                                Si registraste un ejido arriba, aparecerá aquí al guardar
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
 
         <div class="px-4 pb-4 d-flex justify-content-between">
             <button type="button" class="btn btn-secondary px-4"

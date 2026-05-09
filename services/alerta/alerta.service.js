@@ -69,7 +69,6 @@ const evaluarGarantias = async () => {
         const fechaTexto = new Date(r.fecha_vencimiento).toLocaleDateString('es-MX');
 
         if (r.dias_restantes <= 0) {
-            // Vencida → limpiar etapas anteriores
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_30', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_60', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await insertarSiNoExiste({
@@ -100,7 +99,6 @@ const evaluarGarantias = async () => {
             });
 
         } else {
-            // > 60 días → limpiar alertas obsoletas si existieran
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_60', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_30', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await alertaModel.eliminarPorTipoYReferencia('garantia_vencida',       r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
@@ -111,6 +109,7 @@ const evaluarGarantias = async () => {
 // ============================================
 // 2. ALERTAS DE BAJO STOCK
 // Se dispara cuando stock <= stock_minimo
+// Usa tipo_activo = 'consumible' (consistente con la migración v6)
 // ============================================
 const evaluarBajoStock = async () => {
     console.log('[alertas] Evaluando bajo stock...');
@@ -137,11 +136,14 @@ const evaluarBajoStock = async () => {
         await Conexion.query(
             `DELETE FROM alerta
              WHERE tipo_alerta = 'bajo_stock'
+               AND tipo_activo = 'consumible'
                AND referencia_id NOT IN (${pkConBajoStock.map((_, i) => `$${i + 1}`).join(',')})`,
             pkConBajoStock
         );
     } else {
-        await Conexion.query(`DELETE FROM alerta WHERE tipo_alerta = 'bajo_stock'`);
+        await Conexion.query(
+            `DELETE FROM alerta WHERE tipo_alerta = 'bajo_stock' AND tipo_activo = 'consumible'`
+        );
     }
 
     for (const r of rows) {
@@ -150,7 +152,7 @@ const evaluarBajoStock = async () => {
             tipo_alerta:   'bajo_stock',
             categoria:     'operativa',
             prioridad:     2,
-            tipo_activo:   'inventario',
+            tipo_activo:   'consumible',
             referencia_id: r.pk_articulo,
             mensaje:       `Stock bajo: "${r.nombre}"${almacen}. Actual: ${r.stock} / Mínimo: ${r.stock_minimo}.`
         });

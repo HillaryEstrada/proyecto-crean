@@ -12,37 +12,32 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO inventario_articulo
-            (nombre, descripcion, fk_partida, fk_unidad, fk_almacen, stock_minimo, categoria, stock, registrado_por, codigo_barras)
+            (nombre, descripcion, fk_partida, fk_unidad, fk_ubicacion_exterior, fk_ubicacion_interior, stock_minimo, stock, registrado_por, codigo_barras)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *`,
         [
-            data.nombre,
-            data.descripcion    || null,
-            data.fk_partida     || null,
-            data.fk_unidad      || null,
-            data.fk_almacen     || null,
-            data.stock_minimo   || 0,
-            data.categoria      || null,
-            data.stock_inicial  || 0,
-            data.registrado_por || null,
-            data.codigo_barras  || null
-        ]
+            data.nombre, 
+            data.descripcion||null, 
+            data.fk_partida||null, 
+            data.fk_unidad||null,
+            data.fk_ubicacion_exterior||null, 
+            data.fk_ubicacion_interior||null,
+            data.stock_minimo||0, 
+            data.stock_inicial||0, 
+            data.registrado_por||null, 
+            data.codigo_barras||null]
     ),
 
     // ============================================
     // Listar artículos activos (con joins)
     // ============================================
-    listar: ({ nombre, categoria } = {}) => {
+        listar: ({ nombre } = {}) => {
         let conditions = [`ia.estado = 1`];
         const params   = [];
 
         if (nombre) {
-        params.push(`%${nombre}%`);
-        conditions.push(`(ia.nombre ILIKE $${params.length} OR ia.codigo_barras ILIKE $${params.length})`);
-        }
-        if (categoria) {
-            params.push(categoria);
-            conditions.push(`ia.categoria = $${params.length}`);
+            params.push(`%${nombre}%`);
+            conditions.push(`(ia.nombre ILIKE $${params.length} OR ia.codigo_barras ILIKE $${params.length})`);
         }
 
         return Conexion.query(
@@ -52,27 +47,29 @@ module.exports = {
                 ia.descripcion,
                 ia.stock,
                 ia.stock_minimo,
-                ia.categoria,
                 ia.estado,
                 ia.fk_unidad,
-                ia.fk_almacen,
                 ia.fk_partida,
+                ia.fk_ubicacion_exterior,
+                ia.fk_ubicacion_interior,
                 ia.fecha_registro,
-                u.nombre  AS unidad,
-                a.nombre  AS almacen,
-                pp.nombre AS partida,
-                pp.clave  AS clave_partida,
+                u.nombre   AS unidad,
+                pp.nombre  AS partida,
+                pp.clave   AS clave_partida,
+                ue.nombre  AS ubicacion_exterior,
+                ui.nombre  AS ubicacion_interior,
                 CASE
                     WHEN ia.stock = 0                THEN 'sin_stock'
                     WHEN ia.stock <= ia.stock_minimo THEN 'bajo'
                     ELSE 'ok'
                 END AS estado_stock
-             FROM inventario_articulo ia
-             LEFT JOIN unidad_medida        u  ON u.pk_unidad   = ia.fk_unidad
-             LEFT JOIN almacen              a  ON a.pk_almacen  = ia.fk_almacen
-             LEFT JOIN partida_presupuestal pp ON pp.clave      = ia.fk_partida
-             WHERE ${conditions.join(' AND ')}
-             ORDER BY ia.categoria, ia.nombre`,
+            FROM inventario_articulo ia
+            LEFT JOIN unidad_medida        u   ON u.pk_unidad        = ia.fk_unidad
+            LEFT JOIN partida_presupuestal pp  ON pp.clave           = ia.fk_partida
+            LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion    = ia.fk_ubicacion_exterior
+            LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion    = ia.fk_ubicacion_interior
+            WHERE ${conditions.join(' AND ')}
+            ORDER BY ia.nombre`,
             params
         );
     },
@@ -80,26 +77,21 @@ module.exports = {
     // ============================================
     // Listar artículos inactivos
     // ============================================
-    listarInactivos: () => Conexion.query(
+        listarInactivos: () => Conexion.query(
         `SELECT
-            ia.pk_articulo,
-            ia.nombre,
-            ia.descripcion,
-            ia.stock,
-            ia.stock_minimo,
-            ia.categoria,
-            ia.estado,
-            ia.fk_unidad,
-            ia.fk_almacen,
-            ia.fk_partida,
-            ia.fecha_registro,
-            u.nombre AS unidad,
-            a.nombre AS almacen
-         FROM inventario_articulo ia
-         LEFT JOIN unidad_medida u ON u.pk_unidad  = ia.fk_unidad
-         LEFT JOIN almacen       a ON a.pk_almacen = ia.fk_almacen
-         WHERE ia.estado = 0
-         ORDER BY ia.nombre ASC`
+            ia.pk_articulo, ia.nombre, ia.descripcion, ia.stock, ia.stock_minimo,
+            ia.estado, ia.fk_unidad, ia.fk_partida, ia.fecha_registro,
+            u.nombre   AS unidad,
+            pp.nombre  AS partida,
+            ue.nombre  AS ubicacion_exterior,
+            ui.nombre  AS ubicacion_interior
+        FROM inventario_articulo ia
+        LEFT JOIN unidad_medida        u   ON u.pk_unidad     = ia.fk_unidad
+        LEFT JOIN partida_presupuestal pp  ON pp.clave        = ia.fk_partida
+        LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
+        LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
+        WHERE ia.estado = 0
+        ORDER BY ia.nombre ASC`
     ),
 
     // ============================================
@@ -114,29 +106,21 @@ module.exports = {
     ),
 
     // ============================================
-    // Listar categorías únicas existentes
-    // ============================================
-    listarCategorias: () => Conexion.query(
-        `SELECT DISTINCT categoria
-         FROM inventario_articulo
-         WHERE categoria IS NOT NULL AND estado = 1
-         ORDER BY categoria`
-    ),
-
-    // ============================================
     // Obtener artículo por ID
     // ============================================
     obtenerPorId: (id) => Conexion.query(
         `SELECT
             ia.*,
-            u.nombre  AS unidad,
-            a.nombre  AS almacen,
-            pp.nombre AS partida
-         FROM inventario_articulo ia
-         LEFT JOIN unidad_medida        u  ON u.pk_unidad   = ia.fk_unidad
-         LEFT JOIN almacen              a  ON a.pk_almacen  = ia.fk_almacen
-         LEFT JOIN partida_presupuestal pp ON pp.clave      = ia.fk_partida
-         WHERE ia.pk_articulo = $1`,
+            u.nombre   AS unidad,
+            pp.nombre  AS partida,
+            ue.nombre  AS ubicacion_exterior,
+            ui.nombre  AS ubicacion_interior
+        FROM inventario_articulo ia
+        LEFT JOIN unidad_medida        u   ON u.pk_unidad     = ia.fk_unidad
+        LEFT JOIN partida_presupuestal pp  ON pp.clave        = ia.fk_partida
+        LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
+        LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
+        WHERE ia.pk_articulo = $1`,
         [id]
     ),
 
@@ -152,28 +136,34 @@ module.exports = {
     // ============================================
     // Actualizar artículo (sin tocar stock)
     // ============================================
-    actualizar: (id, data) => Conexion.query(
-        `UPDATE inventario_articulo SET
-            nombre       = COALESCE($1, nombre),
-            descripcion  = $2,
-            fk_partida   = $3,
-            fk_unidad    = $4,
-            fk_almacen   = $5,
-            stock_minimo = COALESCE($6, stock_minimo),
-            categoria    = $7
-         WHERE pk_articulo = $8
-         RETURNING *`,
-        [
-            data.nombre,
-            data.descripcion  || null,
-            data.fk_partida   || null,
-            data.fk_unidad    || null,
-            data.fk_almacen   || null,
-            data.stock_minimo,
-            data.categoria    || null,
-            id
-        ]
-    ),
+        actualizar: (id, data) => {
+        const ubi_ext = data.fk_ubicacion_exterior || null;
+        const ubi_int = data.fk_ubicacion_interior || null;
+
+        return Conexion.query(
+            `UPDATE inventario_articulo SET
+                nombre                = COALESCE($1, nombre),
+                descripcion           = $2,
+                fk_partida            = $3,
+                fk_unidad             = COALESCE($4, fk_unidad),
+                fk_ubicacion_exterior = $5,
+                fk_ubicacion_interior = $6,
+                stock_minimo          = COALESCE($7, stock_minimo)
+            WHERE pk_articulo = $8
+            RETURNING *`,
+            [
+                data.nombre   || null,
+                data.descripcion || null,
+                data.fk_partida  || null,
+                data.fk_unidad   || null,
+                ubi_ext,          // si tiene valor, interior queda null en $6
+                ubi_ext ? null : ubi_int,  // si exterior tiene valor, forzar interior a null
+                data.stock_minimo != null ? data.stock_minimo : null,
+                id
+            ]
+        );
+    },
+
 
     // ============================================
     // Desactivar artículo (baja lógica, estado = 0)

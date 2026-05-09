@@ -13,5 +13,6 @@ router.use(verificarToken);
 router.post('/',            verificarModulo('consumible/consumible'), controller.registrar);
 router.get('/articulo/:id', controller.historialPorArticulo);
 router.get('/',             controller.historialGeneral);
+router.get('/empleado/:id', controller.historialPorEmpleado);
 
 module.exports = router;
