@@ -7,8 +7,10 @@
     let _ejidos       = [];
     let _predios      = [];
     let _filaContador = 0;
-    let _idEditando   = null;   // null = crear, número = editar
-    let _inventario   = [];     // para el tab de inventario
+    let _idEditando   = null;   
+    let _inventario   = [];   
+    let _muestreos     = [];
+    let _muestreosFull = []; 
 
     esperarElemento('movBody', async () => {
         await cargarCatalogos();
@@ -891,30 +893,48 @@ function recolectarDetalles() {
     // ─────────────────────────────────────────
     // SWITCH TAB PRINCIPAL (Movimientos / Inventario)
     // ─────────────────────────────────────────
-    window.switchTabPrincipal = function (tab) {
-        const tMov = document.getElementById('tabMovimientos');
-        const tInv = document.getElementById('tabInventario');
-        const vMov = document.getElementById('vistaMovimientosTab');
-        const vInv = document.getElementById('vistaInventarioTab');
+        window.switchTabPrincipal = function (tab) {
+        const tMov     = document.getElementById('tabMovimientos');
+        const tInv     = document.getElementById('tabInventario');
+        const tMue     = document.getElementById('tabMuestreos');
+        const vMov     = document.getElementById('vistaMovimientosTab');
+        const vInv     = document.getElementById('vistaInventarioTab');
+        const vMue     = document.getElementById('vistaMuestreosTab');
         const btnNuevo = document.getElementById('btnNuevoMovimiento');
 
+        // Ocultar todo
+        vMov.classList.add('d-none');
+        vInv.classList.add('d-none');
+        vMue.classList.add('d-none');
+        tMov.classList.remove('active');
+        tInv.classList.remove('active');
+        tMue.classList.remove('active');
+
+        // Cerrar formulario si está abierto
+        const vForm  = document.getElementById('vistaFormulario');
+        const vTabla = document.getElementById('vistaTabla');
+        if (vForm && !vForm.classList.contains('d-none')) {
+            resetFormulario();
+            vForm.classList.add('d-none');
+            if (vTabla) vTabla.classList.remove('d-none');
+        }
+
         if (tab === 'movimientos') {
-            vMov.classList.remove('d-none'); vInv.classList.add('d-none');
-            tMov.classList.add('active');    tInv.classList.remove('active');
+            vMov.classList.remove('d-none');
+            tMov.classList.add('active');
             if (btnNuevo) btnNuevo.classList.remove('d-none');
-        } else {
-            // Si el formulario está abierto, cerrarlo antes de cambiar tab
-            const vForm = document.getElementById('vistaFormulario');
-            const vTabla = document.getElementById('vistaTabla');
-            if (vForm && !vForm.classList.contains('d-none')) {
-                resetFormulario();
-                vForm.classList.add('d-none');
-                if (vTabla) vTabla.classList.remove('d-none');
-            }
-            vMov.classList.add('d-none');    vInv.classList.remove('d-none');
-            tMov.classList.remove('active'); tInv.classList.add('active');
+
+        } else if (tab === 'inventario') {
+            vInv.classList.remove('d-none');
+            tInv.classList.add('active');
             if (btnNuevo) btnNuevo.classList.add('d-none');
             cargarInvTab();
+
+        } else if (tab === 'muestreos') {
+            vMue.classList.remove('d-none');
+            tMue.classList.add('active');
+            if (btnNuevo) btnNuevo.classList.add('d-none');
+            cargarMuestreosTab();
         }
     };
 
@@ -939,6 +959,25 @@ function recolectarDetalles() {
         }
     };
 
+    window.cargarMuestreosTab = async function () {
+        const tabla = document.getElementById('muestreoBody');
+        if (!tabla) return;
+        tabla.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">
+            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
+        try {
+            const data     = await fetchWithAuth('/muestreo_bodega');
+            _muestreosFull = Array.isArray(data) ? data : [];
+            _muestreos     = [..._muestreosFull];
+            poblarFiltrosMuestreo(_muestreosFull);
+            renderTarjetasMuestreo(_muestreosFull);
+            renderTablaMuestreo(_muestreos);
+        } catch (e) {
+            console.error('Error muestreos:', e);
+            tabla.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-danger">
+                Error al cargar los muestreos</td></tr>`;
+        }
+    };
+
     function poblarFiltrosInv(data) {
         const selBodega = document.getElementById('invFiltroBodega');
         const selTipo   = document.getElementById('invFiltroTipo');
@@ -949,6 +988,76 @@ function recolectarDetalles() {
             bodegas.map(b => `<option value="${b}">${b}</option>`).join('');
         selTipo.innerHTML = '<option value="">Todos los tipos</option>' +
             tipos.map(t => `<option value="${t}">${t}</option>`).join('');
+    }
+
+    function poblarFiltrosMuestreo(data) {
+    const sel = document.getElementById('muestreoFiltroBodega');
+    if (!sel) return;
+    const bodegas = [...new Set(data.map(m => m.bodega).filter(Boolean))].sort();
+    sel.innerHTML = '<option value="">Todas las bodegas</option>' +
+        bodegas.map(b => `<option value="${b}">${b}</option>`).join('');
+    }
+
+    function renderTarjetasMuestreo(data) {
+        const cont = document.getElementById('muestreoTarjetas');
+        if (!cont) return;
+
+        const total    = data.length;
+        const riesgos  = data.filter(m => m.calidad === 'Riesgo' || m.calidad === 'Mala').length;
+        const ultimo   = data.length ? data[0] : null;
+
+        // Bodega con más revisiones
+        const porBodega = {};
+        data.forEach(m => { porBodega[m.bodega] = (porBodega[m.bodega] || 0) + 1; });
+        const bodegaTop = Object.entries(porBodega).sort((a, b) => b[1] - a[1])[0];
+
+        cont.innerHTML = `
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:10px;">
+                    <div class="card-body p-3">
+                        <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Total Muestreos</div>
+                        <div class="fw-bold" style="font-size:28px;color:#1a3c5e;">${total}</div>
+                        <div class="text-muted" style="font-size:11px;">Registros históricos</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:10px;">
+                    <div class="card-body p-3">
+                        <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Último Muestreo</div>
+                        <div class="fw-bold" style="font-size:18px;color:#1a3c5e;">
+                            ${ultimo
+                                ? new Date(ultimo.fecha_muestreo).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                                : '—'}
+                        </div>
+                        <div class="text-muted" style="font-size:11px;">${ultimo ? (ultimo.bodega || '—') : '—'}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:10px;">
+                    <div class="card-body p-3">
+                        <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Riesgos Detectados</div>
+                        <div class="fw-bold" style="font-size:28px;color:${riesgos > 0 ? '#c0392b' : '#2d7a4f'};">${riesgos}</div>
+                        <div style="font-size:11px;color:${riesgos > 0 ? '#c0392b' : '#2d7a4f'};">
+                            ${riesgos > 0 ? 'Requieren atención' : 'Sin alertas'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm h-100" style="border-radius:10px;">
+                    <div class="card-body p-3">
+                        <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Más Revisada</div>
+                        <div class="fw-bold" style="font-size:18px;color:#1a3c5e;">
+                            ${bodegaTop ? bodegaTop[0] : '—'}
+                        </div>
+                        <div class="text-muted" style="font-size:11px;">
+                            ${bodegaTop ? bodegaTop[1] + ' revisión' + (bodegaTop[1] !== 1 ? 'es' : '') : '—'}
+                        </div>
+                    </div>
+                </div>
+            </div>`;
     }
 
     function renderTarjetasInv(data) {
@@ -1123,24 +1232,8 @@ function recolectarDetalles() {
     // VER DETALLE DE PRODUCTO EN INVENTARIO
     // ════════════════════════════════════════
     window.verDetalleProducto = async function (fk_producto, fk_bodega, producto, bodega) {
-        console.log('verDetalleProducto:', fk_producto, fk_bodega);
-        // Buscar el registro de inventario
-        const inv = _inventario.find(i => (i.fk_producto || i.pk_inventario) == fk_producto && (i.fk_bodega || 0) == fk_bodega)
-            || _inventario.find(i => i.producto === producto && i.bodega === bodega)
-            || {};
-
-        const stk        = parseFloat(inv.stock_kg || 0);
-        const cap        = parseFloat(inv.capacidad_kg || 0);
-        const pct        = cap > 0 ? Math.min(100, Math.round((stk / cap) * 100)) : null;
-        const hum        = inv.humedad != null ? parseFloat(inv.humedad) : null;
-        const humColor   = hum === null ? '#6c757d' : hum > 13 ? '#c0392b' : '#2d7a4f';
-        const calidad    = inv.analisis_calidad === true ? 'A' : inv.analisis_calidad === false && hum !== null ? 'B' : '—';
-        const calidadTxt = inv.analisis_calidad === true ? 'Buena' : inv.analisis_calidad === false && hum !== null ? 'Regular' : '—';
-
-        // Mostrar modal con loading
         const modalEl = document.getElementById('modalDetalleProducto');
         if (!modalEl) {
-            // Crear modal dinámicamente si no existe
             const div = document.createElement('div');
             div.innerHTML = `
             <div class="modal fade" id="modalDetalleProducto" tabindex="-1">
@@ -1153,9 +1246,7 @@ function recolectarDetalles() {
                             </h5>
                             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
-                        <div class="modal-body p-4" id="modalProdBody">
-                            <div class="text-center py-4"><div class="spinner-border" style="color:#2d7a4f;"></div></div>
-                        </div>
+                        <div class="modal-body p-0" id="modalProdBody"></div>
                         <div class="modal-footer bg-light border-top" id="modalProdFooter"></div>
                     </div>
                 </div>
@@ -1164,54 +1255,199 @@ function recolectarDetalles() {
         }
 
         document.getElementById('modalProdTitulo').textContent = `${producto} · ${bodega}`;
-        document.getElementById('modalProdBody').innerHTML = '<div class="text-center py-4"><div class="spinner-border" style="color:#2d7a4f;"></div></div>';
+        document.getElementById('modalProdBody').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border" style="color:#2d7a4f;"></div>
+            </div>`;
         document.getElementById('modalProdFooter').innerHTML = '';
         new bootstrap.Modal(document.getElementById('modalDetalleProducto')).show();
 
         try {
-            // Obtener historial de movimientos de este producto en esta bodega
-            const historial = await fetchWithAuth(`/movimiento_bodega/historial/${fk_producto}/${fk_bodega}`);
+            const [historial, muestreos] = await Promise.all([
+                fetchWithAuth(`/movimiento_bodega/historial/${fk_producto}/${fk_bodega}`),
+                fetchWithAuth(`/muestreo_bodega/historial/${fk_bodega}/${fk_producto}`)
+            ]);
 
             document.getElementById('modalProdBody').innerHTML = `
-            <h6 class="fw-semibold mb-3" style="color:#1a3c5e;">
-                <i class="fa-solid fa-clock-rotate-left me-2"></i>Historial de movimientos
-            </h6>
-            ${historial.length ? `
-            <div class="table-responsive">
-                <table class="table table-hover table-sm mb-0" style="font-size:12px;">
-                    <thead style="background:#f8fafc;">
-                        <tr>
-                            <th class="px-3 py-2">Fecha</th>
-                            <th class="px-3 py-2">Folio</th>
-                            <th class="px-3 py-2 text-center">Tipo</th>
-                            <th class="px-3 py-2 text-center">Cantidad</th>
-                            <th class="px-3 py-2 text-center">Humedad</th>
-                            <th class="px-3 py-2">Motivo</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${historial.map(h => {
-                            const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
-                            const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
-                            return `<tr>
-                                <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
-                                <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
-                                <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
-                                    ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
-                                    : '<span class="badge bg-danger" style="font-size:10px;">↑ Salida</span>'}</td>
-                                <td class="px-3 text-center fw-semibold" style="color:${color};">${signo}${parseFloat(h.cantidad_kg).toLocaleString('es-MX')} kg</td>
-                                <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
-                                <td class="px-3 text-muted">${h.motivo || '—'}</td>
-                            </tr>`;
-                        }).join('')}
-                    </tbody>
-                </table>
-            </div>` : '<p class="text-muted text-center py-3">Sin movimientos registrados para este producto en esta bodega.</p>'}
-        `;
+            <!-- Tabs internos -->
+            <ul class="nav nav-tabs px-4 pt-3" id="tabsDetalleProd">
+                <li class="nav-item">
+                    <button class="nav-link active d-flex align-items-center gap-2"
+                        id="tabDetMovimientos" onclick="switchTabDetalle('movimientos')">
+                        <i class="fa-solid fa-arrow-right-arrow-left" style="font-size:12px;"></i>Movimientos
+                        <span class="badge rounded-pill" style="background:#1a3c5e;font-size:10px;">${historial.length}</span>
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link d-flex align-items-center gap-2"
+                        id="tabDetMuestreos" onclick="switchTabDetalle('muestreos')">
+                        <i class="fa-solid fa-flask" style="font-size:12px;"></i>Muestreos
+                        <span class="badge rounded-pill" style="background:#1a3c5e;font-size:10px;">${muestreos.length}</span>
+                    </button>
+                </li>
+            </ul>
+
+            <!-- Tab Movimientos -->
+            <div id="vistaDetMovimientos" class="p-4">
+                ${historial.length ? `
+                <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+                    <div class="position-relative flex-grow-1" style="min-width:160px;">
+                        <i class="fa-solid fa-magnifying-glass text-muted"
+                            style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;"></i>
+                        <input type="text" id="bdet-search" class="form-control form-control-sm ps-4"
+                            placeholder="Buscar por folio, motivo…" oninput="filtrarDetBodega()">
+                    </div>
+                    <select id="bdet-filtro-tipo" class="form-select form-select-sm" style="width:130px;"
+                        onchange="filtrarDetBodega()">
+                        <option value="">Todos</option>
+                        <option value="entrada">Entradas</option>
+                        <option value="salida">Salidas</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <span class="badge" style="background:#1a3c5e;font-size:11px;">Total: <span id="bdet-total">${historial.length}</span></span>
+                    <span class="badge bg-success" style="font-size:11px;">Entradas: ${historial.filter(h => h.tipo_movimiento === 'entrada').length}</span>
+                    <span class="badge bg-danger"  style="font-size:11px;">Salidas: ${historial.filter(h => h.tipo_movimiento === 'salida').length}</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0" style="font-size:12px;">
+                        <thead style="position:sticky;top:0;background:#1a3c5e;color:#fff;z-index:1;">
+                            <tr>
+                                <th class="px-3 py-2">Fecha</th>
+                                <th class="px-3 py-2">Folio</th>
+                                <th class="px-3 py-2 text-center">Tipo</th>
+                                <th class="px-3 py-2 text-center">Cantidad</th>
+                                <th class="px-3 py-2 text-center">Humedad</th>
+                                <th class="px-3 py-2">Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bdet-body"></tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                    <div id="bdet-info" class="text-muted" style="font-size:11px;"></div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="bdetPaginar(-1)">‹ Ant</button>
+                        <span id="bdet-pag-info" class="text-muted" style="font-size:11px;"></span>
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="bdetPaginar(1)">Sig ›</button>
+                    </div>
+                </div>` : `
+                <div class="text-center py-4 text-muted">
+                    <i class="fa-solid fa-arrow-right-arrow-left fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    Sin movimientos registrados para este producto en esta bodega.
+                </div>`}
+            </div>
+
+            <!-- Tab Muestreos -->
+            <div id="vistaDetMuestreos" class="p-4 d-none">
+                ${muestreos.length ? `
+                <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+                    <div class="position-relative flex-grow-1" style="min-width:160px;">
+                        <i class="fa-solid fa-magnifying-glass text-muted"
+                            style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;"></i>
+                        <input type="text" id="bmue-search" class="form-control form-control-sm ps-4"
+                            placeholder="Buscar por calidad, observaciones…" oninput="filtrarDetMuestreosBodega()">
+                    </div>
+                    <select id="bmue-filtro-calidad" class="form-select form-select-sm" style="width:130px;"
+                        onchange="filtrarDetMuestreosBodega()">
+                        <option value="">Todas</option>
+                        <option value="Buena">Buena</option>
+                        <option value="Regular">Regular</option>
+                        <option value="Riesgo">Riesgo</option>
+                        <option value="Mala">Mala</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <span class="badge" style="background:#1a3c5e;font-size:11px;">Total: <span id="bmue-total">${muestreos.length}</span></span>
+                    ${['Buena','Regular','Riesgo','Mala'].map(cal => {
+                        const cnt = muestreos.filter(m => m.calidad === cal).length;
+                        return cnt > 0 ? `<span class="badge bg-secondary" style="font-size:11px;">${cal}: ${cnt}</span>` : '';
+                    }).join('')}
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0" style="font-size:12px;">
+                        <thead style="position:sticky;top:0;background:#1a3c5e;color:#fff;z-index:1;">
+                            <tr>
+                                <th class="px-3 py-2">Fecha</th>
+                                <th class="px-3 py-2 text-center">Humedad</th>
+                                <th class="px-3 py-2 text-center">Temp.</th>
+                                <th class="px-3 py-2 text-center">Calidad</th>
+                                <th class="px-3 py-2">Observaciones</th>
+                                <th class="px-3 py-2 text-center">Registrado por</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bmue-body"></tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                    <div id="bmue-info" class="text-muted" style="font-size:11px;"></div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="bmuePaginar(-1)">‹ Ant</button>
+                        <span id="bmue-pag-info" class="text-muted" style="font-size:11px;"></span>
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="bmuePaginar(1)">Sig ›</button>
+                    </div>
+                </div>` : `
+                <div class="text-center py-4 text-muted">
+                    <i class="fa-solid fa-flask fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    Sin muestreos registrados para este producto en esta bodega.
+                </div>`}
+            </div>`;
+            // Inicializar paginación del historial de bodega
+            window._bdetMovs     = historial;
+            window._bdetFiltrado = historial;
+            window._bdetPagina   = 1;
+            window._bdetPorPag   = 8;
+            if (historial.length) window.renderBdetPagina();
+
+            // Inicializar paginación de muestreos
+            window._bmueMovs     = muestreos;
+            window._bmueFiltrado = muestreos;
+            window._bmuePagina   = 1;
+            window._bmuePorPag   = 8;
+            if (muestreos.length) window.renderBmuePagina();
+            
+            // Footer con botón registrar muestreo
+            document.getElementById('modalProdFooter').innerHTML = `
+                <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
+                    onclick="
+                        bootstrap.Modal.getInstance(document.getElementById('modalDetalleProducto')).hide();
+                        setTimeout(() => abrirModalMuestreo(${fk_bodega}, ${fk_producto}), 400);
+                    ">
+                    <i class="fa-solid fa-flask me-2"></i>Registrar muestreo
+                </button>`;
 
         } catch (e) {
+            console.error('Error verDetalleProducto:', e);
             document.getElementById('modalProdBody').innerHTML =
-                `<div class="text-center text-danger py-4">Error al cargar el historial</div>`;
+                `<div class="text-center text-danger py-4 p-4">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Error al cargar el detalle
+                </div>`;
+        }
+    };
+
+    // ─────────────────────────────────────────
+    // SWITCH TAB INTERNO DEL MODAL DETALLE
+    // ─────────────────────────────────────────
+    window.switchTabDetalle = function (tab) {
+        const tMov  = document.getElementById('tabDetMovimientos');
+        const tMue  = document.getElementById('tabDetMuestreos');
+        const vMov  = document.getElementById('vistaDetMovimientos');
+        const vMue  = document.getElementById('vistaDetMuestreos');
+
+        if (tab === 'movimientos') {
+            vMov.classList.remove('d-none');
+            vMue.classList.add('d-none');
+            tMov.classList.add('active');
+            tMue.classList.remove('active');
+        } else {
+            vMov.classList.add('d-none');
+            vMue.classList.remove('d-none');
+            tMov.classList.remove('active');
+            tMue.classList.add('active');
         }
     };
 
@@ -1237,6 +1473,442 @@ function recolectarDetalles() {
         }
 
         renderTablaInv(filtrados);
+    };
+
+    function badgeCalidad(calidad) {
+        const map = {
+            'Buena':   ['#e8f5ee', '#2d7a4f'],
+            'Regular': ['#fff8e1', '#e6a817'],
+            'Riesgo':  ['#fff3e0', '#e67e22'],
+            'Mala':    ['#fdecea', '#c0392b']
+        };
+        const [bg, color] = map[calidad] || ['#f0f0f0', '#6c757d'];
+        return calidad
+            ? `<span class="badge" style="background:${bg};color:${color};border:1px solid ${color}40;font-size:11px;">${calidad}</span>`
+            : '<span class="text-muted" style="font-size:11px;">—</span>';
+    }
+
+    function renderTablaMuestreo(data) {
+        const tabla = document.getElementById('muestreoBody');
+        const info  = document.getElementById('info-registros-muestreo');
+        if (!tabla) return;
+
+        if (!data.length) {
+            tabla.innerHTML = `
+                <tr><td colspan="10" class="text-center py-5 text-muted">
+                    <i class="fa-solid fa-flask fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    No hay muestreos registrados
+                </td></tr>`;
+            if (info) info.textContent = 'Sin registros';
+            initPaginacion({ tbodyId: 'muestreoBody', filasPorPagina: 10, sufijo: 'muestreo' });
+            return;
+        }
+
+        if (info) info.textContent = `Mostrando ${data.length} de ${_muestreosFull.length} registros`;
+
+        tabla.innerHTML = data.map((m, i) => {
+            const hum     = m.humedad != null ? parseFloat(m.humedad) : null;
+            const humColor = hum === null ? '#6c757d' : hum > 14 ? '#c0392b' : '#2d7a4f';
+            const humHtml  = hum !== null
+                ? `<span style="color:${humColor};font-weight:600;">${hum.toFixed(1)}%</span>
+                ${hum > 14 ? '<i class="fa-solid fa-triangle-exclamation ms-1" style="color:#e6a817;font-size:10px;"></i>' : ''}`
+                : '<span class="text-muted">—</span>';
+
+            return `
+            <tr>
+                <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${m.fecha_muestreo
+                        ? new Date(m.fecha_muestreo + 'T12:00:00').toLocaleDateString('es-MX')
+                        : '—'}
+                </td>
+                <td class="px-3 fw-semibold" style="color:#1a3c5e;font-size:13px;">${m.bodega || '—'}</td>
+                <td class="px-3" style="font-size:13px;">
+                    <div class="fw-semibold" style="color:#1a3c5e;">${m.producto || '—'}</div>
+                    ${m.variedad ? `<div class="text-muted" style="font-size:11px;">${m.variedad}</div>` : ''}
+                </td>
+                <td class="px-3 text-center">${humHtml}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${m.temperatura != null ? parseFloat(m.temperatura).toFixed(1) + ' °C' : '—'}
+                </td>
+                <td class="px-3 text-center">${badgeCalidad(m.calidad)}</td>
+                <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
+                    ${m.observaciones
+                        ? `<span title="${m.observaciones}">${m.observaciones.length > 60
+                            ? m.observaciones.substring(0, 60) + '…'
+                            : m.observaciones}</span>`
+                        : '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">${m.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
+                        onclick="editarMuestreo(${m.pk_muestreo})">
+                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Eliminar"
+                        onclick="eliminarMuestreo(${m.pk_muestreo})">
+                        <i class="fa-solid fa-trash" style="font-size:11px;"></i>
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+
+        initPaginacion({ tbodyId: 'muestreoBody', filasPorPagina: 10, sufijo: 'muestreo' });
+    }
+
+    // ─────────────────────────────────────────
+    // FILTRAR MUESTREOS
+    // ─────────────────────────────────────────
+    window.filtrarMuestreos = function () {
+        const q       = (document.getElementById('muestreoSearch')?.value || '').toLowerCase();
+        const bodega  = document.getElementById('muestreoFiltroBodega')?.value || '';
+        const calidad = document.getElementById('muestreoFiltroCalidad')?.value || '';
+
+        _muestreos = _muestreosFull.filter(m => {
+            const txt = `${m.bodega || ''} ${m.producto || ''} ${m.variedad || ''}`.toLowerCase();
+            return (!q       || txt.includes(q))
+                && (!bodega  || m.bodega  === bodega)
+                && (!calidad || m.calidad === calidad);
+        });
+
+        renderTablaMuestreo(_muestreos);
+    };
+    
+    window.abrirModalMuestreo = function (fk_bodega = null, fk_producto = null) {
+        document.getElementById('m_pk_muestreo').value    = '';
+        document.getElementById('m_humedad').value        = '';
+        document.getElementById('m_temperatura').value   = '';
+        document.getElementById('m_calidad').value        = '';
+        document.getElementById('m_observaciones').value  = '';
+        document.getElementById('m_err_bodega').classList.add('d-none');
+        document.getElementById('m_err_producto').classList.add('d-none');
+        document.getElementById('m_err_fecha').classList.add('d-none');
+        document.getElementById('modalMuestreoTitulo').textContent = 'Registrar Muestreo';
+        document.getElementById('m_btnLabel').textContent = 'Registrar muestreo';
+
+        // Fecha de hoy por defecto
+        document.getElementById('m_fecha_muestreo').value =
+            new Date().toISOString().split('T')[0];
+
+        // Poblar select de bodegas
+        const selBodega = document.getElementById('m_fk_bodega');
+        selBodega.innerHTML = '<option value="">Seleccionar…</option>' +
+            _bodegas
+                .filter(b => b.estado === 'Operativo')
+                .map(b => `<option value="${b.pk_bodega}">${b.nombre}</option>`)
+                .join('');
+
+        // Si vienen preseleccionados (desde inventario)
+        if (fk_bodega) {
+            selBodega.value = fk_bodega;
+            cargarProductosMuestreo(fk_producto);
+        } else {
+            document.getElementById('m_fk_producto').innerHTML =
+                '<option value="">Seleccionar bodega primero…</option>';
+        }
+
+        new bootstrap.Modal(document.getElementById('modalMuestreo')).show();
+    };
+
+    window.cargarProductosMuestreo = async function (preseleccionarId = null) {
+    const fk_bodega = document.getElementById('m_fk_bodega').value;
+    const sel       = document.getElementById('m_fk_producto');
+
+    if (!fk_bodega) {
+        sel.innerHTML = '<option value="">Seleccionar bodega primero…</option>';
+        return;
+    }
+
+    try {
+        // Traer solo productos con stock en esa bodega
+        const inv = await fetchWithAuth('/inventario_bodega');
+        const productos = inv
+            .filter(i => String(i.fk_bodega) === String(fk_bodega) && parseFloat(i.stock_kg) > 0)
+            .map(i => ({ id: i.fk_producto, nombre: i.producto, variedad: i.variedad }));
+
+        if (!productos.length) {
+            sel.innerHTML = '<option value="">Sin productos en esta bodega</option>';
+            return;
+        }
+
+        sel.innerHTML = '<option value="">Seleccionar…</option>' +
+            productos.map(p =>
+                `<option value="${p.id}">${p.nombre}${p.variedad ? ' — ' + p.variedad : ''}</option>`
+            ).join('');
+
+        if (preseleccionarId) sel.value = preseleccionarId;
+
+    } catch (e) {
+        console.error('Error cargando productos del modal muestreo:', e);
+    }
+};
+
+// ─────────────────────────────────────────
+// EDITAR MUESTREO
+// ─────────────────────────────────────────
+window.editarMuestreo = async function (id) {
+    try {
+        const m = await fetchWithAuth(`/muestreo_bodega/${id}`);
+
+        document.getElementById('m_pk_muestreo').value   = m.pk_muestreo;
+        document.getElementById('m_humedad').value       = m.humedad ?? '';
+        document.getElementById('m_temperatura').value  = m.temperatura ?? '';
+        document.getElementById('m_calidad').value       = m.calidad || '';
+        document.getElementById('m_observaciones').value = m.observaciones || '';
+        document.getElementById('m_fecha_muestreo').value = m.fecha_muestreo
+            ? m.fecha_muestreo.split('T')[0]
+            : '';
+        document.getElementById('m_err_bodega').classList.add('d-none');
+        document.getElementById('m_err_producto').classList.add('d-none');
+        document.getElementById('m_err_fecha').classList.add('d-none');
+        document.getElementById('modalMuestreoTitulo').textContent = 'Editar Muestreo';
+        document.getElementById('m_btnLabel').textContent = 'Guardar cambios';
+
+        // Poblar y seleccionar bodega
+        const selBodega = document.getElementById('m_fk_bodega');
+        selBodega.innerHTML = '<option value="">Seleccionar…</option>' +
+            _bodegas
+                .filter(b => b.estado === 'Operativo')
+                .map(b => `<option value="${b.pk_bodega}">${b.nombre}</option>`)
+                .join('');
+        selBodega.value = m.fk_bodega;
+
+        // Cargar productos y preseleccionar
+        await cargarProductosMuestreo(m.fk_producto);
+
+        new bootstrap.Modal(document.getElementById('modalMuestreo')).show();
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo cargar el muestreo' });
+    }
+};
+
+// ─────────────────────────────────────────
+// GUARDAR MUESTREO (CREAR O ACTUALIZAR)
+// ─────────────────────────────────────────
+window.guardarMuestreo = async function () {
+    const id          = document.getElementById('m_pk_muestreo').value;
+    const fk_bodega   = document.getElementById('m_fk_bodega').value;
+    const fk_producto = document.getElementById('m_fk_producto').value;
+    const fecha       = document.getElementById('m_fecha_muestreo').value;
+    const humedad     = document.getElementById('m_humedad').value;
+    const temperatura = document.getElementById('m_temperatura').value;
+    const calidad     = document.getElementById('m_calidad').value;
+    const observaciones = document.getElementById('m_observaciones').value.trim();
+
+    let valido = true;
+
+    if (!fk_bodega) {
+        document.getElementById('m_err_bodega').classList.remove('d-none');
+        valido = false;
+    } else {
+        document.getElementById('m_err_bodega').classList.add('d-none');
+    }
+
+    if (!fk_producto) {
+        document.getElementById('m_err_producto').classList.remove('d-none');
+        valido = false;
+    } else {
+        document.getElementById('m_err_producto').classList.add('d-none');
+    }
+
+    if (!fecha) {
+        document.getElementById('m_err_fecha').classList.remove('d-none');
+        valido = false;
+    } else {
+        document.getElementById('m_err_fecha').classList.add('d-none');
+    }
+
+    if (!valido) return;
+
+    const payload = {
+        fk_bodega:    parseInt(fk_bodega),
+        fk_producto:  parseInt(fk_producto),
+        fecha_muestreo: fecha,
+        humedad:      humedad     ? parseFloat(humedad)     : null,
+        temperatura:  temperatura ? parseFloat(temperatura) : null,
+        calidad:      calidad     || null,
+        observaciones: observaciones || null
+    };
+
+    try {
+        if (id) {
+            await fetchWithAuth(`/muestreo_bodega/${id}`, 'PUT', payload);
+            Swal.fire({ icon: 'success', title: 'Actualizado',
+                text: 'Muestreo actualizado exitosamente',
+                timer: 2000, showConfirmButton: false });
+        } else {
+            await fetchWithAuth('/muestreo_bodega', 'POST', payload);
+            Swal.fire({ icon: 'success', title: 'Registrado',
+                text: 'Muestreo registrado exitosamente',
+                timer: 2000, showConfirmButton: false });
+        }
+        bootstrap.Modal.getInstance(document.getElementById('modalMuestreo')).hide();
+        cargarMuestreosTab();
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+    }
+};
+
+// ─────────────────────────────────────────
+// ELIMINAR MUESTREO
+// ─────────────────────────────────────────
+window.eliminarMuestreo = async function (id) {
+    const confirm = await Swal.fire({
+        icon: 'warning',
+        title: '¿Eliminar muestreo?',
+        text: 'Esta acción no se puede deshacer.',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#c0392b'
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+        await fetchWithAuth(`/muestreo_bodega/${id}`, 'DELETE');
+        Swal.fire({ icon: 'success', title: 'Eliminado',
+            timer: 2000, showConfirmButton: false });
+        cargarMuestreosTab();
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+    }
+};
+
+window.renderBdetPagina = function () {
+        const data      = window._bdetFiltrado || [];
+        const porPag    = window._bdetPorPag   || 8;
+        const pag       = window._bdetPagina   || 1;
+        const total     = data.length;
+        const totalPags = Math.max(1, Math.ceil(total / porPag));
+        if (pag > totalPags) window._bdetPagina = totalPags;
+        const inicio = (window._bdetPagina - 1) * porPag;
+        const slice  = data.slice(inicio, inicio + porPag);
+
+        const tbody = document.getElementById('bdet-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = slice.length ? slice.map(h => {
+            const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
+            const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
+            return `<tr>
+                <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
+                <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
+                <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
+                    ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
+                    : '<span class="badge bg-danger"  style="font-size:10px;">↑ Salida</span>'}</td>
+                <td class="px-3 text-center fw-semibold" style="color:${color};">
+                    ${signo}${parseFloat(h.cantidad_kg).toLocaleString('es-MX')} kg
+                </td>
+                <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
+                <td class="px-3 text-muted">${h.motivo || '—'}</td>
+            </tr>`;
+        }).join('') : `<tr><td colspan="6" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
+
+        const info = document.getElementById('bdet-info');
+        if (info) info.textContent = `Mostrando ${inicio + 1}–${Math.min(inicio + porPag, total)} de ${total}`;
+        const pagInfo = document.getElementById('bdet-pag-info');
+        if (pagInfo) pagInfo.textContent = `Pág. ${window._bdetPagina} / ${totalPags}`;
+        const totalEl = document.getElementById('bdet-total');
+        if (totalEl) totalEl.textContent = total;
+    };
+
+    window.bdetPaginar = function (dir) {
+        const total     = window._bdetFiltrado?.length || 0;
+        const totalPags = Math.max(1, Math.ceil(total / (window._bdetPorPag || 8)));
+        window._bdetPagina = Math.min(totalPags, Math.max(1, (window._bdetPagina || 1) + dir));
+        window.renderBdetPagina();
+    };
+
+    window.filtrarDetBodega = function () {
+        const q    = (document.getElementById('bdet-search')?.value || '').toLowerCase();
+        const tipo = document.getElementById('bdet-filtro-tipo')?.value || '';
+        window._bdetFiltrado = (window._bdetMovs || []).filter(h => {
+            const txt = `${h.folio || ''} ${h.motivo || ''}`.toLowerCase();
+            return (!q || txt.includes(q)) && (!tipo || h.tipo_movimiento === tipo);
+        });
+        window._bdetPagina = 1;
+        window.renderBdetPagina();
+    };
+
+    window.renderBmuePagina = function () {
+        const data      = window._bmueFiltrado || [];
+        const porPag    = window._bmuePorPag   || 8;
+        const pag       = window._bmuePagina   || 1;
+        const total     = data.length;
+        const totalPags = Math.max(1, Math.ceil(total / porPag));
+        if (pag > totalPags) window._bmuePagina = totalPags;
+        const inicio = (window._bmuePagina - 1) * porPag;
+        const slice  = data.slice(inicio, inicio + porPag);
+
+        const tbody = document.getElementById('bmue-body');
+        if (!tbody) return;
+
+        const calidadMap = {
+            'Buena':   ['#e8f5ee','#2d7a4f'],
+            'Regular': ['#fff8e1','#e6a817'],
+            'Riesgo':  ['#fff3e0','#e67e22'],
+            'Mala':    ['#fdecea','#c0392b']
+        };
+
+        tbody.innerHTML = slice.length ? slice.map(m => {
+            const hum = m.humedad != null ? parseFloat(m.humedad) : null;
+            const humColor = hum === null ? '#6c757d' : hum > 14 ? '#c0392b' : '#2d7a4f';
+            const [bg, col] = calidadMap[m.calidad] || ['#f0f0f0','#6c757d'];
+            return `<tr>
+                <td class="px-3">
+                    ${m.fecha_muestreo
+                        ? new Date(m.fecha_muestreo + 'T12:00:00').toLocaleDateString('es-MX')
+                        : '—'}
+                </td>
+                <td class="px-3 text-center fw-semibold" style="color:${humColor};">
+                    ${hum !== null ? hum.toFixed(1) + '%' : '—'}
+                    ${hum !== null && hum > 14
+                        ? '<i class="fa-solid fa-triangle-exclamation ms-1" style="color:#e6a817;font-size:10px;"></i>'
+                        : ''}
+                </td>
+                <td class="px-3 text-center text-muted">
+                    ${m.temperatura != null ? parseFloat(m.temperatura).toFixed(1) + ' °C' : '—'}
+                </td>
+                <td class="px-3 text-center">
+                    ${m.calidad
+                        ? `<span class="badge" style="background:${bg};color:${col};border:1px solid ${col}40;font-size:11px;">${m.calidad}</span>`
+                        : '<span class="text-muted">—</span>'}
+                </td>
+                <td class="px-3 text-muted" style="max-width:200px;">
+                    ${m.observaciones
+                        ? `<span title="${m.observaciones}">${m.observaciones.length > 50
+                            ? m.observaciones.substring(0,50) + '…'
+                            : m.observaciones}</span>`
+                        : '—'}
+                </td>
+                <td class="px-3 text-center text-muted">${m.registrado_por_usuario || '—'}</td>
+            </tr>`;
+        }).join('') : `<tr><td colspan="6" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
+
+        const info = document.getElementById('bmue-info');
+        if (info) info.textContent = `Mostrando ${inicio + 1}–${Math.min(inicio + porPag, total)} de ${total}`;
+        const pagInfo = document.getElementById('bmue-pag-info');
+        if (pagInfo) pagInfo.textContent = `Pág. ${window._bmuePagina} / ${totalPags}`;
+        const totalEl = document.getElementById('bmue-total');
+        if (totalEl) totalEl.textContent = total;
+    };
+
+    window.bmuePaginar = function (dir) {
+        const total     = window._bmueFiltrado?.length || 0;
+        const totalPags = Math.max(1, Math.ceil(total / (window._bmuePorPag || 8)));
+        window._bmuePagina = Math.min(totalPags, Math.max(1, (window._bmuePagina || 1) + dir));
+        window.renderBmuePagina();
+    };
+
+    window.filtrarDetMuestreosBodega = function () {
+        const q       = (document.getElementById('bmue-search')?.value || '').toLowerCase();
+        const calidad = document.getElementById('bmue-filtro-calidad')?.value || '';
+        window._bmueFiltrado = (window._bmueMovs || []).filter(m => {
+            const txt = `${m.calidad || ''} ${m.observaciones || ''} ${m.registrado_por_usuario || ''}`.toLowerCase();
+            return (!q || txt.includes(q)) && (!calidad || m.calidad === calidad);
+        });
+        window._bmuePagina = 1;
+        window.renderBmuePagina();
     };
 
 })();

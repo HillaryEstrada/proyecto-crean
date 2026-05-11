@@ -10,10 +10,15 @@ const ejido = require('../../models/ejido/ejido.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        // Verificar duplicado
-        const existe = await ejido.existeNombre(req.body.nombre);
+        const { nombre, municipio } = req.body;
+
+        if (!nombre || !municipio) {
+            return res.status(400).json({ error: 'Nombre y municipio son obligatorios' });
+        }
+
+        const existe = await ejido.existeCombinacion(nombre, municipio);
         if (existe.rows.length) {
-            return res.status(400).json({ error: 'Ya existe un ejido con ese nombre' });
+            return res.status(400).json({ error: 'Ya existe un ejido con ese nombre en ese municipio' });
         }
 
         const resultado = await ejido.crear({ ...req.body, registrado_por: req.user.id });
@@ -79,11 +84,18 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        if (req.body.nombre) {
-            const existe = await ejido.existeNombre(req.body.nombre, req.params.id);
+        const { nombre, municipio } = req.body;
+
+        if (nombre && municipio) {
+            const existe = await ejido.existeCombinacion(nombre, municipio, req.params.id);
             if (existe.rows.length) {
-                return res.status(400).json({ error: 'Ya existe un ejido con ese nombre' });
+                return res.status(400).json({ error: 'Ya existe un ejido con ese nombre en ese municipio' });
             }
+        }
+
+        const resultado = await ejido.actualizar(req.params.id, req.body);
+        if (!resultado.rows.length) {
+            return res.status(404).json({ error: 'Ejido no encontrado' });
         }
         res.json({ mensaje: 'Ejido actualizado exitosamente', data: resultado.rows[0] });
     } catch (error) {

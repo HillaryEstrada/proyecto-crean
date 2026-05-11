@@ -71,7 +71,11 @@
                     </span>
                 </td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.ejido_nombre || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarPredio(${p.pk_predio})">
@@ -117,7 +121,11 @@
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${p.nombre || '—'}</span></td>
                 <td class="px-3 text-muted" style="font-size:13px;">${p.ejido_nombre || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarPredio(${p.pk_predio}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
@@ -191,7 +199,11 @@
                         </span>
                     </td>
                     <td class="px-3 text-muted" style="font-size:13px;">${p.ejido_nombre || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                   <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                            ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarPredio(${p.pk_predio}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
@@ -260,18 +272,37 @@
         const nombre   = document.getElementById('f_nombre').value.trim();
         const fk_ejido = document.getElementById('f_fk_ejido').value;
 
+        let valido = true;
+
+        // Nombre — obligatorio + formato
         if (!nombre) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = 'Campo requerido';
+            valido = false;
+        } else {
+            const errs = validarFormato(nombre);
+            if (errs.length) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = errs[0];
+                valido = false;
+            } else {
+                document.getElementById('err_nombre').classList.add('d-none');
+            }
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+
+        // Ejido — obligatorio
+        if (!fk_ejido) {
+            document.getElementById('err_ejido').classList.remove('d-none');
+            document.getElementById('err_ejido').textContent = 'El ejido es obligatorio';
+            valido = false;
+        } else {
+            document.getElementById('err_ejido').classList.add('d-none');
+        }
+
+        if (!valido) return;
 
         try {
-            const payload = {
-                nombre,
-                fk_ejido: fk_ejido || null
-            };
+            const payload = { nombre, fk_ejido: parseInt(fk_ejido) };
 
             if (id) {
                 await fetchWithAuth(`/predio/${id}`, 'PUT', payload);
@@ -284,11 +315,16 @@
                     text: 'Predio creado exitosamente',
                     timer: 2000, showConfirmButton: false });
             }
-
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+            const msg = error.error || error.message || '';
+            if (msg.includes('nombre') && msg.includes('ejido')) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = msg;
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: msg });
+            }
         }
     };
 

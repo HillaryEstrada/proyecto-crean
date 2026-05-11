@@ -91,10 +91,27 @@
     };
 
     window.guardarPaso1 = async function() {
-        if (!validarPaso1()) return;
+    if (!validarPaso1()) return;
         try {
             const data = recolectarDatosPaso1();
             const id   = document.getElementById('pk_empleado').value;
+
+            // Subir documento contrato si hay archivo (solo en alta nueva)
+            if (!id) {
+                const archivoContrato = document.getElementById('contrato_documento')?.files[0];
+                if (archivoContrato) {
+                    const fd = new FormData();
+                    fd.append('archivo', archivoContrato);
+                    const res = await fetch('/archivo/temporal', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                        body: fd
+                    });
+                    const d = await res.json();
+                    data.documento_contrato = d.url || null;
+                }
+            }
+
             if (id) {
                 await fetchWithAuth(`/empleados/${id}`, 'PUT', data);
                 if (_fotoFile) {
@@ -120,10 +137,27 @@
     };
 
     window.irPaso2 = async function() {
-        if (!validarPaso1()) return;
+    if (!validarPaso1()) return;
         try {
             const data = recolectarDatosPaso1();
             const id   = document.getElementById('pk_empleado').value;
+
+            // Subir documento contrato si hay archivo (solo en alta nueva)
+            if (!id) {
+                const archivoContrato = document.getElementById('contrato_documento')?.files[0];
+                if (archivoContrato) {
+                    const fd = new FormData();
+                    fd.append('archivo', archivoContrato);
+                    const res = await fetch('/archivo/temporal', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                        body: fd
+                    });
+                    const d = await res.json();
+                    data.documento_contrato = d.url || null;
+                }
+            }
+
             if (id) {
                 await fetchWithAuth(`/empleados/${id}`, 'PUT', data);
                 if (_fotoFile) {
@@ -258,20 +292,22 @@
 
     function recolectarDatosPaso1() {
         return {
-            numero_empleado:  document.getElementById('numero_empleado').value.trim(),
-            nombre:           document.getElementById('nombre').value.trim(),
-            apellido_paterno: document.getElementById('apellido_paterno').value.trim(),
-            apellido_materno: document.getElementById('apellido_materno').value.trim(),
-            sexo:             document.getElementById('sexo').value,
-            fecha_nacimiento: document.getElementById('fecha_nacimiento').value,
-            telefono:         document.getElementById('telefono').value.trim(),
-            correo:           document.getElementById('correo').value.trim(),
-            direccion:        document.getElementById('direccion').value.trim(),
-            fecha_ingreso:    document.getElementById('fecha_ingreso').value,
-            fk_tipo_contrato: document.getElementById('fk_tipo_contrato').value,
-            regimen_laboral:  document.getElementById('regimen_laboral').value.trim(),
-            motivo_alta:     document.getElementById('motivo_alta').value.trim()
-
+            numero_empleado:       document.getElementById('numero_empleado').value.trim(),
+            nombre:                document.getElementById('nombre').value.trim(),
+            apellido_paterno:      document.getElementById('apellido_paterno').value.trim(),
+            apellido_materno:      document.getElementById('apellido_materno').value.trim(),
+            sexo:                  document.getElementById('sexo').value,
+            fecha_nacimiento:      document.getElementById('fecha_nacimiento').value,
+            telefono:              document.getElementById('telefono').value.trim(),
+            correo:                document.getElementById('correo').value.trim(),
+            direccion:             document.getElementById('direccion').value.trim(),
+            fecha_ingreso:         document.getElementById('fecha_ingreso').value,
+            fk_tipo_contrato:      document.getElementById('fk_tipo_contrato').value,
+            regimen_laboral:       document.getElementById('regimen_laboral').value,
+            numero_contrato:       document.getElementById('contrato_numero')?.value.trim() || null,
+            contrato_fecha_inicio: document.getElementById('contrato_fecha_inicio')?.value || null,
+            contrato_fecha_fin:    document.getElementById('contrato_fecha_fin')?.value || null,
+            justificacion:         document.getElementById('contrato_justificacion')?.value.trim() || null,
         };
     }
 
@@ -366,6 +402,11 @@
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarEmpleado(${e.pk_empleado})">
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary me-1" title="Historial contratos"
+                        onclick="abrirHistorialContratos(${e.pk_empleado},
+                            '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-clock-rotate-left" style="font-size:11px;"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-warning me-1" title="Renovar contrato"
                         onclick="abrirRenovar(${e.pk_empleado},
@@ -496,10 +537,9 @@
         document.getElementById('direccion').value        = emp.direccion||'';
         document.getElementById('fecha_ingreso').value    = emp.fecha_ingreso
             ? emp.fecha_ingreso.split('T')[0] : '';
+        document.getElementById('fecha_ingreso').readOnly = true;
+        document.getElementById('fecha_ingreso').style.background = '#f8f9fa';
         document.getElementById('fk_tipo_contrato').value   = emp.fk_tipo_contrato||'';
-        document.getElementById('regimen_laboral').value = emp.regimen_laboral || '';
-        document.getElementById('motivo_alta').value      = emp.motivo_alta     || '';
-
         // Foto
         const preview = document.getElementById('fotoPreview');
         if (emp.foto_perfil) {
@@ -519,36 +559,44 @@
         const tieneCuenta = emp.pk_user !== null && emp.pk_user !== undefined && emp.estado_user == 1;
 
         setTimeout(() => {
-            const avisoCuenta     = document.getElementById('avisoCuentaExistente');
-            const switchContainer = document.getElementById('switchContainer');
-            const btnSiguiente    = document.getElementById('btnSiguiente');
-            const btnGuardar      = document.getElementById('btnGuardarPaso1');
-            const sw              = document.getElementById('switchCuenta');
-            const subtexto        = document.getElementById('switchSubtexto');
+        const avisoCuenta     = document.getElementById('avisoCuentaExistente');
+        const switchContainer = document.getElementById('switchContainer');
+        const btnSiguiente    = document.getElementById('btnSiguiente');
+        const btnGuardar      = document.getElementById('btnGuardarPaso1');
+        const sw              = document.getElementById('switchCuenta');
+        const subtexto        = document.getElementById('switchSubtexto');
 
-            if (tieneCuenta) {
-                switchContainer.classList.add('d-none');
-                btnSiguiente.classList.add('d-none');
-                avisoCuenta.classList.remove('d-none');
-                document.getElementById('usernameCuenta').textContent = emp.username;
-                btnGuardar.disabled = false;
-            } else {
-                switchContainer.classList.remove('d-none');
-                btnSiguiente.classList.remove('d-none');
-                avisoCuenta.classList.add('d-none');
-                sw.checked            = false;
-                btnGuardar.disabled   = false;
-                btnSiguiente.disabled = true;
-                switchContainer.style.background  = '#f0f9ff';
-                switchContainer.style.borderColor = '#bae6fd';
-                subtexto.textContent = 'Activa para configurar usuario y contraseña';
-                subtexto.style.color = '#7dd3fc';
-            }
+        if (tieneCuenta) {
+            switchContainer.classList.add('d-none');
+            btnSiguiente.classList.add('d-none');
+            avisoCuenta.classList.remove('d-none');
+            document.getElementById('usernameCuenta').textContent = emp.username;
+            btnGuardar.disabled = false;
+        } else {
+            switchContainer.classList.remove('d-none');
+            btnSiguiente.classList.remove('d-none');
+            avisoCuenta.classList.add('d-none');
+            sw.checked            = false;
+            btnGuardar.disabled   = false;
+            btnSiguiente.disabled = true;
+            switchContainer.style.background  = '#f0f9ff';
+            switchContainer.style.borderColor = '#bae6fd';
+            subtexto.textContent = 'Activa para configurar usuario y contraseña';
+            subtexto.style.color = '#7dd3fc';
+        }
 
-            // Ocultar tipo de contrato en edición (se gestiona desde Renovar contrato)
-            const contenedorContrato = document.getElementById('fk_tipo_contrato')?.closest('.col-md-6');
-            if (contenedorContrato) contenedorContrato.classList.add('d-none');
-        }, 50);
+        // Ocultar sección contrato completa en edición
+        const seccionContrato = document.getElementById('seccionContratoInicial')?.closest('.mt-4');
+        if (seccionContrato) seccionContrato.classList.add('d-none');
+
+        // Ocultar card contrato activo al abrir formulario nuevo
+        const cardContrato = document.getElementById('cardContratoActivo');
+        if (cardContrato) cardContrato.classList.add('d-none');
+
+        // ── Cargar y mostrar contrato activo ──
+        cargarContratoActivoEdicion(emp.pk_empleado, emp.estado);
+
+    }, 50);
     };
 
         window.abrirBaja = function(id, nombre, numero) {
@@ -557,35 +605,70 @@
             document.getElementById('bajaNumeroEmp').textContent = numero;
             new bootstrap.Modal(document.getElementById('modalBaja')).show();
         };
+
         window.abrirReactivar = function(id, nombre, numero) {
-        _idReactivar = id;
-        document.getElementById('reactivarNombre').textContent    = nombre;
-        document.getElementById('reactivarNumeroEmp').textContent = numero;
-        // Poblar tipos de contrato en el modal
-        const sel = document.getElementById('selectTipoContratoReactivar');
-        sel.innerHTML = '<option value="">Seleccionar tipo…</option>';
-        document.querySelectorAll('#fk_tipo_contrato option').forEach(opt => {
-            if (opt.value) sel.appendChild(opt.cloneNode(true));
-        });
-        
-        new bootstrap.Modal(document.getElementById('modalReactivar')).show();
+            _idReactivar = id;
+            document.getElementById('reactivarNombre').textContent    = nombre;
+            document.getElementById('reactivarNumeroEmp').textContent = numero;
+            document.getElementById('selectRegimenReactivar').value   = '';
+            document.getElementById('reactivar_numero_contrato').value = '';
+            document.getElementById('reactivar_fecha_inicio').value   = '';
+            document.getElementById('reactivar_fecha_fin').value      = '';
+            document.getElementById('reactivar_motivo').value         = '';
+            const sel = document.getElementById('selectTipoContratoReactivar');
+            sel.innerHTML = '<option value="">Seleccionar tipo…</option>';
+            document.querySelectorAll('#fk_tipo_contrato option').forEach(opt => {
+                if (opt.value) sel.appendChild(opt.cloneNode(true));
+            });
+            new bootstrap.Modal(document.getElementById('modalReactivar')).show();
         };
 
         window.confirmarReactivar = async function() {
-            const fk_tipo_contrato = document.getElementById('selectTipoContratoReactivar').value;
-            if (!fk_tipo_contrato) {
-                Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
-                return;
+        const fk_tipo_contrato = document.getElementById('selectTipoContratoReactivar').value;
+        const fecha_inicio     = document.getElementById('reactivar_fecha_inicio').value;
+
+        if (!fk_tipo_contrato) {
+            Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
+            return;
+        }
+        if (!fecha_inicio) {
+            Swal.fire({ icon:'warning', title:'Requerido', text:'La fecha de inicio es requerida' });
+            return;
+        }
+
+        try {
+            let documento_contrato = null;
+            const file = document.getElementById('reactivar_documento')?.files[0];
+            if (file) {
+                const fd = new FormData();
+                fd.append('archivo', file);
+                const res = await fetch('/archivo/temporal', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${getToken()}` },
+                    body: fd
+                });
+                const d = await res.json();
+                documento_contrato = d.url || null;
             }
-            try {
-                await fetchWithAuth(`/empleados/${_idReactivar}/reactivar`, 'PUT', { fk_tipo_contrato });
-                bootstrap.Modal.getInstance(document.getElementById('modalReactivar')).hide();
-                Swal.fire({ icon:'success', title:'Reactivado', timer:2000, showConfirmButton:false });
-                listarBajas();
-            } catch (error) {
-                Swal.fire({ icon:'error', title:'Error', text:error.message });
-            }
-        };
+
+            await fetchWithAuth(`/empleados/${_idReactivar}/reactivar`, 'PUT', {
+                fk_tipo_contrato,
+                regimen_laboral:   document.getElementById('selectRegimenReactivar').value || null,
+                numero_contrato:   document.getElementById('reactivar_numero_contrato').value.trim() || null,
+                fecha_inicio,
+                fecha_fin:         document.getElementById('reactivar_fecha_fin').value || null,
+                justificacion: document.getElementById('reactivar_motivo').value.trim() || null,
+                documento_contrato
+            });
+
+            bootstrap.Modal.getInstance(document.getElementById('modalReactivar')).hide();
+            Swal.fire({ icon:'success', title:'Reactivado', timer:2000, showConfirmButton:false });
+            listarBajas();
+            listar();
+        } catch (error) {
+            Swal.fire({ icon:'error', title:'Error', text:error.message });
+        }
+    };
 
         window.abrirRenovar = function(id, nombre, numero) {
         _idRenovar = id;
@@ -596,53 +679,60 @@
         document.querySelectorAll('#fk_tipo_contrato option').forEach(opt => {
             if (opt.value) sel.appendChild(opt.cloneNode(true));
         });
-
-        document.getElementById('renovar_numero_contrato').value    = '';
-        document.getElementById('renovar_motivo_renovacion').value  = '';
+        document.getElementById('renovar_regimen_laboral').value   = '';
+        document.getElementById('renovar_numero_contrato').value   = '';
+        document.getElementById('renovar_fecha_inicio').value      = '';
+        document.getElementById('renovar_fecha_fin').value         = '';
+        document.getElementById('renovar_motivo_renovacion').value = '';
         document.getElementById('renovar_documento_contrato').value = '';
-        
         new bootstrap.Modal(document.getElementById('modalRenovar')).show();
-        };
+    };
 
         window.confirmarRenovar = async function() {
-        const fk_tipo_contrato  = document.getElementById('selectTipoContratoRenovar').value;
-        const numero_contrato   = document.getElementById('renovar_numero_contrato').value.trim();
-        const motivo_renovacion = document.getElementById('renovar_motivo_renovacion').value.trim();
+            const fk_tipo_contrato  = document.getElementById('selectTipoContratoRenovar').value;
+            const fecha_inicio      = document.getElementById('renovar_fecha_inicio').value;
 
-        if (!fk_tipo_contrato) {
-            Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
-            return;
-        }
-
-        try {
-            let documento_contrato = null;
-            const archivoContrato = document.getElementById('renovar_documento_contrato').files[0];
-            if (archivoContrato) {
-                const formData = new FormData();
-                formData.append('archivo', archivoContrato);
-                const res = await fetch('/archivo/temporal', {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${getToken()}` },
-                    body: formData
-                });
-                const data = await res.json();
-                documento_contrato = data.url || null;
+            if (!fk_tipo_contrato) {
+                Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
+                return;
+            }
+            if (!fecha_inicio) {
+                Swal.fire({ icon:'warning', title:'Requerido', text:'La fecha de inicio es requerida' });
+                return;
             }
 
-            await fetchWithAuth(`/empleados/${_idRenovar}/renovar-contrato`, 'PATCH', {
-                fk_tipo_contrato,
-                numero_contrato:    numero_contrato    || null,
-                motivo_renovacion:  motivo_renovacion  || null,
-                documento_contrato
-            });
+            try {
+                let documento_contrato = null;
+                const archivoContrato = document.getElementById('renovar_documento_contrato').files[0];
+                if (archivoContrato) {
+                    const formData = new FormData();
+                    formData.append('archivo', archivoContrato);
+                    const res = await fetch('/archivo/temporal', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${getToken()}` },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    documento_contrato = data.url || null;
+                }
 
-            bootstrap.Modal.getInstance(document.getElementById('modalRenovar')).hide();
-            Swal.fire({ icon:'success', title:'Contrato renovado', timer:2000, showConfirmButton:false });
-            listar();
-        } catch (error) {
-            Swal.fire({ icon:'error', title:'Error', text:error.message });
-        }
-    };
+                await fetchWithAuth(`/empleados/${_idRenovar}/renovar-contrato`, 'PATCH', {
+                    fk_tipo_contrato,
+                    regimen_laboral:   document.getElementById('renovar_regimen_laboral').value || null,
+                    numero_contrato:   document.getElementById('renovar_numero_contrato').value.trim() || null,
+                    fecha_inicio,
+                    fecha_fin:         document.getElementById('renovar_fecha_fin').value || null,
+                    justificacion: document.getElementById('renovar_motivo_renovacion').value.trim() || null,
+                    documento_contrato
+                });
+
+                bootstrap.Modal.getInstance(document.getElementById('modalRenovar')).hide();
+                Swal.fire({ icon:'success', title:'Contrato renovado', timer:2000, showConfirmButton:false });
+                listar();
+            } catch (error) {
+                Swal.fire({ icon:'error', title:'Error', text:error.message });
+            }
+        };
 
     window.confirmarBaja = async function() {
         try {
@@ -721,7 +811,113 @@
         </tr>`).join('');
         initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
     };
-})();
+
+    async function cargarContratoActivoEdicion(idEmpleado, estadoEmpleado) {
+    const card    = document.getElementById('cardContratoActivo');
+    const cuerpo  = document.getElementById('cuerpoContratoActivo');
+    const botones = document.getElementById('botonesContratoEdicion');
+    if (!card) return;
+
+    card.classList.remove('d-none');
+
+    try {
+        const contrato = await fetchWithAuth(`/empleados/${idEmpleado}/contrato-activo`);
+
+        const fmt = (fecha) => {
+            if (!fecha) return '—';
+            const [y, m, d] = String(fecha).slice(0, 10).split('-');
+            return `${d}/${m}/${y}`;
+        };
+
+        const labelTipoAlta = {
+            contratacion:   'Contratación',
+            renovacion:     'Renovación',
+            recontratacion: 'Recontratación'
+        };
+
+        cuerpo.innerHTML = `
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">N° CONTRATO</div>
+                <div style="font-size:13px;font-weight:500;color:#1a3c5e;">
+                    ${contrato.numero_contrato || '—'}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">TIPO</div>
+                <div style="font-size:13px;">${contrato.tipo_contrato || '—'}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">RÉGIMEN</div>
+                <div style="font-size:13px;">
+                    ${contrato.regimen_laboral
+                        ? contrato.regimen_laboral.charAt(0).toUpperCase() + contrato.regimen_laboral.slice(1)
+                        : '—'}
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">INICIO</div>
+                <div style="font-size:13px;">${fmt(contrato.fecha_inicio)}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">FIN</div>
+                <div style="font-size:13px;">${fmt(contrato.fecha_fin)}</div>
+            </div>
+            <div class="col-md-4">
+                <div class="small text-muted mb-1" style="font-size:11px;">TIPO ALTA</div>
+                <div style="font-size:13px;">
+                    ${labelTipoAlta[contrato.tipo_alta] || '—'}
+                </div>
+            </div>
+            ${contrato.documento_contrato ? `
+            <div class="col-12 mt-1">
+                <a href="${contrato.documento_contrato}" target="_blank"
+                   class="btn btn-sm btn-outline-danger">
+                    <i class="fa-solid fa-file-pdf me-1"></i>Ver documento
+                </a>
+            </div>` : ''}
+        `;
+
+        // Botones según estado del empleado
+        if (estadoEmpleado === 'activo') {
+            botones.innerHTML = `
+                <button class="btn btn-sm btn-outline-secondary fw-semibold"
+                    onclick="abrirHistorialContratos(${idEmpleado}, document.getElementById('nombre').value + ' ' + document.getElementById('apellido_paterno').value)">
+                    <i class="fa-solid fa-clock-rotate-left me-1"></i>Historial
+                </button>
+                <button class="btn btn-sm btn-outline-warning fw-semibold"
+                    onclick="bootstrap.Modal.getInstance(document.getElementById('contenedorFormulario')) || mostrarTabla(); abrirRenovar(${idEmpleado}, document.getElementById('nombre').value + ' ' + document.getElementById('apellido_paterno').value, document.getElementById('numero_empleado').value)">
+                    <i class="fa-solid fa-file-contract me-1"></i>Renovar
+                </button>
+                <button class="btn btn-sm btn-outline-danger fw-semibold"
+                    onclick="mostrarTabla(); setTimeout(() => abrirBaja(${idEmpleado}, document.getElementById('nombre').value + ' ' + document.getElementById('apellido_paterno').value, document.getElementById('numero_empleado').value), 100)">
+                    <i class="fa-solid fa-user-slash me-1"></i>Dar de baja
+                </button>`;
+        } else {
+            botones.innerHTML = `
+                <button class="btn btn-sm btn-outline-success fw-semibold"
+                    onclick="mostrarTabla(); setTimeout(() => abrirReactivar(${idEmpleado}, document.getElementById('nombre').value + ' ' + document.getElementById('apellido_paterno').value, document.getElementById('numero_empleado').value), 100)">
+                    <i class="fa-solid fa-rotate-right me-1"></i>Reactivar
+                </button>`;
+        }
+
+    } catch (e) {
+        // Sin contrato activo
+        cuerpo.innerHTML = `
+            <div class="col-12">
+                <span class="text-muted" style="font-size:13px;">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    Este empleado no tiene contrato activo registrado.
+                </span>
+            </div>`;
+        if (estadoEmpleado === 'activo') {
+            botones.innerHTML = `
+                <button class="btn btn-sm btn-outline-danger fw-semibold"
+                    onclick="mostrarTabla(); setTimeout(() => abrirBaja(${idEmpleado}, document.getElementById('nombre').value + ' ' + document.getElementById('apellido_paterno').value, document.getElementById('numero_empleado').value), 100)">
+                    <i class="fa-solid fa-user-slash me-1"></i>Dar de baja
+                </button>`;
+        }
+    }
+}
 
 // ── UI Global ─────────────────────────────────
 window.mostrarFormulario = function() {
@@ -791,20 +987,213 @@ window.mostrarFormulario = function() {
     document.getElementById('correo').value            = '';
     document.getElementById('direccion').value         = '';
     document.getElementById('fecha_ingreso').value     = '';
-    document.getElementById('fk_tipo_contrato').value = '';
-    document.getElementById('regimen_laboral').value = '';
-    document.getElementById('motivo_alta').value      = '';
+    document.getElementById('fk_tipo_contrato').value  = '';
+    document.getElementById('regimen_laboral').value   = '';
+    document.getElementById('fecha_ingreso').readOnly  = false;
+    document.getElementById('fecha_ingreso').style.background = '';
 
     window._fotoFile       = null;
     window._empleadoCreado = null;
     window._modoEdicion    = false;
 
-    // Mostrar tipo de contrato en registro nuevo
-    const contenedorContrato = document.getElementById('fk_tipo_contrato')?.closest('.col-md-6');
-    if (contenedorContrato) contenedorContrato.classList.remove('d-none');
+    // Mostrar sección contrato en registro nuevo
+    const seccionContrato = document.getElementById('seccionContratoInicial')?.closest('.mt-4');
+    if (seccionContrato) seccionContrato.classList.remove('d-none');
+
+    // Ocultar card contrato activo al abrir formulario nuevo
+    const cardContrato = document.getElementById('cardContratoActivo');
+    if (cardContrato) cardContrato.classList.add('d-none');
 };
 
 window.mostrarTabla = function() {
     document.getElementById('contenedorFormulario').classList.add('d-none');
     document.getElementById('contenedorTabla').classList.remove('d-none');
 };
+
+window.abrirHistorialContratos = async function (idEmpleado, nombreEmpleado) {
+        document.getElementById('histContratosTitulo').textContent =
+            `Historial de contratos — ${nombreEmpleado}`;
+        document.getElementById('histContratosBody').innerHTML = `
+            <div class="text-center py-4">
+                <div class="spinner-border spinner-border-sm" style="color:#1a3c5e;"></div>
+            </div>`;
+        new bootstrap.Modal(document.getElementById('modalHistorialContratos')).show();
+
+        try {
+            const data = await fetchWithAuth(`/empleados/${idEmpleado}/contratos`);
+            const contratos = Array.isArray(data) ? data : [];
+
+            const fmt = (fecha) => {
+                if (!fecha) return '—';
+                const [y, m, d] = String(fecha).slice(0, 10).split('-');
+                return `${d}/${m}/${y}`;
+            };
+
+            const labelTipoAlta = {
+                contratacion:   'Contratación',
+                renovacion:     'Renovación',
+                recontratacion: 'Recontratación'
+            };
+
+            const cont = document.getElementById('histContratosBody');
+
+            if (!contratos.length) {
+                cont.innerHTML = `
+                    <div class="text-center py-4 text-muted">
+                        <i class="fa-solid fa-file-contract fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                        Sin contratos registrados
+                    </div>`;
+                return;
+            }
+
+            cont.innerHTML = `
+                <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+                    <div class="position-relative flex-grow-1" style="min-width:160px;">
+                        <i class="fa-solid fa-magnifying-glass text-muted"
+                            style="position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:11px;pointer-events:none;"></i>
+                        <input type="text" id="hc-search" class="form-control form-control-sm ps-4"
+                            placeholder="Buscar por número, tipo, régimen…" oninput="filtrarHistContratos()">
+                    </div>
+                    <select id="hc-filtro-tipo" class="form-select form-select-sm" style="width:150px;"
+                        onchange="filtrarHistContratos()">
+                        <option value="">Todos</option>
+                        <option value="contratacion">Contratación</option>
+                        <option value="renovacion">Renovación</option>
+                        <option value="recontratacion">Recontratación</option>
+                    </select>
+                </div>
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                    <span class="badge" style="background:#1a3c5e;font-size:11px;">
+                        Total: <span id="hc-total">${contratos.length}</span>
+                    </span>
+                    <span class="badge bg-success" style="font-size:11px;">
+                        Activos: ${contratos.filter(c => c.activo).length}
+                    </span>
+                    <span class="badge bg-secondary" style="font-size:11px;">
+                        Inactivos: ${contratos.filter(c => !c.activo).length}
+                    </span>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm mb-0" style="font-size:12px;">
+                        <thead style="position:sticky;top:0;background:#1a3c5e;color:#fff;z-index:1;">
+                            <tr>
+                                <th class="px-3 py-2">N° CONTRATO</th>
+                                <th class="px-3 py-2">TIPO</th>
+                                <th class="px-3 py-2">RÉGIMEN</th>
+                                <th class="px-3 py-2 text-center">INICIO</th>
+                                <th class="px-3 py-2 text-center">FIN</th>
+                                <th class="px-3 py-2 text-center">ALTA</th>
+                                <th class="px-3 py-2">JUSTIFICACIÓN</th>
+                                <th class="px-3 py-2 text-center">DOC.</th>
+                                <th class="px-3 py-2 text-center">ESTADO</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hc-body"></tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-2 flex-wrap gap-2">
+                    <div id="hc-info" class="text-muted" style="font-size:11px;"></div>
+                    <div class="d-flex align-items-center gap-1">
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="hcPaginar(-1)">‹ Ant</button>
+                        <span id="hc-pag-info" class="text-muted" style="font-size:11px;"></span>
+                        <button class="btn btn-sm text-white px-2 py-1" style="background:#1a3c5e;font-size:11px;"
+                            onclick="hcPaginar(1)">Sig ›</button>
+                    </div>
+                </div>`;
+
+            window._hcContratos = contratos;
+            window._hcFiltrado  = contratos;
+            window._hcPagina    = 1;
+            window._hcPorPag    = 8;
+            window._hcLabelTipoAlta = labelTipoAlta;
+            window._hcFmt       = fmt;
+            window.renderHcPagina();
+
+        } catch (e) {
+            document.getElementById('histContratosBody').innerHTML = `
+                <div class="text-center text-danger py-4">
+                    <i class="fa-solid fa-triangle-exclamation me-1"></i>Error al cargar el historial
+                </div>`;
+        }
+    };
+
+    window.renderHcPagina = function () {
+        const data      = window._hcFiltrado || [];
+        const porPag    = window._hcPorPag   || 8;
+        const pag       = window._hcPagina   || 1;
+        const total     = data.length;
+        const totalPags = Math.max(1, Math.ceil(total / porPag));
+        if (pag > totalPags) window._hcPagina = totalPags;
+        const inicio = (window._hcPagina - 1) * porPag;
+        const slice  = data.slice(inicio, inicio + porPag);
+        const fmt    = window._hcFmt || (f => f ? String(f).slice(0,10) : '—');
+        const label  = window._hcLabelTipoAlta || {};
+
+        const tbody = document.getElementById('hc-body');
+        if (!tbody) return;
+
+        tbody.innerHTML = slice.length ? slice.map(c => `
+            <tr>
+                <td class="px-3" style="font-family:monospace;">${c.numero_contrato || '—'}</td>
+                <td class="px-3">${c.tipo_contrato || '—'}</td>
+                <td class="px-3">${c.regimen_laboral
+                    ? c.regimen_laboral.charAt(0).toUpperCase() + c.regimen_laboral.slice(1)
+                    : '—'}</td>
+                <td class="px-3 text-center text-muted">${fmt(c.fecha_inicio)}</td>
+                <td class="px-3 text-center text-muted">${fmt(c.fecha_fin)}</td>
+                <td class="px-3 text-center">
+                    <span class="badge" style="background:#e8f0fe;color:#1a3c5e;font-size:10px;">
+                        ${label[c.tipo_alta] || c.tipo_alta || '—'}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="max-width:160px;">
+                    ${c.justificacion
+                        ? `<span title="${c.justificacion}">${c.justificacion.length > 40
+                            ? c.justificacion.substring(0,40) + '…'
+                            : c.justificacion}</span>`
+                        : '—'}
+                </td>
+                <td class="px-3 text-center">
+                    ${c.documento_contrato
+                        ? `<a href="${c.documento_contrato}" target="_blank" class="btn btn-sm btn-outline-danger py-0 px-1">
+                            <i class="fa-solid fa-file-pdf" style="font-size:11px;"></i>
+                           </a>`
+                        : '<span class="text-muted">—</span>'}
+                </td>
+                <td class="px-3 text-center">
+                    ${c.activo
+                        ? '<span class="badge bg-success" style="font-size:10px;">Activo</span>'
+                        : '<span class="badge bg-secondary" style="font-size:10px;">Inactivo</span>'}
+                </td>
+            </tr>`).join('')
+        : `<tr><td colspan="9" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
+
+        const info = document.getElementById('hc-info');
+        if (info) info.textContent = `Mostrando ${inicio + 1}–${Math.min(inicio + porPag, total)} de ${total}`;
+        const pagInfo = document.getElementById('hc-pag-info');
+        if (pagInfo) pagInfo.textContent = `Pág. ${window._hcPagina} / ${totalPags}`;
+        const totalEl = document.getElementById('hc-total');
+        if (totalEl) totalEl.textContent = total;
+    };
+
+    window.hcPaginar = function (dir) {
+        const total     = window._hcFiltrado?.length || 0;
+        const totalPags = Math.max(1, Math.ceil(total / (window._hcPorPag || 8)));
+        window._hcPagina = Math.min(totalPags, Math.max(1, (window._hcPagina || 1) + dir));
+        window.renderHcPagina();
+    };
+
+    window.filtrarHistContratos = function () {
+        const q    = (document.getElementById('hc-search')?.value || '').toLowerCase();
+        const tipo = document.getElementById('hc-filtro-tipo')?.value || '';
+        window._hcFiltrado = (window._hcContratos || []).filter(c => {
+            const txt = `${c.numero_contrato || ''} ${c.tipo_contrato || ''} ${c.regimen_laboral || ''} ${c.justificacion || ''}`.toLowerCase();
+            return (!q || txt.includes(q)) && (!tipo || c.tipo_alta === tipo);
+        });
+        window._hcPagina = 1;
+        window.renderHcPagina();
+    };
+
+})();
+

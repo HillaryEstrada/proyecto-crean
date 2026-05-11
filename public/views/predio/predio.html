@@ -56,7 +56,7 @@
                             <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">NOMBRE PREDIO</th>
                             <th class="py-3 px-3">EJIDO</th>
-                            <th class="py-3 px-3">REGISTRADO POR</th>
+                            <th class="py-3 px-3">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
@@ -104,7 +104,7 @@
                             <th class="py-3 px-3" style="width:50px;">#</th>
                             <th class="py-3 px-3">NOMBRE PREDIO</th>
                             <th class="py-3 px-3">EJIDO</th>
-                            <th class="py-3 px-3">REGISTRADO POR</th>
+                            <th class="py-3 px-3">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
@@ -162,11 +162,12 @@
 
                 <div class="col-md-6">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Ejido
+                        Ejido <span class="text-danger">*</span>
                     </label>
                     <select id="f_fk_ejido" class="form-select">
                         <option value="">— Sin ejido —</option>
                     </select>
+                    <div class="text-danger d-none small mt-1" id="err_ejido">El ejido es obligatorio</div>
                 </div>
 
             </div>

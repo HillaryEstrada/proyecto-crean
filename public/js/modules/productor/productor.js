@@ -3,6 +3,7 @@
     let _registrosActivos   = [];
     let _registrosInactivos = [];
     let _idParaDesactivar   = null;
+    let _todosLosPredios    = [];
 
     esperarElemento('prodBody', async () => {
         await cargarEjidosEnSelect();
@@ -52,44 +53,43 @@
 
         tabla.innerHTML = data.map((p, i) => `
             <tr>
-            <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
-            <td class="px-3">
-                <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                    ${p.nombre || '—'}
-                </span>
-            </td>
-            <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
-                ${p.curp || '—'}
-            </td>
-            <td class="px-3 text-center text-muted" style="font-size:13px;">
-                ${p.telefono || '—'}
-            </td>
-            <td class="px-3 text-muted" style="font-size:13px;">
-                ${p.ejido_nombre || '—'}
-            </td>
-            <td class="px-3 text-muted" style="font-size:13px;">
-                ${p.predio_nombre || '—'}
-            </td>
-            <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
-                ${p.observaciones || '—'}
-            </td>
-            <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-                ${p.registrado_por_usuario || '—'} •<br>
-                ${p.fecha_registro
-                    ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
-                    : '—'}
-            </td>
-            <td class="px-3 text-center" style="white-space:nowrap;">
-                <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
-                    onclick="editarProductor(${p.pk_productor})">
-                    <i class="fa-solid fa-pen" style="font-size:11px;"></i>
-                </button>
-                <button class="btn btn-sm btn-outline-danger" title="Desactivar"
-                    onclick="abrirDesactivar(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
-                    <i class="fa-solid fa-ban" style="font-size:11px;"></i>
-                </button>
-            </td>
-        </tr>`).join('');
+                <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3">
+                    <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                        ${p.nombre || '—'}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
+                    ${p.curp || '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${p.telefono || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">
+                    ${p.ejido_nombre || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">
+                    ${p.predio_nombre || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
+                    ${p.observaciones || '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
+                <td class="px-3 text-center" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
+                        onclick="editarProductor(${p.pk_productor})">
+                        <i class="fa-solid fa-pen" style="font-size:11px;"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" title="Desactivar"
+                        onclick="abrirDesactivar(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
+                        <i class="fa-solid fa-ban" style="font-size:11px;"></i>
+                    </button>
+                </td>
+            </tr>`).join('');
 
         initPaginacion({ tbodyId: 'prodBody', filasPorPagina: 10, sufijo: 'prod' });
     }
@@ -150,42 +150,41 @@
             if (info) info.textContent = `Mostrando ${_registrosInactivos.length} registros`;
 
             cuerpo.innerHTML = _registrosInactivos.map((p, i) => `
-    <tr>
-        <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
-        <td class="px-3">
-            <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                ${p.nombre || '—'}
-            </span>
-        </td>
-        <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
-            ${p.curp || '—'}
-        </td>
-        <td class="px-3 text-center text-muted" style="font-size:13px;">
-            ${p.telefono || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:13px;">
-            ${p.ejido_nombre || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:13px;">
-            ${p.predio_nombre || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
-            ${p.observaciones || '—'}
-        </td>
-        <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-            ${p.registrado_por_usuario || '—'} •<br>
-            ${p.fecha_registro
-                ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
-                : '—'}
-        </td>
-        <td class="px-3 text-center" style="white-space:nowrap;">
-            <button class="btn btn-sm btn-outline-success" title="Reactivar"
-                onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                Reactivar
-            </button>
-        </td>
-    </tr>`).join('');
+                <tr>
+                    <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                    <td class="px-3">
+                        <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                            ${p.nombre || '—'}
+                        </span>
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
+                        ${p.curp || '—'}
+                    </td>
+                    <td class="px-3 text-center text-muted" style="font-size:13px;">
+                        ${p.telefono || '—'}
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:13px;">
+                        ${p.ejido_nombre || '—'}
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:13px;">
+                        ${p.predio_nombre || '—'}
+                    </td>
+                    <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
+                        ${p.observaciones || '—'}
+                    </td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;">
+                        ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                            ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
+                    <td class="px-3 text-center" style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                            onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
+                            <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                            Reactivar
+                        </button>
+                    </td>
+                </tr>`).join('');
 
             initPaginacion({ tbodyId: 'prodBodyInactivos', filasPorPagina: 10, sufijo: 'prod-inactivos' });
         } catch (e) { console.error('Error inactivos:', e); }
@@ -205,135 +204,171 @@
         if (!cuerpo) return;
         if (info) info.textContent = `Mostrando ${filtrados.length} de ${_registrosInactivos.length} registros`;
         cuerpo.innerHTML = filtrados.map((p, i) => `
-    <tr>
-        <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
-        <td class="px-3">
-            <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                ${p.nombre || '—'}
-            </span>
-        </td>
-        <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
-            ${p.curp || '—'}
-        </td>
-        <td class="px-3 text-center text-muted" style="font-size:13px;">
-            ${p.telefono || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:13px;">
-            ${p.ejido_nombre || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:13px;">
-            ${p.predio_nombre || '—'}
-        </td>
-        <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
-            ${p.observaciones || '—'}
-        </td>
-        <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-            ${p.registrado_por_usuario || '—'} •<br>
-            ${p.fecha_registro
-                ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
-                : '—'}
-        </td>
-        <td class="px-3 text-center" style="white-space:nowrap;">
-            <button class="btn btn-sm btn-outline-success" title="Reactivar"
-                onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
-                <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                Reactivar
-            </button>
-        </td>
-    </tr>`).join('');
+            <tr>
+                <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
+                <td class="px-3">
+                    <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
+                        ${p.nombre || '—'}
+                    </span>
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;letter-spacing:.05em;">
+                    ${p.curp || '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${p.telefono || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">
+                    ${p.ejido_nombre || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:13px;">
+                    ${p.predio_nombre || '—'}
+                </td>
+                <td class="px-3 text-muted" style="font-size:12px;max-width:260px;">
+                    ${p.observaciones || '—'}
+                </td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
+                <td class="px-3 text-center" style="white-space:nowrap;">
+                    <button class="btn btn-sm btn-outline-success" title="Reactivar"
+                        onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
+                        <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
+                        Reactivar
+                    </button>
+                </td>
+            </tr>`).join('');
         initPaginacion({ tbodyId: 'prodBodyInactivos', filasPorPagina: 10, sufijo: 'prod-inactivos' });
     };
 
     // ─────────────────────────────────────────
-    // TOGGLE SECCIONES
+    // CATÁLOGOS
     // ─────────────────────────────────────────
-    window.toggleSeccionEjido = function () {
-        const checked = document.getElementById('toggle_ejido').checked;
-        document.getElementById('seccionEjido').classList.toggle('d-none', !checked);
-        if (!checked) resetSeccionEjido();
-    };
-
-    window.toggleSeccionPredio = function () {
-        const checked = document.getElementById('toggle_predio').checked;
-        document.getElementById('seccionPredio').classList.toggle('d-none', !checked);
-        if (!checked) resetSeccionPredio();
-    };
-
-    function resetSeccionEjido() {
-        ['ej_nombre','ej_municipio','ej_estado_geo','ej_direccion'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-        document.getElementById('err_ej_nombre')?.classList.add('d-none');
-    }
-
-    function resetSeccionPredio() {
-        document.getElementById('pr_nombre').value   = '';
-        document.getElementById('pr_fk_ejido').value = '';
-        document.getElementById('err_pr_nombre')?.classList.add('d-none');
-    }
-
-    function resetSecciones() {
-        document.getElementById('toggle_ejido').checked  = false;
-        document.getElementById('toggle_predio').checked = false;
-        document.getElementById('seccionEjido').classList.add('d-none');
-        document.getElementById('seccionPredio').classList.add('d-none');
-        resetSeccionEjido();
-        resetSeccionPredio();
-    }
-
-    // Cargar ejidos en el select del predio y productor
-        async function cargarEjidosEnSelect() {
+    async function cargarEjidosEnSelect() {
         try {
             const data = await fetchWithAuth('/ejido');
-            const selects = ['f_fk_ejido', 'pr_fk_ejido'];
-            selects.forEach(id => {
-                const sel = document.getElementById(id);
-                if (!sel) return;
-                sel.innerHTML = '<option value="">— Sin ejido —</option>' +
-                    (Array.isArray(data) ? data : []).map(e =>
-                        `<option value="${e.pk_ejido}">${e.nombre}</option>`
-                    ).join('');
-            });
+            const sel  = document.getElementById('f_fk_ejido');
+            if (!sel) return;
+            sel.innerHTML = '<option value="">— Sin ejido —</option>' +
+                (Array.isArray(data) ? data : []).map(e =>
+                    `<option value="${e.pk_ejido}">${e.nombre}</option>`
+                ).join('');
         } catch (e) { console.error('Error cargar ejidos:', e); }
     }
 
-    async function cargarPrediosEnSelect() {
+    async function cargarPrediosEnSelect(fk_ejido = null) {
         try {
-            const data = await fetchWithAuth('/predio');
-            const sel  = document.getElementById('f_fk_predio');
+            if (!_todosLosPredios.length) {
+                const data = await fetchWithAuth('/predio');
+                _todosLosPredios = Array.isArray(data) ? data : [];
+            }
+            const filtrados = fk_ejido
+                ? _todosLosPredios.filter(p => String(p.fk_ejido) === String(fk_ejido))
+                : _todosLosPredios;
+            const sel = document.getElementById('f_fk_predio');
             if (!sel) return;
             sel.innerHTML = '<option value="">— Sin predio —</option>' +
-                (Array.isArray(data) ? data : []).map(p =>
-                    `<option value="${p.pk_predio}">${p.nombre}${p.ejido_nombre ? ' — ' + p.ejido_nombre : ''}</option>`
+                filtrados.map(p =>
+                    `<option value="${p.pk_predio}">${p.nombre}</option>`
                 ).join('');
         } catch (e) { console.error('Error cargar predios:', e); }
     }
+
+    window.cargarPrediosPorEjido = async function () {
+        const fk_ejido = document.getElementById('f_fk_ejido').value || null;
+        await cargarPrediosEnSelect(fk_ejido);
+        document.getElementById('f_fk_predio').value = '';
+    };
+
+    // ─────────────────────────────────────────
+    // MODALES EJIDO Y PREDIO
+    // ─────────────────────────────────────────
+    window.abrirModalEjido = function () {
+        document.getElementById('mej_nombre').value     = '';
+        document.getElementById('mej_municipio').value  = '';
+        document.getElementById('mej_estado_geo').value = '';
+        document.getElementById('mej_direccion').value  = '';
+        document.getElementById('err_mej_nombre').classList.add('d-none');
+        new bootstrap.Modal(document.getElementById('modalNuevoEjido')).show();
+        setTimeout(() => document.getElementById('mej_nombre').focus(), 300);
+    };
+
+    window.guardarModalEjido = async function () {
+        const nombre = document.getElementById('mej_nombre').value.trim();
+        if (!nombre) {
+            document.getElementById('err_mej_nombre').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('err_mej_nombre').classList.add('d-none');
+        try {
+            const res = await fetchWithAuth('/ejido', 'POST', {
+                nombre,
+                municipio:  document.getElementById('mej_municipio').value.trim()  || null,
+                estado_geo: document.getElementById('mej_estado_geo').value.trim() || null,
+                direccion:  document.getElementById('mej_direccion').value.trim()  || null
+            });
+            const nuevoId = res.data?.pk_ejido || null;
+            await cargarEjidosEnSelect();
+            if (nuevoId) {
+                document.getElementById('f_fk_ejido').value = nuevoId;
+                await cargarPrediosPorEjido();
+            }
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoEjido')).hide();
+            Swal.fire({ icon: 'success', title: 'Ejido registrado', timer: 1500, showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+        }
+    };
+
+    window.abrirModalPredio = function () {
+        document.getElementById('mpr_nombre').value = '';
+        document.getElementById('err_mpr_nombre').classList.add('d-none');
+        new bootstrap.Modal(document.getElementById('modalNuevoPredio')).show();
+        setTimeout(() => document.getElementById('mpr_nombre').focus(), 300);
+    };
+
+    window.guardarModalPredio = async function () {
+        const nombre = document.getElementById('mpr_nombre').value.trim();
+        if (!nombre) {
+            document.getElementById('err_mpr_nombre').classList.remove('d-none');
+            return;
+        }
+        document.getElementById('err_mpr_nombre').classList.add('d-none');
+        const fk_ejido = document.getElementById('f_fk_ejido').value || null;
+        try {
+            const res = await fetchWithAuth('/predio', 'POST', { nombre, fk_ejido });
+            const nuevoId = res.data?.pk_predio || null;
+            _todosLosPredios = [];
+            await cargarPrediosEnSelect(fk_ejido);
+            if (nuevoId) document.getElementById('f_fk_predio').value = nuevoId;
+            bootstrap.Modal.getInstance(document.getElementById('modalNuevoPredio')).hide();
+            Swal.fire({ icon: 'success', title: 'Predio registrado', timer: 1500, showConfirmButton: false });
+        } catch (e) {
+            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+        }
+    };
 
     // ─────────────────────────────────────────
     // ABRIR FORMULARIO (CREAR)
     // ─────────────────────────────────────────
     window.abrirFormulario = function () {
-        document.getElementById('f_pk_productor').value    = '';
-        document.getElementById('f_nombre').value          = '';
-        document.getElementById('f_telefono').value        = '';
-        document.getElementById('f_observaciones').value   = '';
-        document.getElementById('formTitulo').textContent  = 'Registrar Productor';
+        document.getElementById('f_pk_productor').value       = '';
+        document.getElementById('f_nombre').value             = '';
+        document.getElementById('f_curp').value               = '';
+        document.getElementById('f_telefono').value           = '';
+        document.getElementById('f_observaciones').value      = '';
+        document.getElementById('f_fk_ejido').value           = '';
+        document.getElementById('f_fk_predio').value          = '';
+        document.getElementById('formTitulo').textContent     = 'Registrar Productor';
         document.getElementById('btnGuardarLabel').textContent = 'Guardar productor';
-        document.getElementById('err_nombre').classList.add('d-none');
-
+        ['err_nombre','err_curp','err_telefono'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('d-none'); el.textContent = 'Campo requerido'; }
+        });
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
-        document.getElementById('f_curp').value        = '';
-        document.getElementById('f_fk_ejido').value    = '';
-        document.getElementById('f_fk_predio').value   = '';
-        document.getElementById('err_curp').classList.add('d-none');
-        document.getElementById('err_curp').textContent = 'Campo requerido';
-        document.getElementById('err_nombre').textContent = 'Campo requerido';
-        document.getElementById('err_telefono').classList.add('d-none');
-        document.getElementById('err_telefono').textContent = 'Campo requerido';
-        resetSecciones();
     };
 
     // ─────────────────────────────────────────
@@ -343,24 +378,22 @@
         const p = _registrosActivos.find(x => x.pk_productor === id);
         if (!p) return;
 
-        document.getElementById('f_pk_productor').value    = p.pk_productor;
-        document.getElementById('f_nombre').value          = p.nombre || '';
-        document.getElementById('f_telefono').value        = p.telefono || '';
-        document.getElementById('f_observaciones').value   = p.observaciones || '';
-        document.getElementById('formTitulo').textContent  = `Editando: ${p.nombre}`;
+        document.getElementById('f_pk_productor').value       = p.pk_productor;
+        document.getElementById('f_nombre').value             = p.nombre        || '';
+        document.getElementById('f_curp').value               = p.curp          || '';
+        document.getElementById('f_telefono').value           = p.telefono      || '';
+        document.getElementById('f_observaciones').value      = p.observaciones || '';
+        document.getElementById('f_fk_ejido').value           = p.fk_ejido      || '';
+        document.getElementById('f_fk_predio').value          = p.fk_predio     || '';
+        document.getElementById('formTitulo').textContent     = `Editando: ${p.nombre}`;
         document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
-        document.getElementById('err_nombre').classList.add('d-none');
-
+        ['err_nombre','err_curp','err_telefono'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('d-none'); el.textContent = 'Campo requerido'; }
+        });
         document.getElementById('vistaTabla').classList.add('d-none');
         document.getElementById('vistaFormulario').classList.remove('d-none');
         document.getElementById('f_nombre').focus();
-        document.getElementById('f_curp').value      = p.curp      || '';
-        document.getElementById('f_fk_ejido').value  = p.fk_ejido  || '';
-        document.getElementById('f_fk_predio').value = p.fk_predio || '';
-        document.getElementById('err_curp').classList.add('d-none');
-        document.getElementById('err_telefono').classList.add('d-none');
-        document.getElementById('err_telefono').textContent = 'Campo requerido';
-        resetSecciones();
     };
 
     // ─────────────────────────────────────────
@@ -371,31 +404,26 @@
         document.getElementById('vistaTabla').classList.remove('d-none');
         document.getElementById('f_pk_productor').value  = '';
         document.getElementById('f_nombre').value        = '';
+        document.getElementById('f_curp').value          = '';
         document.getElementById('f_telefono').value      = '';
         document.getElementById('f_observaciones').value = '';
-        document.getElementById('err_nombre').classList.add('d-none');
-        document.getElementById('f_curp').value        = '';
-        document.getElementById('f_fk_ejido').value    = '';
-        document.getElementById('f_fk_predio').value   = '';
-        document.getElementById('err_curp').classList.add('d-none');
-        document.getElementById('err_curp').textContent = 'Campo requerido';
-        document.getElementById('err_nombre').textContent = 'Campo requerido';
-        document.getElementById('err_telefono').classList.add('d-none');
-        document.getElementById('err_telefono').textContent = 'Campo requerido';
-        resetSecciones();
+        document.getElementById('f_fk_ejido').value      = '';
+        document.getElementById('f_fk_predio').value     = '';
+        ['err_nombre','err_curp','err_telefono'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.classList.add('d-none'); el.textContent = 'Campo requerido'; }
+        });
     };
 
     // ─────────────────────────────────────────
     // GUARDAR (CREAR O ACTUALIZAR)
     // ─────────────────────────────────────────
-        window.guardarProductor = async function () {
+    window.guardarProductor = async function () {
         const id            = document.getElementById('f_pk_productor').value;
         const nombre        = document.getElementById('f_nombre').value.trim();
         const curp          = document.getElementById('f_curp').value.trim().toUpperCase();
         const telefono      = document.getElementById('f_telefono').value.trim();
         const observaciones = document.getElementById('f_observaciones').value.trim();
-        const ejidoActivo   = document.getElementById('toggle_ejido').checked;
-        const predioActivo  = document.getElementById('toggle_predio').checked;
 
         let valido = true;
 
@@ -428,7 +456,7 @@
             document.getElementById('err_curp').classList.add('d-none');
         }
 
-        // TELÉFONO (opcional pero si se llena debe tener 10 dígitos)
+        // Teléfono
         if (telefono && telefono.replace(/\D/g, '').length < 10) {
             document.getElementById('err_telefono').textContent = 'El teléfono debe tener 10 dígitos';
             document.getElementById('err_telefono').classList.remove('d-none');
@@ -437,84 +465,16 @@
             document.getElementById('err_telefono').classList.add('d-none');
         }
 
-        // Validar ejido si está activo
-        if (ejidoActivo) {
-            const ejNombre = document.getElementById('ej_nombre').value.trim();
-            if (!ejNombre) {
-                document.getElementById('err_ej_nombre').classList.remove('d-none');
-                document.getElementById('err_ej_nombre').textContent = 'Campo requerido';
-                valido = false;
-            } else {
-                const errEj = validarFormato(ejNombre);
-                if (errEj.length) {
-                    document.getElementById('err_ej_nombre').classList.remove('d-none');
-                    document.getElementById('err_ej_nombre').textContent = errEj[0];
-                    valido = false;
-                } else {
-                    document.getElementById('err_ej_nombre').classList.add('d-none');
-                }
-            }
-        }
-
-        // Validar predio si está activo
-        if (predioActivo) {
-            const prNombre = document.getElementById('pr_nombre').value.trim();
-            if (!prNombre) {
-                document.getElementById('err_pr_nombre').classList.remove('d-none');
-                document.getElementById('err_pr_nombre').textContent = 'Campo requerido';
-                valido = false;
-            } else {
-                const errPr = validarFormato(prNombre);
-                if (errPr.length) {
-                    document.getElementById('err_pr_nombre').classList.remove('d-none');
-                    document.getElementById('err_pr_nombre').textContent = errPr[0];
-                    valido = false;
-                } else {
-                    document.getElementById('err_pr_nombre').classList.add('d-none');
-                }
-            }
-        }
-
         if (!valido) return;
 
         try {
-            // 1. Guardar ejido si aplica
-            let nuevoEjidoId = document.getElementById('f_fk_ejido').value || null;
-            if (ejidoActivo && !id) {
-                try {
-                    const ejRes = await fetchWithAuth('/ejido', 'POST', {
-                        nombre:     document.getElementById('ej_nombre').value.trim(),
-                        municipio:  document.getElementById('ej_municipio').value.trim()  || null,
-                        estado_geo: document.getElementById('ej_estado_geo').value.trim() || null,
-                        direccion:  document.getElementById('ej_direccion').value.trim()  || null
-                    });
-                    nuevoEjidoId = ejRes.data?.pk_ejido || null;
-                    await cargarEjidosEnSelect();
-                } catch (e) { console.warn('Ejido no guardado:', e.error || e.message); }
-            }
-
-            // 2. Guardar predio si aplica
-            let nuevoPredioId = document.getElementById('f_fk_predio').value || null;
-            if (predioActivo && !id) {
-                try {
-                    const ejidoParaPredio = nuevoEjidoId || document.getElementById('pr_fk_ejido').value || null;
-                    const prRes = await fetchWithAuth('/predio', 'POST', {
-                        nombre:   document.getElementById('pr_nombre').value.trim(),
-                        fk_ejido: ejidoParaPredio
-                    });
-                    nuevoPredioId = prRes.data?.pk_predio || null;
-                    await cargarPrediosEnSelect();
-                } catch (e) { console.warn('Predio no guardado:', e.error || e.message); }
-            }
-
-            // 3. Guardar productor con los IDs correctos
             const payload = {
                 nombre,
                 curp,
                 telefono:      telefono      || null,
                 observaciones: observaciones || null,
-                fk_ejido:      nuevoEjidoId,
-                fk_predio:     nuevoPredioId
+                fk_ejido:      document.getElementById('f_fk_ejido').value  || null,
+                fk_predio:     document.getElementById('f_fk_predio').value || null
             };
 
             if (id) {
@@ -526,9 +486,8 @@
             Swal.fire({
                 icon: 'success',
                 title: id ? 'Actualizado' : 'Registrado',
-                text: id ? 'Productor actualizado exitosamente' : 'Productor creado exitosamente',
-                timer: 2000,
-                showConfirmButton: false
+                text:  id ? 'Productor actualizado exitosamente' : 'Productor creado exitosamente',
+                timer: 2000, showConfirmButton: false
             });
 
             cancelarFormulario();

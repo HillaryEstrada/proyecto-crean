@@ -1,6 +1,7 @@
 // ============================================
 // SERVICIO: alerta.service.js
-// Evalúa: garantías (maquinaria/vehículo) y bajo stock
+// Evalúa: garantías (maquinaria/vehículo), bajo stock
+//         y vencimiento de contratos de empleados
 // ============================================
 
 const Conexion    = require('../../config/database');
@@ -160,6 +161,129 @@ const evaluarBajoStock = async () => {
 };
 
 // ============================================
+// 3. ALERTAS DE CONTRATOS DE EMPLEADOS
+// Dispara a los 60 días, 30 días y al vencer
+// Solo contratos activos de empleados activos
+// referencia_id = pk_contrato
+// fk_empleado   = pk_empleado (columna nueva en migracion)
+// ============================================
+const evaluarContratosEmpleado = async () => {
+    console.log('[alertas] Evaluando contratos de empleados...');
+
+    const query = `
+        SELECT
+            ce.pk_contrato,
+            ce.fk_empleado,
+            ce.fecha_fin,
+            ce.numero_contrato,
+            (ce.fecha_fin - CURRENT_DATE) AS dias_restantes,
+            CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', COALESCE(e.apellido_materno, '')) AS nombre_empleado,
+            e.numero_empleado,
+            tc.nombre AS tipo_contrato
+        FROM contrato_empleado ce
+        INNER JOIN empleado e   ON e.pk_empleado      = ce.fk_empleado
+        INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
+        WHERE ce.activo    = true
+          AND ce.fecha_fin IS NOT NULL
+          AND e.estado     = 'activo'
+    `;
+
+    const { rows } = await Conexion.query(query);
+
+    // Limpiar alertas de contratos que ya no aplican
+    // (contrato renovado, empleado dado de baja, o fecha_fin NULL)
+    const pkContratosActivos = rows.map(r => r.pk_contrato);
+    if (pkContratosActivos.length > 0) {
+        await Conexion.query(
+            `DELETE FROM alerta
+             WHERE tipo_activo = 'empleado'
+               AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30','contrato_vencido')
+               AND referencia_id NOT IN (${pkContratosActivos.map((_, i) => `$${i + 1}`).join(',')})`,
+            pkContratosActivos
+        );
+    } else {
+        await Conexion.query(
+            `DELETE FROM alerta
+             WHERE tipo_activo = 'empleado'
+               AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30','contrato_vencido')`
+        );
+    }
+
+    for (const r of rows) {
+        const fechaTexto    = new Date(r.fecha_fin).toLocaleDateString('es-MX');
+        const numContrato   = r.numero_contrato ? ` (${r.numero_contrato})` : '';
+        const nombreDisplay = `${r.nombre_empleado.trim()} [${r.numero_empleado}]`;
+
+        // Base común para este contrato
+        const base = {
+            tipo_activo:  'empleado',
+            fk_maquinaria: null,
+            fk_vehiculo:   null,
+            fk_empleado:   r.fk_empleado,   // columna nueva de la migración
+            referencia_id: r.pk_contrato,
+            fecha_evento:  r.fecha_fin
+        };
+
+        if (r.dias_restantes <= 0) {
+            // Contrato VENCIDO → eliminar preventivas y generar crítica
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_activo = 'empleado'
+                   AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30')
+                   AND referencia_id = $1`,
+                [r.pk_contrato]
+            );
+            await insertarSiNoExiste({
+                ...base,
+                tipo_alerta: 'contrato_vencido',
+                categoria:   'critica',
+                prioridad:   1,
+                mensaje:     `Contrato VENCIDO de ${nombreDisplay}${numContrato}. Venció el ${fechaTexto}. Tipo: ${r.tipo_contrato}.`
+            });
+
+        } else if (r.dias_restantes <= 30) {
+            // Por vencer en 30 días → eliminar la de 60, generar la de 30
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_activo = 'empleado'
+                   AND tipo_alerta = 'contrato_por_vencer_60'
+                   AND referencia_id = $1`,
+                [r.pk_contrato]
+            );
+            await insertarSiNoExiste({
+                ...base,
+                tipo_alerta: 'contrato_por_vencer_30',
+                categoria:   'preventiva',
+                prioridad:   2,
+                mensaje:     `Contrato de ${nombreDisplay}${numContrato} vence en ${r.dias_restantes} días (${fechaTexto}). Tipo: ${r.tipo_contrato}.`
+            });
+
+        } else if (r.dias_restantes <= 60) {
+            // Por vencer en 60 días → alerta operativa
+            await insertarSiNoExiste({
+                ...base,
+                tipo_alerta: 'contrato_por_vencer_60',
+                categoria:   'operativa',
+                prioridad:   3,
+                mensaje:     `Contrato de ${nombreDisplay}${numContrato} vencerá en ${r.dias_restantes} días (${fechaTexto}). Tipo: ${r.tipo_contrato}.`
+            });
+
+        } else {
+            // Más de 60 días restantes → limpiar cualquier alerta previa de este contrato
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_activo = 'empleado'
+                   AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30','contrato_vencido')
+                   AND referencia_id = $1`,
+                [r.pk_contrato]
+            );
+        }
+    }
+
+    console.log(`[alertas] Contratos evaluados: ${rows.length}`);
+};
+
+// ============================================
 // EJECUTAR TODAS LAS EVALUACIONES
 // ============================================
 const ejecutarTodasLasAlertas = async () => {
@@ -170,6 +294,7 @@ const ejecutarTodasLasAlertas = async () => {
     try {
         await evaluarGarantias();
         await evaluarBajoStock();
+        await evaluarContratosEmpleado();
         console.log('[alertas] Evaluación completada exitosamente.');
     } catch (error) {
         console.error('[alertas] Error durante la evaluación:', error.message);
@@ -180,5 +305,6 @@ const ejecutarTodasLasAlertas = async () => {
 module.exports = {
     ejecutarTodasLasAlertas,
     evaluarGarantias,
-    evaluarBajoStock
+    evaluarBajoStock,
+    evaluarContratosEmpleado
 };

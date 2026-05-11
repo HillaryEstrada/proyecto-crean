@@ -58,7 +58,7 @@
                             <th class="py-3 px-3">MUNICIPIO</th>
                             <th class="py-3 px-3">ESTADO</th>
                             <th class="py-3 px-3">DIRECCIÓN</th>
-                            <th class="py-3 px-3 text-center">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
@@ -108,7 +108,7 @@
                             <th class="py-3 px-3">MUNICIPIO</th>
                             <th class="py-3 px-3">ESTADO</th>
                             <th class="py-3 px-3">DIRECCIÓN</th>
-                            <th class="py-3 px-3 text-center">REGISTRADO POR</th>
+                            <th class="py-3 px-3 text-center">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
@@ -168,7 +168,8 @@
                         Municipio
                     </label>
                     <input type="text" id="f_municipio" class="form-control"
-                        placeholder="Ej: Tepic">
+                        placeholder="Ej: Tecuala">
+                    <div class="text-danger d-none small mt-1" id="err_municipio">Campo requerido</div>
                 </div>
 
                 <div class="col-md-6">
@@ -184,7 +185,7 @@
                         Dirección
                     </label>
                     <textarea id="f_direccion" class="form-control" rows="2"
-                        placeholder="Ej: Carretera Tepic-Guadalajara km 12"></textarea>
+                        placeholder="Ej: Jiménez 154, Obrera, 63320"></textarea>
                 </div>
             </div>
         </div>

@@ -10,10 +10,21 @@ const predio = require('../../models/predio/predio.model');
 // ============================================
 exports.crear = async (req, res) => {
     try {
-        const resultado = await predio.crear({
-            ...req.body,
-            registrado_por: req.user.id
-        });
+        const { nombre, fk_ejido } = req.body;
+
+        if (!nombre) {
+            return res.status(400).json({ error: 'El nombre del predio es obligatorio' });
+        }
+        if (!fk_ejido) {
+            return res.status(400).json({ error: 'El ejido es obligatorio' });
+        }
+
+        const existe = await predio.existeNombre(nombre, fk_ejido);
+        if (existe.rows.length) {
+            return res.status(400).json({ error: 'Ya existe un predio con ese nombre en este ejido' });
+        }
+
+        const resultado = await predio.crear({ ...req.body, registrado_por: req.user.id });
         res.json({ mensaje: 'Predio creado exitosamente', data: resultado.rows[0] });
     } catch (error) {
         manejarError(error, res);
@@ -76,6 +87,15 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
+        const { nombre, fk_ejido } = req.body;
+
+        if (nombre && fk_ejido) {
+            const existe = await predio.existeNombre(nombre, fk_ejido, req.params.id);
+            if (existe.rows.length) {
+                return res.status(400).json({ error: 'Ya existe un predio con ese nombre en este ejido' });
+            }
+        }
+
         const resultado = await predio.actualizar(req.params.id, req.body);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Predio no encontrado' });

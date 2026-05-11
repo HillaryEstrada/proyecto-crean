@@ -30,6 +30,12 @@
             <i class="fa-solid fa-boxes-stacked"></i>Inventario
         </button>
     </li>
+    <li class="nav-item">
+        <button class="nav-link d-flex align-items-center gap-2"
+            id="tabMuestreos" onclick="switchTabPrincipal('muestreos')">
+            <i class="fa-solid fa-flask"></i>Muestreos
+        </button>
+    </li>
 </ul>
 
 <!-- ══════════════════════════════════════
@@ -313,6 +319,166 @@
     </div>
 </div><!-- /vistaInventarioTab -->
 
+<!-- ══════════════════════════════════════
+     TAB: MUESTREOS
+══════════════════════════════════════ -->
+<div id="vistaMuestreosTab" class="d-none">
+
+    <!-- Cards resumen -->
+    <div class="row g-3 mb-4" id="muestreoTarjetas"></div>
+
+    <!-- Filtros -->
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+        <div class="flex-grow-1 position-relative" style="min-width:200px;">
+            <i class="fa-solid fa-magnifying-glass text-muted"
+                style="position:absolute;left:10px;top:50%;transform:translateY(-50%);
+                       font-size:12px;pointer-events:none;"></i>
+            <input type="text" class="form-control ps-4" id="muestreoSearch"
+                placeholder="Buscar por bodega, producto…" oninput="filtrarMuestreos()">
+        </div>
+        <select class="form-select" style="width:auto;" id="muestreoFiltroBodega" onchange="filtrarMuestreos()">
+            <option value="">Todas las bodegas</option>
+        </select>
+        <select class="form-select" style="width:auto;" id="muestreoFiltroCalidad" onchange="filtrarMuestreos()">
+            <option value="">Todas las calidades</option>
+            <option value="Buena">Buena</option>
+            <option value="Regular">Regular</option>
+            <option value="Riesgo">Riesgo</option>
+            <option value="Mala">Mala</option>
+        </select>
+        <button class="btn btn-outline-secondary btn-sm" onclick="cargarMuestreosTab()">
+            <i class="fa-solid fa-rotate-right me-1"></i>Actualizar
+        </button>
+        <button class="btn text-white fw-semibold btn-sm" style="background:#1a3c5e;"
+            onclick="abrirModalMuestreo()">
+            <i class="fa-solid fa-plus me-1"></i>Registrar muestreo
+        </button>
+    </div>
+
+    <!-- Tabla -->
+    <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 table-bordered">
+                <thead class="text-white text-center" style="background-color:#1a3c5e;">
+                    <tr style="font-size:12px;font-weight:600;">
+                        <th class="py-3 px-3" style="width:40px;">#</th>
+                        <th class="py-3 px-3 text-center" style="width:110px;">FECHA</th>
+                        <th class="py-3 px-3">BODEGA</th>
+                        <th class="py-3 px-3">PRODUCTO</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">HUMEDAD</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">TEMP.</th>
+                        <th class="py-3 px-3 text-center" style="width:100px;">CALIDAD</th>
+                        <th class="py-3 px-3" style="width:220px;">OBSERVACIONES</th>
+                        <th class="py-3 px-3 text-center" style="width:120px;">REGISTRADO POR</th>
+                        <th class="py-3 px-3 text-center" style="width:90px;">ACCIONES</th>
+                    </tr>
+                </thead>
+                <tbody id="muestreoBody" class="bg-white">
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="px-3 pt-3 pb-3 bg-light border-top">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div id="info-registros-muestreo" class="small text-muted"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button id="btn-primero-muestreo" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                    <button id="btn-anterior-muestreo" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                    <span id="pagina-info-muestreo" class="small text-muted">Página 1 de 1</span>
+                    <input type="number" id="pagina-input-muestreo"
+                        class="form-control form-control-sm text-center"
+                        style="width:60px;" min="1" value="1">
+                    <button id="btn-siguiente-muestreo" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                    <button id="btn-ultimo-muestreo" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: REGISTRAR / EDITAR MUESTREO ── -->
+<div class="modal fade" id="modalMuestreo" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-flask me-2"></i>
+                    <span id="modalMuestreoTitulo">Registrar Muestreo</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <input type="hidden" id="m_pk_muestreo">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Bodega <span class="text-danger">*</span>
+                        </label>
+                        <select id="m_fk_bodega" class="form-select" onchange="cargarProductosMuestreo()">
+                            <option value="">Seleccionar…</option>
+                        </select>
+                        <div class="text-danger d-none small mt-1" id="m_err_bodega">Campo requerido</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Producto <span class="text-danger">*</span>
+                        </label>
+                        <select id="m_fk_producto" class="form-select">
+                            <option value="">Seleccionar bodega primero…</option>
+                        </select>
+                        <div class="text-danger d-none small mt-1" id="m_err_producto">Campo requerido</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Fecha de muestreo <span class="text-danger">*</span>
+                        </label>
+                        <input type="date" id="m_fecha_muestreo" class="form-control">
+                        <div class="text-danger d-none small mt-1" id="m_err_fecha">Campo requerido</div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Humedad (%)</label>
+                        <input type="number" id="m_humedad" class="form-control"
+                            placeholder="0.0" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Temperatura (°C)</label>
+                        <input type="number" id="m_temperatura" class="form-control"
+                            placeholder="0.0" step="0.1">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Calidad</label>
+                        <select id="m_calidad" class="form-select">
+                            <option value="">— Sin evaluar —</option>
+                            <option value="Buena">Buena</option>
+                            <option value="Regular">Regular</option>
+                            <option value="Riesgo">Riesgo</option>
+                            <option value="Mala">Mala</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Observaciones</label>
+                        <textarea id="m_observaciones" class="form-control" rows="3"
+                            placeholder="Estado del grano, condiciones observadas…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn text-white fw-semibold px-4" style="background:#1a3c5e;"
+                    onclick="guardarMuestreo()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>
+                    <span id="m_btnLabel">Registrar muestreo</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- ── MODAL: VER DETALLE MOVIMIENTO ── -->
 <div class="modal fade" id="modalDetalle" tabindex="-1">

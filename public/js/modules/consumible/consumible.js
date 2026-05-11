@@ -50,6 +50,7 @@
         llenarSelect('bc_fk_ubicacion_interior', _ubicacionesInt, 'pk_ubicacion', 'nombre');
         llenarSelect('sel_empleado_vales', _empleados, 'pk_empleado', e => `${e.nombre} ${e.apellido_paterno}`);
         llenarSelect('f_fk_articulo', _articulos, 'pk_articulo', 'nombre');
+        llenarSelect('filtroPartida', _partidas, 'clave', 'nombre');
     }
 
     // ============================================
@@ -358,12 +359,16 @@
         return `<span class="badge" style="background:#2d7a4f;font-size:11px;">Stock lleno</span>`;
     }
 
-    window.filtrarTabla = function () {
-        const q         = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        const estado    = document.getElementById('filtroEstado')?.value || '';
+        window.filtrarTabla = function () {
+        const q       = (document.getElementById('searchInput')?.value || '').toLowerCase();
+        const estado  = document.getElementById('filtroEstado')?.value || '';
+        const partida = document.getElementById('filtroPartida')?.value || '';
+
         renderTablaArticulos(_articulos.filter(a => {
             const txt = `${a.nombre} ${a.codigo_barras || ''}`.toLowerCase();
-            return (!q || txt.includes(q)) && (!estado || a.estado_stock === estado);
+            return (!q || txt.includes(q))
+                && (!estado  || a.estado_stock === estado)
+                && (!partida || a.fk_partida   === partida);
         }));
     };
 

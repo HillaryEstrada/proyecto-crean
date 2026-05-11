@@ -254,7 +254,8 @@
 
     <!-- ===== SIDEBAR ===== -->
     <aside id="sidebar">
-
+        <div id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.add('mobile-hidden'); this.classList.add('d-none');" 
+    style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;"></div>
         <!-- Header -->
         <div class="sidebar-header">
             <span class="sidebar-brand sidebar-text">CREAN</span>
@@ -352,11 +353,11 @@
                     </a>
                     <!-- GRANOS -->
                     <a href="#" data-clave="inventario/bodega_producto" onclick="cargarVista('inventario/bodega_producto')">
-                        <i class="fa-solid fa-box"></i>
+                        <i class="fa-solid fa-seedling"></i>
                         <span class="sidebar-text">Granos</span>
                     </a>
                     <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
-                        <i class="fa-solid fa-house-chimney"></i>
+                        <i class="fa-solid fa-boxes-stacked"></i>
                         <span class="sidebar-text">Bodegas</span>
                     </a>
                     <a href="#" data-clave="productor/productor" onclick="cargarVista('productor/productor')">
@@ -365,12 +366,12 @@
                     </a>
                     <!-- Predio -->
                      <a href="#" data-clave="predio/predio" onclick="cargarVista('predio/predio')">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <i class="fa-solid fa-compass"></i>
                         <span class="sidebar-text">Predios</span>
                     </a>
                     <!-- Ejido -->
                     <a href="#" data-clave="ejido/ejido" onclick="cargarVista('ejido/ejido')">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <i class="fa-solid fa-map-location-dot"></i> 
                         <span class="sidebar-text">Ejidos</span>
                     </a>
                 </div>
@@ -397,7 +398,7 @@
                         <span class="sidebar-text">Inventario</span>
                     </a>
                     <a href="#" data-clave="partida_presupuestal/partida_presupuestal" onclick="cargarVista('partida_presupuestal/partida_presupuestal')">
-                        <i class="fa-solid fa-house-chimney"></i>
+                        <i class="fa-solid fa-file-contract"></i> 
                         <span class="sidebar-text">Partidas Presupuestales</span>
                     </a>
 
@@ -501,7 +502,7 @@
         <!-- Header móvil -->
         <div class="mobile-header">
             <div class="mobile-header-inner">
-                <h1>CREAN</h1>
+                <h1></h1>
                 <button id="mobile-menu-btn">
                     <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
@@ -575,8 +576,12 @@
 
     // ====== MENÚ MÓVIL ======
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const overlay = document.getElementById('sidebar-overlay');
     if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => sidebar.classList.toggle('mobile-hidden'));
+        mobileMenuBtn.addEventListener('click', () => {
+            const abierto = sidebar.classList.toggle('mobile-hidden');
+            if (overlay) overlay.style.display = abierto ? 'none' : 'block';
+        });
     }
 </script>
 </body>

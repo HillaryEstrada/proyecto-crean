@@ -80,12 +80,16 @@
     // FILTRAR
     // ============================================
     window.filtrarTabla = function () {
-        const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        renderTabla(_registros.filter(u => {
-            const txt = `${u.nombre} ${u.descripcion || ''} ${u.registrado_por_usuario || ''}`.toLowerCase();
-            return !q || txt.includes(q);
-        }));
-    };
+    const q    = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const tipo = document.getElementById('tipoFilter')?.value || '';
+
+    renderTabla(_registros.filter(u => {
+        const txt       = `${u.nombre} ${u.descripcion || ''} ${u.registrado_por_usuario || ''}`.toLowerCase();
+        const matchQ    = !q    || txt.includes(q);
+        const matchTipo = !tipo || u.tipo === tipo;
+        return matchQ && matchTipo;
+    }));
+};
 
     // ============================================
     // ABRIR FORMULARIO (CREAR)

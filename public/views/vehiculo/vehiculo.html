@@ -334,34 +334,42 @@
                 <div id="wPaso2" class="d-none">
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Marca</label>
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Marca <span class="text-danger">*</span>
+                            </label>
                             <input type="text" id="w_marca" class="form-control" placeholder="Ej: Toyota">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Modelo</label>
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Modelo <span class="text-danger">*</span>
+                            </label>
                             <input type="text" id="w_modelo" class="form-control" placeholder="Ej: Hilux">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Año</label>
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Año <span class="text-danger">*</span>
+                            </label>
                             <input type="number" id="w_anio" class="form-control"
                                 placeholder="2024" min="1980" max="2099">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Color</label>
+                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                                Color <span class="text-danger">*</span>
+                            </label>
                             <input type="text" id="w_color" class="form-control" placeholder="Ej: Blanco">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                VIN
+                                VIN <span class="text-danger">*</span>
                             </label>
                             <input type="text" id="w_vin" class="form-control"
-                                placeholder="Ej: 1HGBH41JXMN109186">
+                                placeholder="Ej: 1HGBH41JXMN109186" maxlength="17" oninput="this.value = this.value.toUpperCase()">
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
                                 Placas
                             </label>
-                            <input type="text" id="w_placas" class="form-control" placeholder="Ej: ABC-123">
+                            <input type="text" id="w_placas" class="form-control" placeholder="Ej: ABC-123" oninput="this.value = this.value.toUpperCase()">
                         </div>
                     </div>
                     <hr class="my-3">
@@ -378,7 +386,7 @@
                     </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Estado Físico
+                                Estado Físico <span class="text-danger">*</span>
                             </label>
                             <select id="w_estado_fisico" class="form-select">
                                 <option value="bueno">Bueno</option>
@@ -388,7 +396,7 @@
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                                Estado Operativo
+                                Estado Operativo <span class="text-danger">*</span>
                             </label>
                             <select id="w_estado_operativo" class="form-select">
                                 <option value="disponible">Disponible</option>
