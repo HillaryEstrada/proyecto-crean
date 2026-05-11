@@ -11,12 +11,13 @@ module.exports = {
     listarPorEmpleado: (fk_empleado) => Conexion.query(
         `SELECT ce.pk_contrato, ce.fk_empleado, ce.fk_tipo_contrato,
             ce.fecha_inicio, ce.fecha_fin, ce.activo,
-            ce.numero_contrato, ce.motivo_renovacion, ce.documento_contrato,
+            ce.numero_contrato, ce.justificacion, ce.documento_contrato, 
+            ce.regimen_laboral, ce.tipo_alta,
             tc.nombre AS tipo_contrato
-         FROM contrato_empleado ce
-         INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
-         WHERE ce.fk_empleado = $1
-         ORDER BY ce.fecha_inicio DESC`,
+        FROM contrato_empleado ce
+        INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
+        WHERE ce.fk_empleado = $1
+        ORDER BY ce.fecha_inicio DESC`,
         [fk_empleado]
     ),
 
@@ -24,29 +25,32 @@ module.exports = {
     obtenerActivo: (fk_empleado) => Conexion.query(
         `SELECT ce.pk_contrato, ce.fk_empleado, ce.fk_tipo_contrato,
             ce.fecha_inicio, ce.fecha_fin, ce.activo,
-            ce.numero_contrato, ce.motivo_renovacion, ce.documento_contrato,
+            ce.numero_contrato, ce.justificacion, ce.documento_contrato, 
+            ce.regimen_laboral, ce.tipo_alta,
             tc.nombre AS tipo_contrato
-         FROM contrato_empleado ce
-         INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
-         WHERE ce.fk_empleado = $1 AND ce.activo = true
-         LIMIT 1`,
+        FROM contrato_empleado ce
+        INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
+        WHERE ce.fk_empleado = $1 AND ce.activo = true
+        LIMIT 1`,
         [fk_empleado]
     ),
 
     // Crear nuevo contrato (fecha_fin = fecha_inicio + 6 meses)
-    crear: (fk_empleado, fk_tipo_contrato, fecha_inicio, numero_contrato = null, motivo_renovacion = null, documento_contrato = null) => Conexion.query(
+    crear: (fk_empleado, fk_tipo_contrato, fecha_inicio, numero_contrato = null, justificacion = null, documento_contrato = null, regimen_laboral = null, tipo_alta = null, fecha_fin = null) => Conexion.query(
         `INSERT INTO contrato_empleado 
-            (fk_empleado, fk_tipo_contrato, fecha_inicio, fecha_fin, activo, numero_contrato, motivo_renovacion, documento_contrato)
-        VALUES ($1, $2, $3, ($3::DATE + INTERVAL '6 months')::DATE, true, $4, $5, $6)
+            (fk_empleado, fk_tipo_contrato, fecha_inicio, fecha_fin, activo,
+            numero_contrato, justificacion, documento_contrato, regimen_laboral, tipo_alta)
+        VALUES ($1, $2, $3, COALESCE($9::DATE, ($3::DATE + INTERVAL '6 months')::DATE), true, $4, $5, $6, $7, $8)
         RETURNING pk_contrato, fecha_inicio, fecha_fin`,
-        [fk_empleado, fk_tipo_contrato, fecha_inicio, numero_contrato, motivo_renovacion, documento_contrato]
+        [fk_empleado, fk_tipo_contrato, fecha_inicio, numero_contrato, justificacion, documento_contrato, regimen_laboral, tipo_alta, fecha_fin]
     ),
 
     // Desactivar contrato activo de un empleado (al dar de baja)
     desactivarContrato: (fk_empleado) => Conexion.query(
         `UPDATE contrato_empleado
-         SET activo = false
-         WHERE fk_empleado = $1 AND activo = true`,
+        SET activo = false,
+            fecha_fin = COALESCE(fecha_fin, CURRENT_DATE)
+        WHERE fk_empleado = $1 AND activo = true`,
         [fk_empleado]
     ),
 

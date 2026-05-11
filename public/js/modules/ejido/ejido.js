@@ -55,7 +55,11 @@
                 <td class="px-3 text-muted" style="font-size:13px;">${e.municipio   || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo  || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.direccion   || '—'}</td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${e.registrado_por_usuario || '—'} • ${e.fecha_registro
+                        ? new Date(e.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarEjido(${e.pk_ejido})">
@@ -103,7 +107,11 @@
                 <td class="px-3 text-muted" style="font-size:13px;">${e.municipio  || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo || '—'}</td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.direccion  || '—'}</td>
-                <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${e.registrado_por_usuario || '—'} • ${e.fecha_registro
+                        ? new Date(e.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarEjido(${e.pk_ejido}, '${(e.nombre||'').replace(/'/g,"\\'")}')">
@@ -179,7 +187,11 @@
                     <td class="px-3 text-muted" style="font-size:13px;">${e.municipio  || '—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${e.estado_geo || '—'}</td>
                     <td class="px-3 text-muted" style="font-size:13px;">${e.direccion  || '—'}</td>
-                    <td class="px-3 text-center text-muted" style="font-size:13px;">${e.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${e.registrado_por_usuario || '—'} • ${e.fecha_registro
+                            ? new Date(e.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarEjido(${e.pk_ejido}, '${(e.nombre||'').replace(/'/g,"\\'")}')">
@@ -256,16 +268,45 @@
         const estado_geo = document.getElementById('f_estado_geo').value.trim();
         const direccion  = document.getElementById('f_direccion').value.trim();
 
+        let valido = true;
+
+        // Nombre — obligatorio + formato
         if (!nombre) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = 'Campo requerido';
+            valido = false;
+        } else {
+            const errs = validarFormato(nombre);
+            if (errs.length) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = errs[0];
+                valido = false;
+            } else {
+                document.getElementById('err_nombre').classList.add('d-none');
+            }
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+
+        // Municipio — obligatorio + formato
+        if (!municipio) {
+            document.getElementById('err_municipio').classList.remove('d-none');
+            document.getElementById('err_municipio').textContent = 'Campo requerido';
+            valido = false;
+        } else {
+            const errs = validarFormato(municipio);
+            if (errs.length) {
+                document.getElementById('err_municipio').classList.remove('d-none');
+                document.getElementById('err_municipio').textContent = errs[0];
+                valido = false;
+            } else {
+                document.getElementById('err_municipio').classList.add('d-none');
+            }
+        }
+
+        if (!valido) return;
 
         const payload = {
             nombre,
-            municipio:  municipio  || null,
+            municipio,
             estado_geo: estado_geo || null,
             direccion:  direccion  || null
         };
@@ -285,7 +326,13 @@
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+            const msg = error.error || error.message || '';
+            if (msg.includes('nombre') && msg.includes('municipio')) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = msg;
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: msg });
+            }
         }
     };
 

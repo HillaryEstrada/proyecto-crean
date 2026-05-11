@@ -113,12 +113,14 @@ module.exports = {
     ),
 
     // ============================================
-    // Verificar si el nombre ya existe
+    // Verificar si la combinación nombre + municipio ya existe
     // ============================================
-    existeNombre: (nombre, idActual = null) => Conexion.query(
+    existeCombinacion: (nombre, municipio, idActual = null) => Conexion.query(
         `SELECT pk_ejido FROM ejido
-         WHERE LOWER(nombre) = LOWER($1) ${idActual ? `AND pk_ejido != $2` : ''}`,
-        idActual ? [nombre, idActual] : [nombre]
+        WHERE LOWER(TRIM(nombre))    = LOWER(TRIM($1))
+        AND   LOWER(TRIM(municipio)) = LOWER(TRIM($2))
+        ${idActual ? 'AND pk_ejido != $3' : ''}`,
+        idActual ? [nombre, municipio, idActual] : [nombre, municipio]
     )
 
 };

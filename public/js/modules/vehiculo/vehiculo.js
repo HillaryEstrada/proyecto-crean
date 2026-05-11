@@ -85,6 +85,7 @@
         _wFotoFile = null;
         document.getElementById('w_pk_vehiculo').value = '';
         document.getElementById('wizardTitulo').textContent = 'Registrar Vehículo';
+        document.getElementById('w_anio').max = new Date().getFullYear() + 1;
 
         // --- Paso 1 ---
         ['w_numero_economico', 'w_numero_inventario_gob'].forEach(id => {
@@ -134,6 +135,7 @@
         document.getElementById('w_placas').value                = v.placas  || '';
         document.getElementById('w_estado_fisico').value         = v.estado_fisico    || 'bueno';
         document.getElementById('w_estado_operativo').value      = v.estado_operativo || 'disponible';
+        document.getElementById('w_anio').max                    = new Date().getFullYear() + 1;
 
         // --- Paso 3 ---
         document.getElementById('w_kilometraje_actual').value = v.kilometraje_actual && parseFloat(v.kilometraje_actual) !== 0 ? v.kilometraje_actual : '';
@@ -210,12 +212,29 @@
             }
         }
         if (_wPasoActual === 2) {
-            const ubic = document.getElementById('w_fk_ubicacion').value;
-            if (!ubic) {
-                Swal.fire({ icon:'warning', title:'Campo requerido',
-                    text:'Selecciona una ubicación' });
+            const marca  = document.getElementById('w_marca').value.trim();
+            const modelo = document.getElementById('w_modelo').value.trim();
+            const anio   = document.getElementById('w_anio').value;
+            const color  = document.getElementById('w_color').value.trim();
+            const vin    = document.getElementById('w_vin').value.trim();
+            const ubic   = document.getElementById('w_fk_ubicacion').value;
+
+            if (!marca)  { Swal.fire({ icon:'warning', title:'Campo requerido', text:'La marca es obligatoria' }); return; }
+            if (!modelo) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'El modelo es obligatorio' }); return; }
+
+            const erroresAnio = validarAnio(anio);
+            if (erroresAnio.length) {
+                Swal.fire({ icon:'warning', title:'Año inválido', text: erroresAnio[0] });
+                document.getElementById('w_anio').focus();
                 return;
             }
+
+            if (!color) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'El color es obligatorio' }); return; }
+
+            if (!vin) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'El VIN es obligatorio' }); return; }
+            if (vin.length !== 17) { Swal.fire({ icon:'warning', title:'VIN inválido', text:'El VIN debe tener exactamente 17 caracteres' }); return; }
+
+            if (!ubic) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'Selecciona una ubicación' }); return; }
         }
         if (_wPasoActual < 3) wIrPaso(_wPasoActual + 1);
     };

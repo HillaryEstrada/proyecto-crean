@@ -36,12 +36,14 @@
         try {
             const data = await fetchWithAuth('/ubicacion');
             const sel  = document.getElementById('w_fk_ubicacion');
-            data.forEach(u => {
-                const opt = document.createElement('option');
-                opt.value = u.pk_ubicacion;
-                opt.textContent = u.nombre;
-                sel.appendChild(opt);
-            });
+            data
+                .filter(u => u.tipo === 'exterior')   // ← solo exteriores
+                .forEach(u => {
+                    const opt = document.createElement('option');
+                    opt.value = u.pk_ubicacion;
+                    opt.textContent = u.nombre;
+                    sel.appendChild(opt);
+                });
         } catch(e) { console.error('Error ubicaciones:', e); }
     }
 
@@ -102,6 +104,7 @@
             `<i class="fa-solid fa-camera" style="color:#3b82f6;font-size:16px;"></i>
              <span style="font-size:9px;color:#3b82f6;">Foto</span>`;
         wIrPaso(1);
+        document.getElementById('w_anio').max = new Date().getFullYear() + 1;
         new bootstrap.Modal(document.getElementById('modalWizard')).show();
     };
 
@@ -121,7 +124,7 @@
         document.getElementById('w_serie').value                   = m.serie||'';
         document.getElementById('w_numero_motor').value            = m.numero_motor||'';
         document.getElementById('w_horas_actuales').value     = m.horas_actuales || '';
-        document.getElementById('w_combustible_litros').value = 
+        document.getElementById('w_anio').max                       = new Date().getFullYear() + 1;
         document.getElementById('w_combustible_litros').value = 
     (m.combustible_litros && parseFloat(m.combustible_litros) !== 0) 
     ? m.combustible_litros : '';
@@ -185,26 +188,40 @@
                 document.getElementById('wBtnGuardar').classList.toggle('d-none', paso !== 3);
             }
 
-            window.wSiguiente = function() {
-            if (_wPasoActual === 1) {
-                const num  = document.getElementById('w_numero_economico').value.trim();
-                const tipo = document.getElementById('w_fk_tipo').value;
-                if (!num || !tipo) {
-                    Swal.fire({ icon:'warning', title:'Campos requeridos',
-                        text:'Número económico y tipo de equipo son obligatorios' });
-                    return;
+           window.wSiguiente = function() {
+                if (_wPasoActual === 1) {
+                    const num  = document.getElementById('w_numero_economico').value.trim();
+                    const tipo = document.getElementById('w_fk_tipo').value;
+                    if (!num || !tipo) {
+                        Swal.fire({ icon:'warning', title:'Campos requeridos',
+                            text:'Número económico y tipo de equipo son obligatorios' });
+                        return;
+                    }
                 }
-            }
-            if (_wPasoActual === 2) {
-                const ubic = document.getElementById('w_fk_ubicacion').value;
-                if (!ubic) {
-                    Swal.fire({ icon:'warning', title:'Campo requerido',
-                        text:'Selecciona una ubicación' });
-                    return;
+
+                if (_wPasoActual === 2) {
+                    const marca  = document.getElementById('w_marca').value.trim();
+                    const modelo = document.getElementById('w_modelo').value.trim();
+                    const anio   = document.getElementById('w_anio').value;
+                    const serie  = document.getElementById('w_serie').value.trim();
+                    const ubic   = document.getElementById('w_fk_ubicacion').value;
+
+                    if (!marca)  { Swal.fire({ icon:'warning', title:'Campo requerido', text:'La marca es obligatoria' }); return; }
+                    if (!modelo) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'El modelo es obligatorio' }); return; }
+
+                    const erroresAnio = validarAnio(anio);
+                    if (erroresAnio.length) {
+                        Swal.fire({ icon:'warning', title:'Año inválido', text: erroresAnio[0] });
+                        document.getElementById('w_anio').focus();
+                        return;
+                    }
+
+                    if (!serie) { Swal.fire({ icon:'warning', title:'Campo requerido', text:'El número de serie es obligatorio' }); return; }
+                    if (!ubic)  { Swal.fire({ icon:'warning', title:'Campo requerido', text:'Selecciona una ubicación' }); return; }
                 }
-            }
-            if (_wPasoActual < 3) wIrPaso(_wPasoActual + 1);
-        };
+
+                if (_wPasoActual < 3) wIrPaso(_wPasoActual + 1);
+            };
 
     window.wAtras = function() {
         if (_wPasoActual > 1) wIrPaso(_wPasoActual - 1);

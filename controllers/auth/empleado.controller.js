@@ -39,7 +39,9 @@ exports.crear = async (req, res) => {
         const {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion, fecha_ingreso, fecha_nacimiento,
-            fk_tipo_contrato, regimen_laboral, motivo_alta
+            fk_tipo_contrato, regimen_laboral,
+            numero_contrato, contrato_fecha_inicio, contrato_fecha_fin,
+            justificacion, documento_contrato
         } = req.body;
 
         if (!nombre || !apellido_paterno || !numero_empleado) {
@@ -80,16 +82,23 @@ exports.crear = async (req, res) => {
             sexo, telefono, correo, direccion,
             estado: 'activo',
             fecha_ingreso:    fecha_ingreso    || null,
-            fecha_nacimiento: fecha_nacimiento || null,
-            regimen_laboral:  regimen_laboral  || null,
-            motivo_alta:     motivo_alta     || null
+            fecha_nacimiento: fecha_nacimiento || null
         });
 
         const empleadoId = result.rows[0].pk_empleado;
 
         // Crear contrato automáticamente (fecha_inicio = fecha_ingreso)
-        await ContratoEmpleado.crear(empleadoId, fk_tipo_contrato, fecha_ingreso);
-
+        await ContratoEmpleado.crear(
+        empleadoId,
+        fk_tipo_contrato,
+        contrato_fecha_inicio || fecha_ingreso,  // usa fecha_inicio del contrato, o fecha_ingreso como fallback
+        numero_contrato       || null,
+        justificacion         || null,
+        documento_contrato    || null,
+        regimen_laboral       || null,
+        'contratacion',
+        contrato_fecha_fin    || null
+    );
         res.json({
             mensaje: 'Empleado creado exitosamente con su contrato inicial',
             empleadoId
@@ -106,7 +115,7 @@ exports.actualizar = async (req, res) => {
     try {
         const {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
-            sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento, regimen_laboral, motivo_alta
+            sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento
         } = req.body;
 
         if (!nombre || !apellido_paterno || !numero_empleado) {
@@ -135,9 +144,7 @@ exports.actualizar = async (req, res) => {
             numero_empleado, nombre, apellido_paterno, apellido_materno,
             sexo, telefono, correo, direccion, estado,
             fecha_ingreso:    fecha_ingreso    || null,
-            fecha_nacimiento: fecha_nacimiento || null,
-            regimen_laboral:  regimen_laboral  || null,
-            motivo_alta:     motivo_alta     || null
+            fecha_nacimiento: fecha_nacimiento || null
         });
 
         res.json({ mensaje: 'Empleado actualizado exitosamente' });
@@ -202,38 +209,39 @@ exports.darDeBaja = async (req, res) => {
 // ─── NUEVO: REACTIVAR empleado ────────────────────────────────────────────────
 exports.reactivar = async (req, res) => {
     try {
-        const { fk_tipo_contrato } = req.body;
+        const { fk_tipo_contrato, regimen_laboral, numero_contrato, fecha_inicio, fecha_fin, justificacion, documento_contrato } = req.body;
 
         if (!fk_tipo_contrato) {
             return res.status(400).json({ error: 'El tipo de contrato es requerido para reactivar' });
         }
 
-        // Verificar que el empleado exista
         const empleado = await Empleado.obtenerPorId(req.params.id);
         if (empleado.rows.length === 0) {
             return res.status(404).json({ error: 'Empleado no encontrado' });
         }
-
-        // No reactivar si ya está activo
         if (empleado.rows[0].estado === 'activo') {
             return res.status(400).json({ error: 'El empleado ya está activo' });
         }
 
-        // Validar que el tipo de contrato exista
         const tipoContrato = await TipoContrato.obtenerPorId(fk_tipo_contrato);
         if (tipoContrato.rows.length === 0) {
             return res.status(400).json({ error: 'El tipo de contrato no existe' });
         }
 
-        // Reactivar empleado (limpia fecha_baja y motivo)
         await Empleado.reactivar(req.params.id);
 
-        // Crear nuevo contrato desde hoy
         const hoy = new Date().toISOString().split('T')[0];
-        await ContratoEmpleado.crear(req.params.id, fk_tipo_contrato, hoy);
+        await ContratoEmpleado.crear(
+        req.params.id, fk_tipo_contrato, fecha_inicio || hoy,
+        numero_contrato    || null,
+        justificacion      || null,
+        documento_contrato || null,
+        regimen_laboral    || null,
+        'recontratacion',
+        fecha_fin          || null
+    );
 
         res.json({ mensaje: 'Empleado reactivado exitosamente con nuevo contrato' });
-
     } catch (error) {
         console.error('Error al reactivar empleado:', error);
         res.status(500).json({ error: error.message });
@@ -242,7 +250,10 @@ exports.reactivar = async (req, res) => {
 
 exports.renovarContrato = async (req, res) => {
     try {
-        const { fk_tipo_contrato, numero_contrato, motivo_renovacion, documento_contrato } = req.body;
+        const { 
+            fk_tipo_contrato, numero_contrato, justificacion, 
+            documento_contrato, regimen_laboral, fecha_inicio, fecha_fin 
+        } = req.body;
 
         if (!fk_tipo_contrato) {
             return res.status(400).json({ error: 'El tipo de contrato es requerido' });
@@ -262,10 +273,20 @@ exports.renovarContrato = async (req, res) => {
             return res.status(400).json({ error: 'El tipo de contrato no existe' });
         }
 
-        // Desactivar contrato actual y crear uno nuevo
-        await ContratoEmpleado.desactivarContrato(req.params.id);
         const hoy = new Date().toISOString().split('T')[0];
-        await ContratoEmpleado.crear(req.params.id, fk_tipo_contrato, hoy, numero_contrato || null, motivo_renovacion || null, documento_contrato || null);
+
+        await ContratoEmpleado.desactivarContrato(req.params.id);
+        await ContratoEmpleado.crear(
+        req.params.id,
+        fk_tipo_contrato,
+        fecha_inicio       || hoy,
+        numero_contrato    || null,
+        justificacion      || null,
+        documento_contrato || null,
+        regimen_laboral    || null,
+        'renovacion',
+        fecha_fin          || null
+    );
 
         res.json({ mensaje: 'Contrato renovado exitosamente' });
 

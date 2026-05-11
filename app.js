@@ -56,13 +56,13 @@ app.use('/predio', require('./routes/predio/predio.routes'));
 //--- MÓDULO CONSUMIBLES ---
 app.use('/partida-presupuestal', require('./routes/partida_presupuestal/partida_presupuestal.routes'));
 app.use('/unidad-medida', require('./routes/unidad_medida/unidad_medida.routes'));
-app.use('/almacen', require('./routes/almacen/almacen.routes'));
 app.use('/area', require('./routes/area/area.routes'));
 
 app.use('/movimiento_bodega', require('./routes/movimiento_bodega/movimiento_bodega.routes'));
 app.use('/inventario_bodega', require('./routes/inventario_bodega/inventario_bodega.routes'));
 app.use('/articulos', require('./routes/consumible/articulo.routes'))
 app.use('/movimientos-articulo', require('./routes/consumible/movimiento_articulo.routes'))
+app.use('/muestreo_bodega', require('./routes/muestreo_bodega/muestreo_bodega.routes'));
 
 app.use('/mobiliario',              require('./routes/mobiliario/mobiliario.routes'));
 app.use('/movimientos-mobiliario',  require('./routes/mobiliario/movimiento_mobiliario.routes'));

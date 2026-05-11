@@ -13,7 +13,10 @@ module.exports = {
                 e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno, 
                 e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion, 
                 e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
-                e.regimen_laboral, e.motivo_alta,
+                 ce.regimen_laboral,
+                ce.numero_contrato,
+                ce.fecha_inicio as contrato_fecha_inicio,
+                ce.fecha_fin    as contrato_fecha_fin,
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
                 ce.activo as contrato_activo,
                 tc.nombre as tipo_contrato,
@@ -31,7 +34,7 @@ module.exports = {
         `SELECT e.pk_empleado, e.numero_empleado, e.nombre, e.apellido_paterno,
                 e.apellido_materno, e.sexo, e.telefono, e.correo, e.direccion,
                 e.estado, e.fecha_ingreso, e.fecha_nacimiento, e.foto_perfil,
-                e.fecha_baja, e.fk_motivo_baja, e.regimen_laboral, e.motivo_alta,
+                e.fecha_baja, e.fk_motivo_baja,
                 CONCAT(e.nombre, ' ', e.apellido_paterno, ' ', e.apellido_materno) as nombre_completo,
                 u.pk_user, u.username, u.estado as estado_user,
                 mb.nombre as motivo_baja
@@ -45,23 +48,13 @@ module.exports = {
     // Crear empleado nuevo
     crear: (data) => Conexion.query(
         `INSERT INTO empleado(numero_empleado, nombre, apellido_paterno, apellido_materno,
-                      sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento,
-                      regimen_laboral, motivo_alta)
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
+                    sexo, telefono, correo, direccion, estado, fecha_ingreso, fecha_nacimiento)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        RETURNING pk_empleado`,
         [
-            data.numero_empleado,
-            data.nombre,
-            data.apellido_paterno,
-            data.apellido_materno,
-            data.sexo,
-            data.telefono,
-            data.correo,
-            data.direccion,
-            data.estado || 'activo',
-            data.fecha_ingreso,
-            data.fecha_nacimiento,
-            data.regimen_laboral || null,
-            data.motivo_alta || null
+            data.numero_empleado, data.nombre, data.apellido_paterno, data.apellido_materno,
+            data.sexo, data.telefono, data.correo, data.direccion,
+            data.estado || 'activo', data.fecha_ingreso, data.fecha_nacimiento
         ]
     ),
 
@@ -70,8 +63,8 @@ module.exports = {
         `UPDATE empleado
          SET numero_empleado=$1, nombre=$2, apellido_paterno=$3, apellido_materno=$4,
              sexo=$5, telefono=$6, correo=$7, direccion=$8, estado=$9, 
-             fecha_ingreso=$10, fecha_nacimiento=$11, regimen_laboral=$12, motivo_alta=$13
-         WHERE pk_empleado=$14`,
+             fecha_ingreso=$10, fecha_nacimiento=$11
+         WHERE pk_empleado=$12`,
         [
             data.numero_empleado,
             data.nombre,
@@ -84,8 +77,6 @@ module.exports = {
             data.estado,
             data.fecha_ingreso,
             data.fecha_nacimiento,
-            data.regimen_laboral || null, 
-            data.motivo_alta || null,
             id
         ]
     ),

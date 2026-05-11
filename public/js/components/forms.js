@@ -39,3 +39,19 @@ window.formatearTelefono = function (input) {
     else if (val.length > 3) val = val.slice(0,3) + '-' + val.slice(3);
     input.value = val;
 };
+
+// ============================================
+// VALIDAR AÑO (maquinaria, vehículos, etc.)
+// ============================================
+window.validarAnio = function (anio) {
+    const errores  = [];
+    const anioNum  = parseInt(anio);
+    const anioActual = new Date().getFullYear();
+
+    if (!anio || anio === '')              errores.push('El año es obligatorio');
+    else if (isNaN(anioNum))               errores.push('El año debe ser un número válido');
+    else if (anioNum < 1950)               errores.push('El año no puede ser menor a 1950');
+    else if (anioNum > anioActual + 1)     errores.push(`El año no puede ser mayor a ${anioActual + 1}`);
+
+    return errores;
+};

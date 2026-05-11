@@ -80,24 +80,24 @@ module.exports = {
     // ============================================
     // Actualizar productor
     // ============================================
-    actualizar: (id, data) => Conexion.query(
+        actualizar: (id, data) => Conexion.query(
         `UPDATE productor
         SET
             nombre        = COALESCE($1, nombre),
             curp          = COALESCE($2, curp),
-            telefono      = COALESCE($3, telefono),
-            observaciones = COALESCE($4, observaciones),
+            telefono      = $3,
+            observaciones = $4,
             fk_ejido      = $5,
             fk_predio     = $6
         WHERE pk_productor = $7
         RETURNING *`,
         [
             data.nombre,
-            data.curp          || null,
-            data.telefono      || null,
+            data.curp      || null,
+            data.telefono  || null,
             data.observaciones || null,
-            data.fk_ejido      || null,
-            data.fk_predio     || null,
+            data.fk_ejido  || null,
+            data.fk_predio || null,
             id
         ]
     ),

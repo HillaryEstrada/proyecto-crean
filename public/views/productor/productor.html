@@ -168,135 +168,74 @@
         </div>
 
         <div class="p-4">
-    <input type="hidden" id="f_pk_productor">
+            <input type="hidden" id="f_pk_productor">
 
-    <div class="row g-3">
-        <div class="col-md-8">
-            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                Nombre <span class="text-danger">*</span>
-            </label>
-            <input type="text" id="f_nombre" class="form-control"
-                placeholder="Ej: Juan García López">
-            <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
-        </div>
+            <div class="row g-3">
 
-        <div class="col-md-4">
-            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                CURP <span class="text-danger">*</span>
-            </label>
-            <input type="text" id="f_curp" class="form-control"
-                placeholder="Ej: AAAA000000HXXXXX00"
-                style="text-transform:uppercase;" maxlength="18">
-            <div class="text-danger d-none small mt-1" id="err_curp">Campo requerido</div>
-        </div>
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Nombre <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_nombre" class="form-control"
+                        placeholder="Ej: Juan García López">
+                    <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
+                </div>
 
-        <div class="col-md-4">
-            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                Teléfono
-            </label>
-            <input type="text" id="f_telefono" class="form-control"
-                placeholder="Ej: 311-123-4567" oninput="formatearTelefono(this)" maxlength="12">
-            <div class="text-danger d-none small mt-1" id="err_telefono">Campo requerido</div>
-        </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        CURP <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" id="f_curp" class="form-control"
+                        placeholder="Ej: AAAA000000HXXXXX00"
+                        style="text-transform:uppercase;" maxlength="18">
+                    <div class="text-danger d-none small mt-1" id="err_curp">Campo requerido</div>
+                </div>
 
-        <div class="col-12">
-            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                Observaciones
-            </label>
-            <textarea id="f_observaciones" class="form-control" rows="3"
-                placeholder="Notas adicionales sobre el productor…"></textarea>
-        </div>
-        <div class="col-md-6">
-        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-            Ejido
-        </label>
-        <select id="f_fk_ejido" class="form-select">
-            <option value="">— Sin ejido —</option>
-        </select>
-    </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Teléfono
+                    </label>
+                    <input type="text" id="f_telefono" class="form-control"
+                        placeholder="Ej: 311-123-4567" oninput="formatearTelefono(this)" maxlength="12">
+                    <div class="text-danger d-none small mt-1" id="err_telefono">Campo requerido</div>
+                </div>
 
-    <div class="col-md-6">
-        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-            Predio
-        </label>
-        <select id="f_fk_predio" class="form-select">
-            <option value="">— Sin predio —</option>
-        </select>
-    </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Observaciones
+                    </label>
+                    <textarea id="f_observaciones" class="form-control" rows="3"
+                        placeholder="Notas adicionales sobre el productor…"></textarea>
+                </div>
 
-        <!-- ── SECCIÓN EJIDO (opcional) ── -->
-        <div class="col-12">
-            <div class="p-3 rounded-3" style="background:#f8f9fa;border:1px solid #dee2e6;">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        <i class="fa-solid fa-land-mine-on me-1"></i>Registrar ejido al mismo tiempo
-                        <small class="text-muted fw-normal">(opcional)</small>
-                    </span>
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" id="toggle_ejido"
-                            onchange="toggleSeccionEjido()">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Ejido</label>
+                    <div class="d-flex gap-2">
+                        <select id="f_fk_ejido" class="form-select" onchange="cargarPrediosPorEjido()">
+                            <option value="">— Sin ejido —</option>
+                        </select>
+                        <button type="button" class="btn text-white px-3" style="background:#1a3c5e;"
+                            onclick="abrirModalEjido()" title="Registrar nuevo ejido">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
                     </div>
                 </div>
-                <div id="seccionEjido" class="d-none">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre ejido <span class="text-danger">*</span></label>
-                            <input type="text" id="ej_nombre" class="form-control" placeholder="Ej: Ejido El Progreso">
-                            <div class="text-danger d-none small mt-1" id="err_ej_nombre">Campo requerido</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Municipio</label>
-                            <input type="text" id="ej_municipio" class="form-control" placeholder="Ej: Tepic">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Estado</label>
-                            <input type="text" id="ej_estado_geo" class="form-control" placeholder="Ej: Nayarit">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Dirección</label>
-                            <textarea id="ej_direccion" class="form-control" rows="1" placeholder="Opcional…"></textarea>
-                        </div>
+
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Predio</label>
+                    <div class="d-flex gap-2">
+                        <select id="f_fk_predio" class="form-select">
+                            <option value="">— Sin predio —</option>
+                        </select>
+                        <button type="button" class="btn text-white px-3" style="background:#1a3c5e;"
+                            onclick="abrirModalPredio()" title="Registrar nuevo predio">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
                     </div>
                 </div>
+
             </div>
         </div>
-
-        <!-- ── SECCIÓN PREDIO (opcional) ── -->
-        <div class="col-12">
-            <div class="p-3 rounded-3" style="background:#f8f9fa;border:1px solid #dee2e6;">
-                <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        <i class="fa-solid fa-map-location-dot me-1"></i>Registrar predio al mismo tiempo
-                        <small class="text-muted fw-normal">(opcional)</small>
-                    </span>
-                    <div class="form-check form-switch mb-0">
-                        <input class="form-check-input" type="checkbox" id="toggle_predio"
-                            onchange="toggleSeccionPredio()">
-                    </div>
-                </div>
-                <div id="seccionPredio" class="d-none">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Nombre predio <span class="text-danger">*</span></label>
-                            <input type="text" id="pr_nombre" class="form-control" placeholder="Ej: Predio El Mezquite">
-                            <div class="text-danger d-none small mt-1" id="err_pr_nombre">Campo requerido</div>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Ejido al que pertenece</label>
-                            <select id="pr_fk_ejido" class="form-select">
-                                <option value="">— Sin ejido —</option>
-                            </select>
-                            <small class="text-muted" style="font-size:11px;">
-                                Si registraste un ejido arriba, aparecerá aquí al guardar
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-    </div>
-</div>
 
         <div class="px-4 pb-4 d-flex justify-content-between">
             <button type="button" class="btn btn-secondary px-4"
@@ -309,7 +248,6 @@
                 <span id="btnGuardarLabel">Guardar productor</span>
             </button>
         </div>
-
     </div>
 </div>
 
@@ -343,6 +281,92 @@
                 </button>
                 <button class="btn btn-danger rounded-pill px-4" onclick="confirmarDesactivar()">
                     <i class="fa-solid fa-ban me-1"></i>Desactivar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nuevo Ejido -->
+<div class="modal fade" id="modalNuevoEjido" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fa-solid fa-land-mine-on me-2"></i>Registrar Ejido
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="mej_nombre" class="form-control" placeholder="Ej: Ejido El Progreso">
+                        <div class="text-danger d-none small mt-1" id="err_mej_nombre">Campo requerido</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Municipio</label>
+                        <input type="text" id="mej_municipio" class="form-control" placeholder="Ej: Tepic">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Estado</label>
+                        <input type="text" id="mej_estado_geo" class="form-control" placeholder="Ej: Nayarit">
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Dirección</label>
+                        <textarea id="mej_direccion" class="form-control" rows="2" placeholder="Opcional…"></textarea>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn text-white rounded-pill px-4 fw-semibold"
+                    style="background:#1a3c5e;" onclick="guardarModalEjido()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Guardar ejido
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Nuevo Predio -->
+<div class="modal fade" id="modalNuevoPredio" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title fw-semibold">
+                    <i class="fa-solid fa-map-location-dot me-2"></i>Registrar Predio
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                            Nombre <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" id="mpr_nombre" class="form-control" placeholder="Ej: Predio El Mezquite">
+                        <div class="text-danger d-none small mt-1" id="err_mpr_nombre">Campo requerido</div>
+                    </div>
+                    <div class="col-12">
+                        <small class="text-muted" style="font-size:11px;">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Se asignará al ejido seleccionado en el formulario.
+                        </small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn text-white rounded-pill px-4 fw-semibold"
+                    style="background:#1a3c5e;" onclick="guardarModalPredio()">
+                    <i class="fa-solid fa-floppy-disk me-1"></i>Guardar predio
                 </button>
             </div>
         </div>

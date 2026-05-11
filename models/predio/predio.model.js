@@ -127,10 +127,10 @@ module.exports = {
     // ============================================
     existeNombre: (nombre, fk_ejido, idActual = null) => Conexion.query(
         `SELECT pk_predio FROM predio
-         WHERE LOWER(nombre) = LOWER($1)
-           AND fk_ejido = $2
-           ${idActual ? `AND pk_predio != $3` : ''}`,
+        WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1))
+        AND   fk_ejido = $2
+        ${idActual ? 'AND pk_predio != $3' : ''}`,
         idActual ? [nombre, fk_ejido, idActual] : [nombre, fk_ejido]
-    )
+    ),
 
 };

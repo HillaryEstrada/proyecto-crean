@@ -14,7 +14,7 @@
         const tabla = document.getElementById('teBody');
         if (!tabla) return;
         try {
-            const data        = await fetchWithAuth('/tipo-equipo');
+            const data = await fetchWithAuth('/tipo-equipo');
             _registrosActivos = Array.isArray(data) ? data : [];
             renderTabla(_registrosActivos);
         } catch(e) {
@@ -28,6 +28,7 @@
     // ============================================
     function renderTabla(data) {
         const tabla  = document.getElementById('teBody');
+        if (!tabla) return;
         const footer = document.getElementById('footerInfo');
         const info   = document.getElementById('info-registros-te');
 
