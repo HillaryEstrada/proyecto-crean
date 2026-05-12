@@ -13,8 +13,61 @@
             cargarUbicaciones(),
             cargarFacturas(),
         ]);
+        await cargarAlertasGarantias();
         listar();
         }, 20, 'maquinaria/maquinaria');
+
+        async function cargarAlertasGarantias() {
+        try {
+            const data = await fetchWithAuth('/alertas/pendientes');
+            const alertasMaq = data.filter(a =>
+                a.tipo_activo === 'maquinaria' &&
+                ['garantia_vencida', 'garantia_por_vencer_30', 'garantia_por_vencer_60'].includes(a.tipo_alerta)
+            );
+
+            const contenedor = document.getElementById('alertasGarantiasMaq');
+            const lista      = document.getElementById('listaAlertasGarantiasMaq');
+            const badge      = document.getElementById('badgeAlertasGarantiasMaq');
+
+            if (!alertasMaq.length) {
+                contenedor.classList.add('d-none');
+                return;
+            }
+
+            badge.textContent = alertasMaq.length;
+            contenedor.classList.remove('d-none');
+
+            lista.innerHTML = alertasMaq.map(a => {
+                const color = a.tipo_alerta === 'garantia_vencida'
+                    ? { bg: '#fbe9e7', border: '#b2382d', text: '#b2382d', icon: 'fa-circle-xmark' }
+                    : a.tipo_alerta === 'garantia_por_vencer_30'
+                    ? { bg: '#fff3e0', border: '#e65100', text: '#e65100', icon: 'fa-clock' }
+                    : { bg: '#e8f5e9', border: '#2e7d32', text: '#2e7d32', icon: 'fa-circle-info' };
+
+                return `
+                    <div class="d-flex align-items-start justify-content-between gap-2 p-2 rounded-2"
+                        style="background:${color.bg};border:1px solid ${color.border}20;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid ${color.icon} mt-1" style="color:${color.text};font-size:13px;flex-shrink:0;"></i>
+                            <span style="font-size:12px;color:#333;">${a.mensaje}</span>
+                        </div>
+                        <button class="btn btn-sm py-0 px-2 flex-shrink-0"
+                                style="font-size:11px;border:1px solid ${color.border};color:${color.text};"
+                                onclick="marcarAlertaLeidaMaq(${a.pk_alerta})">
+                            <i class="fa-solid fa-check me-1"></i>Leída
+                        </button>
+                    </div>`;
+            }).join('');
+
+        } catch(e) { console.error('Error alertas garantías:', e); }
+    }
+
+    window.marcarAlertaLeidaMaq = async function(id) {
+        try {
+            await fetchWithAuth(`/alertas/${id}/leida`, 'PATCH');
+            await cargarAlertasGarantias();
+        } catch(e) { console.error('Error marcar leída:', e); }
+    };
 
     // ─────────────────────────────────────────
     // CARGAR CATÁLOGOS

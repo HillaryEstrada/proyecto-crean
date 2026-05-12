@@ -13,6 +13,7 @@
         await cargarRolesSelect();
         await cargarTiposContratoSelect();
         await cargarMotivosSelect();
+        await cargarAlertasContratos();
         listar();
      }, 20, 'admin/empleados');
 
@@ -276,16 +277,84 @@
     const nombre        = document.getElementById('nombre').value.trim();
     const apellido      = document.getElementById('apellido_paterno').value.trim();
     const tipoContrato  = document.getElementById('fk_tipo_contrato').value;
-    const id            = document.getElementById('pk_empleado').value; // ← agregar esta línea
+    const id            = document.getElementById('pk_empleado').value;
+    const correo = document.getElementById('correo').value.trim();
+    const telefono = document.getElementById('telefono').value.trim();
+    const fechaNac = document.getElementById('fecha_nacimiento').value;
+    const fechaIng = document.getElementById('fecha_ingreso').value;
     if (!numero || !nombre || !apellido) {
         Swal.fire({ icon:'warning', title:'Campos requeridos',
             text:'Número de empleado, nombre y apellido paterno son obligatorios' });
         return false;
     }
+    // Validar formato de nombre y apellidos
+    const errsNombre = validarFormato(nombre);
+    if (errsNombre.length) {
+        Swal.fire({ icon:'warning', title:'Nombre inválido', text: errsNombre[0] });
+        return false;
+    }
+    const errsApellido = validarFormato(apellido);
+    if (errsApellido.length) {
+        Swal.fire({ icon:'warning', title:'Apellido paterno inválido', text: errsApellido[0] });
+        return false;
+    }
+    const apellidoMaterno = document.getElementById('apellido_materno').value.trim();
+    if (apellidoMaterno) {
+        const errsAM = validarFormato(apellidoMaterno);
+        if (errsAM.length) {
+            Swal.fire({ icon:'warning', title:'Apellido materno inválido', text: errsAM[0] });
+            return false;
+        }
+    }
     if (!id && !tipoContrato) {
         Swal.fire({ icon:'warning', title:'Campos requeridos',
             text:'El tipo de contrato es obligatorio' });
         return false;
+    }
+    if (!correo || !validarCorreo(correo)) {
+        Swal.fire({ icon:'warning', title:'Correo inválido', text:'El correo es obligatorio. Ingresa un formato válido (ej: usuario2@gmail.com)' });
+        return false;
+    }
+    if (telefono && telefono.replace(/\D/g, '').length !== 10) {
+        Swal.fire({ icon:'warning', title:'Teléfono inválido', text:'El teléfono debe tener exactamente 10 dígitos' });
+        return false;
+    }
+    if (fechaNac && new Date(fechaNac) >= new Date()) {
+        Swal.fire({ icon:'warning', title:'Fecha inválida', text:'La fecha de nacimiento no puede ser futura' });
+        return false;
+    }
+    if (!fechaIng) {
+        Swal.fire({ icon:'warning', title:'Campo requerido', text:'La fecha de ingreso es obligatoria' });
+        return false;
+    }
+
+    // Contrato (solo en alta nueva)
+    if (!id) {
+        const regimen     = document.getElementById('regimen_laboral').value;
+        const numContrato = document.getElementById('contrato_numero')?.value.trim();
+        const fechaInicio = document.getElementById('contrato_fecha_inicio')?.value;
+        const fechaFin    = document.getElementById('contrato_fecha_fin')?.value;
+
+        if (!regimen) {
+            Swal.fire({ icon:'warning', title:'Campo requerido', text:'El régimen laboral es obligatorio' });
+            return false;
+        }
+        if (!numContrato) {
+            Swal.fire({ icon:'warning', title:'Campo requerido', text:'El número de contrato es obligatorio' });
+            return false;
+        }
+        if (!fechaInicio) {
+            Swal.fire({ icon:'warning', title:'Campo requerido', text:'La fecha de inicio del contrato es obligatoria' });
+            return false;
+        }
+        if (new Date(fechaInicio) < new Date(fechaIng)) {
+            Swal.fire({ icon:'warning', title:'Fecha inválida', text:'La fecha de inicio del contrato no puede ser anterior a la fecha de ingreso' });
+            return false;
+        }
+        if (fechaFin && new Date(fechaFin) <= new Date(fechaInicio)) {
+            Swal.fire({ icon:'warning', title:'Fecha inválida', text:'La fecha de fin debe ser posterior a la fecha de inicio' });
+            return false;
+        }
     }
     return true;
     }
@@ -322,6 +391,58 @@
             renderTabla(data);
         } catch (e) { console.error('Error listar:', e); }
     }
+
+    async function cargarAlertasContratos() {
+    try {
+        const data = await fetchWithAuth('/alertas/pendientes');
+        const alertasEmp = data.filter(a =>
+            a.tipo_activo === 'empleado' &&
+            ['contrato_vencido', 'contrato_por_vencer_30', 'contrato_por_vencer_60'].includes(a.tipo_alerta)
+        );
+
+        const contenedor = document.getElementById('alertasContratosEmp');
+        const lista      = document.getElementById('listaAlertasContratos');
+        const badge      = document.getElementById('badgeAlertasContratos');
+
+        if (!alertasEmp.length) {
+            contenedor.classList.add('d-none');
+            return;
+        }
+
+        badge.textContent = alertasEmp.length;
+        contenedor.classList.remove('d-none');
+
+        lista.innerHTML = alertasEmp.map(a => {
+            const color = a.tipo_alerta === 'contrato_vencido'
+                ? { bg: '#fbe9e7', border: '#b2382d', text: '#b2382d', icon: 'fa-circle-xmark' }
+                : a.tipo_alerta === 'contrato_por_vencer_30'
+                ? { bg: '#fff3e0', border: '#e65100', text: '#e65100', icon: 'fa-clock' }
+                : { bg: '#e8f5e9', border: '#2e7d32', text: '#2e7d32', icon: 'fa-circle-info' };
+
+            return `
+                <div class="d-flex align-items-start justify-content-between gap-2 p-2 rounded-2"
+                     style="background:${color.bg};border:1px solid ${color.border}20;">
+                    <div class="d-flex align-items-start gap-2">
+                        <i class="fa-solid ${color.icon} mt-1" style="color:${color.text};font-size:13px;flex-shrink:0;"></i>
+                        <span style="font-size:12px;color:#333;">${a.mensaje}</span>
+                    </div>
+                    <button class="btn btn-sm py-0 px-2 flex-shrink-0"
+                            style="font-size:11px;border:1px solid ${color.border};color:${color.text};"
+                            onclick="marcarAlertaLeida(${a.pk_alerta})">
+                        <i class="fa-solid fa-check me-1"></i>Leída
+                    </button>
+                </div>`;
+        }).join('');
+
+    } catch(e) { console.error('Error alertas contratos:', e); }
+}
+
+window.marcarAlertaLeida = async function(id) {
+    try {
+        await fetchWithAuth(`/alertas/${id}/leida`, 'PATCH');
+        await cargarAlertasContratos();
+    } catch(e) { console.error('Error marcar leída:', e); }
+};
 
     function renderTabla(data) {
         const tabla  = document.getElementById('empBody');
@@ -372,7 +493,7 @@
                         let edad = hoy.getFullYear() - parseInt(y);
                         if (hoy.getMonth()+1 < parseInt(m) ||
                         (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
-                        return edad + ' años';
+                        return edad > 0 ? edad + ' años' : '—';
                     })()
                     : '—'}
             </td>
@@ -380,7 +501,7 @@
                 ${e.direccion || '—'}
             </td>
             <td class="px-3 text-center" style="font-size:13px;">
-                ${e.tipo_contrato || '—'}
+                ${e.tipo_contrato || 'Sin contrato'}
             </td>
             <td class="px-3 text-center text-muted" style="font-size:13px;">
                 ${e.regimen_laboral
@@ -450,7 +571,7 @@
     async function listarBajas() {
         const cuerpo = document.getElementById('bajasBody');
         if (!cuerpo) return;
-        cuerpo.innerHTML = `<tr><td colspan="10" class="text-center py-4 text-muted">
+        cuerpo.innerHTML = `<tr><td colspan="11" class="text-center py-4 text-muted">
             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
         try {
             const data  = await fetchWithAuth('/empleados/bajas');
@@ -458,7 +579,7 @@
             const badge = document.getElementById('badgeBajas');
             if (badge) badge.textContent = data.length;
             if (!data.length) {
-                cuerpo.innerHTML = `<tr><td colspan="10" class="text-center py-5 text-muted">
+                cuerpo.innerHTML = `<tr><td colspan="11" class="text-center py-5 text-muted">
                     <i class="fa-solid fa-user-slash fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
                     No hay empleados dados de baja</td></tr>`;
                     initPaginacion({ tbodyId: 'bajasBody', filasPorPagina: 10, sufijo: 'baj' });
@@ -482,12 +603,15 @@
                     let edad = hoy.getFullYear() - parseInt(y);
                     if (hoy.getMonth()+1 < parseInt(m) ||
                        (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
-                    return edad + ' años';
+                    return edad > 0 ? edad + ' años' : '—';
                   })()
                 : '—'}
         </td>
 
         <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
+        <td class="px-3 text-center text-muted" style="font-size:13px;">
+            ${e.fecha_baja ? (() => { const [y,m,d] = String(e.fecha_baja).slice(0,10).split('-'); return `${d}/${m}/${y}`; })() : '—'}
+        </td>
         <td class="px-3 text-center" style="font-size:13px;">
             ${e.motivo_baja
                 ? `<span class="badge me-1" style="background:#fbe9e7;color:#b2382d;font-size:11px;">${e.motivo_baja}</span>`
@@ -626,6 +750,8 @@
         window.confirmarReactivar = async function() {
         const fk_tipo_contrato = document.getElementById('selectTipoContratoReactivar').value;
         const fecha_inicio     = document.getElementById('reactivar_fecha_inicio').value;
+        const fechaFin = document.getElementById('reactivar_fecha_fin').value;
+        const numContratoReac = document.getElementById('reactivar_numero_contrato').value.trim();
 
         if (!fk_tipo_contrato) {
             Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
@@ -633,6 +759,14 @@
         }
         if (!fecha_inicio) {
             Swal.fire({ icon:'warning', title:'Requerido', text:'La fecha de inicio es requerida' });
+            return;
+        }
+        if (fechaFin && new Date(fechaFin) <= new Date(fecha_inicio)) {
+            Swal.fire({ icon:'warning', title:'Fecha inválida', text:'La fecha de fin debe ser posterior a la fecha de inicio' });
+            return;
+        }
+        if (!numContratoReac) {
+            Swal.fire({ icon:'warning', title:'Campo requerido', text:'El número de contrato es obligatorio' });
             return;
         }
 
@@ -691,13 +825,22 @@
         window.confirmarRenovar = async function() {
             const fk_tipo_contrato  = document.getElementById('selectTipoContratoRenovar').value;
             const fecha_inicio      = document.getElementById('renovar_fecha_inicio').value;
-
+            const numContrato = document.getElementById('renovar_numero_contrato').value.trim();
+            const fechaFin = document.getElementById('renovar_fecha_fin').value;
             if (!fk_tipo_contrato) {
                 Swal.fire({ icon:'warning', title:'Requerido', text:'Selecciona un tipo de contrato' });
                 return;
             }
             if (!fecha_inicio) {
                 Swal.fire({ icon:'warning', title:'Requerido', text:'La fecha de inicio es requerida' });
+                return;
+            }
+            if (fechaFin && new Date(fechaFin) <= new Date(fecha_inicio)) {
+                Swal.fire({ icon:'warning', title:'Fecha inválida', text:'La fecha de fin debe ser posterior a la fecha de inicio' });
+                return;
+            }
+            if (!numContrato) {
+                Swal.fire({ icon:'warning', title:'Campo requerido', text:'El número de contrato es obligatorio' });
                 return;
             }
 
@@ -788,10 +931,13 @@
                         let edad = hoy.getFullYear() - parseInt(y);
                         if (hoy.getMonth()+1 < parseInt(m) ||
                         (hoy.getMonth()+1 === parseInt(m) && hoy.getDate() < parseInt(d))) edad--;
-                        return edad + ' años';
+                        return edad > 0 ? edad + ' años' : '—';
                     })() : '—'}
                 </td>
                 <td class="px-3 text-muted" style="font-size:13px;">${e.direccion||'—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:13px;">
+                    ${e.fecha_baja ? (() => { const [y,m,d] = String(e.fecha_baja).slice(0,10).split('-'); return `${d}/${m}/${y}`; })() : '—'}
+                </td>
                 <td class="px-3 text-center" style="font-size:13px;">
                     ${e.motivo_baja
                         ? `<span class="badge me-1" style="background:#fbe9e7;color:#b2382d;font-size:11px;">${e.motivo_baja}</span>`
@@ -805,7 +951,7 @@
                         onclick="abrirReactivar(${e.pk_empleado},
                             '${(e.nombre+' '+e.apellido_paterno).replace(/'/g,"\\'")}',
                             '${(e.numero_empleado||'').replace(/'/g,"\\'")}')">
-                        <i class="fa-solid fa-rotate-right" style="font-size:11px;"></i> Reactivar
+                        <i class="fa-solid fa-rotate-right" style="font-size:11px;"></i>
                     </button>
                 </td>
         </tr>`).join('');
@@ -1086,6 +1232,7 @@ window.abrirHistorialContratos = async function (idEmpleado, nombreEmpleado) {
                                 <th class="px-3 py-2">JUSTIFICACIÓN</th>
                                 <th class="px-3 py-2 text-center">DOC.</th>
                                 <th class="px-3 py-2 text-center">ESTADO</th>
+                                <th class="px-3 py-2 text-center">CREADO</th>
                             </tr>
                         </thead>
                         <tbody id="hc-body"></tbody>
@@ -1162,12 +1309,27 @@ window.abrirHistorialContratos = async function (idEmpleado, nombreEmpleado) {
                         : '<span class="text-muted">—</span>'}
                 </td>
                 <td class="px-3 text-center">
-                    ${c.activo
-                        ? '<span class="badge bg-success" style="font-size:10px;">Activo</span>'
-                        : '<span class="badge bg-secondary" style="font-size:10px;">Inactivo</span>'}
+                    ${(() => {
+                        const estadoConfig = {
+                            vigente:  { bg: '#d1fae5', text: '#065f46', label: 'Vigente'   },
+                            vencido:  { bg: '#fee2e2', text: '#991b1b', label: 'Vencido'   },
+                            renovado: { bg: '#dbeafe', text: '#1e40af', label: 'Renovado'  },
+                            cancelado:{ bg: '#f3f4f6', text: '#374151', label: 'Cancelado' }
+                        };
+                        const est = estadoConfig[c.estado_contrato] || { bg: '#f3f4f6', text: '#374151', label: c.estado_contrato || '—' };
+                        return `<span class="badge" style="background:${est.bg};color:${est.text};font-size:10px;">${est.label}</span>`;
+                    })()}
+                </td>
+                <td class="px-3 text-muted" style="font-size:11px;">
+                    ${c.registrado_por_username
+                        ? `<span title="${c.fecha_registro ? new Date(c.fecha_registro).toLocaleString('es-MX') : ''}" 
+                                style="cursor:help;">
+                            <i class="fa-solid fa-user-clock me-1" style="color:#94a3b8;"></i>${c.registrado_por_username}
+                        </span>`
+                        : '—'}
                 </td>
             </tr>`).join('')
-        : `<tr><td colspan="9" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
+        : `<tr><td colspan="10" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
 
         const info = document.getElementById('hc-info');
         if (info) info.textContent = `Mostrando ${inicio + 1}–${Math.min(inicio + porPag, total)} de ${total}`;

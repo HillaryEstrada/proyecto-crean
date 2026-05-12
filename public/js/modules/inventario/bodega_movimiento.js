@@ -1127,7 +1127,7 @@ function recolectarDetalles() {
         if (info) info.textContent = `Mostrando ${data.length} de ${_inventario.length} registros`;
         tabla.innerHTML = data.map((i, idx) => {
             // % bodega
-            const cap  = parseFloat(i.capacidad_kg || 0);
+            const cap  = parseFloat(i.capacidad_ton || 0);
             const stk  = parseFloat(i.stock_kg || 0);
             const pct  = cap > 0 ? Math.min(100, Math.round((stk / cap) * 100)) : null;
             const pctColor = pct === null ? '#adb5bd'

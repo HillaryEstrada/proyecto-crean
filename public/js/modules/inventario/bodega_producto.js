@@ -193,7 +193,6 @@
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarProducto(${p.pk_producto}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -239,7 +238,6 @@
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarProducto(${p.pk_producto}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('');

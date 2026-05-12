@@ -102,6 +102,13 @@ exports.actualizar = async (req, res) => {
 // ============================================
 exports.desactivar = async (req, res) => {
     try {
+        const enUso = await unidad.estaEnUso(req.params.id);
+        if (enUso.rows[0].total > 0) {
+            return res.status(400).json({
+                error: `No se puede desactivar esta unidad porque tiene ${enUso.rows[0].total} artículo(s) de inventario asociados.`
+            });
+        }
+
         const resultado = await unidad.desactivar(req.params.id);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Unidad de medida no encontrada' });

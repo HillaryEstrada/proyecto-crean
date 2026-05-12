@@ -52,7 +52,11 @@
                         ${u.nombre || '—'}
                     </span>
                 </td>
-                <td class="px-3 text-muted" style="font-size:13px;">${u.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${u.registrado_por_usuario || '—'} • ${u.fecha_registro
+                        ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarUnidad(${u.pk_unidad})">
@@ -97,12 +101,15 @@
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${u.nombre || '—'}</span></td>
-                <td class="px-3 text-muted" style="font-size:13px;">${u.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${u.registrado_por_usuario || '—'} • ${u.fecha_registro
+                        ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarUnidad(${u.pk_unidad}, '${(u.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('')
@@ -170,12 +177,15 @@
                             ${u.nombre || '—'}
                         </span>
                     </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${u.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${u.registrado_por_usuario || '—'} • ${u.fecha_registro
+                            ? new Date(u.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarUnidad(${u.pk_unidad}, '${(u.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -231,38 +241,54 @@
     // ============================================
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
-    window.guardarUnidad = async function () {
-        const id     = document.getElementById('f_pk_unidad').value;
-        const nombre = document.getElementById('f_nombre').value.trim();
+   window.guardarUnidad = async function () {
+    const id     = document.getElementById('f_pk_unidad').value;
+    const nombre = document.getElementById('f_nombre').value.trim();
 
-        if (!nombre) {
+    let valido = true;
+
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        valido = false;
+    } else {
+        const errs = validarFormato(nombre);
+        if (errs.length) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = errs[0];
+            valido = false;
+        } else {
+            document.getElementById('err_nombre').classList.add('d-none');
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+    }
 
-        try {
-            const payload = { nombre };
+    if (!valido) return;
 
-            if (id) {
-                await fetchWithAuth(`/unidad-medida/${id}`, 'PUT', payload);
-                Swal.fire({ icon: 'success', title: 'Actualizada',
-                    text: 'Unidad de medida actualizada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            } else {
-                await fetchWithAuth('/unidad-medida', 'POST', payload);
-                Swal.fire({ icon: 'success', title: 'Registrada',
-                    text: 'Unidad de medida creada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            }
-
-            cancelarFormulario();
-            listar();
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+    try {
+        const payload = { nombre };
+        if (id) {
+            await fetchWithAuth(`/unidad-medida/${id}`, 'PUT', payload);
+            Swal.fire({ icon: 'success', title: 'Actualizada',
+                text: 'Unidad de medida actualizada exitosamente',
+                timer: 2000, showConfirmButton: false });
+        } else {
+            await fetchWithAuth('/unidad-medida', 'POST', payload);
+            Swal.fire({ icon: 'success', title: 'Registrada',
+                text: 'Unidad de medida creada exitosamente',
+                timer: 2000, showConfirmButton: false });
         }
-    };
+        cancelarFormulario();
+        listar();
+    } catch (error) {
+        const msg = error.error || error.message || '';
+        if (msg.includes('nombre')) {
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = msg;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        }
+    }
+};
 
     // ============================================
     // ABRIR MODAL DESACTIVAR

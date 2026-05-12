@@ -22,4 +22,26 @@ const storage = multer.diskStorage({
     }
 });
 
-module.exports = multer({ storage });
+// Tipos permitidos
+const TIPOS_PERMITIDOS = {
+    'application/pdf':  '.pdf',
+    'application/msword': '.doc',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+    'image/jpeg': '.jpg',
+    'image/png':  '.png',
+    'image/webp': '.webp'
+};
+
+const fileFilter = (req, file, cb) => {
+    if (TIPOS_PERMITIDOS[file.mimetype]) {
+        cb(null, true);
+    } else {
+        cb(new Error(`Tipo de archivo no permitido: ${file.mimetype}`), false);
+    }
+};
+
+module.exports = multer({
+    storage,
+    fileFilter,
+    limits: { fileSize: 10 * 1024 * 1024 } // 10 MB máximo
+});

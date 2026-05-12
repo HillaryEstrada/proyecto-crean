@@ -21,6 +21,7 @@ const insertarSiNoExiste = async (data) => {
 // ============================================
 const evaluarGarantias = async () => {
     console.log('[alertas] Evaluando garantías...');
+    try {
 
     const query = `
         SELECT
@@ -105,6 +106,9 @@ const evaluarGarantias = async () => {
             await alertaModel.eliminarPorTipoYReferencia('garantia_vencida',       r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
         }
     }
+    } catch(error) {
+        console.error('[alertas] ERROR en evaluarGarantias:', error);
+    }
 };
 
 // ============================================
@@ -121,9 +125,11 @@ const evaluarBajoStock = async () => {
             ia.nombre,
             ia.stock,
             ia.stock_minimo,
-            al.nombre AS nombre_almacen
+            ue.nombre AS ubicacion_exterior,
+            ui.nombre AS ubicacion_interior
         FROM inventario_articulo ia
-        LEFT JOIN almacen al ON ia.fk_almacen = al.pk_almacen
+        LEFT JOIN ubicacion ue ON ia.fk_ubicacion_exterior = ue.pk_ubicacion
+        LEFT JOIN ubicacion ui ON ia.fk_ubicacion_interior = ui.pk_ubicacion
         WHERE ia.estado = 1
           AND ia.stock_minimo IS NOT NULL
           AND ia.stock <= ia.stock_minimo
@@ -148,14 +154,18 @@ const evaluarBajoStock = async () => {
     }
 
     for (const r of rows) {
-        const almacen = r.nombre_almacen ? ` [${r.nombre_almacen}]` : '';
+        const ubicacion = r.ubicacion_interior
+            ? `${r.ubicacion_exterior} / ${r.ubicacion_interior}`
+            : (r.ubicacion_exterior || '');
+        const ubicacionTexto = ubicacion ? ` [${ubicacion}]` : '';
+
         await alertaModel.insertarInventario({
             tipo_alerta:   'bajo_stock',
             categoria:     'operativa',
             prioridad:     2,
             tipo_activo:   'consumible',
             referencia_id: r.pk_articulo,
-            mensaje:       `Stock bajo: "${r.nombre}"${almacen}. Actual: ${r.stock} / Mínimo: ${r.stock_minimo}.`
+            mensaje:       `Stock bajo: "${r.nombre}"${ubicacionTexto}. Actual: ${r.stock} / Mínimo: ${r.stock_minimo}.`
         });
     }
 };
@@ -170,6 +180,47 @@ const evaluarBajoStock = async () => {
 const evaluarContratosEmpleado = async () => {
     console.log('[alertas] Evaluando contratos de empleados...');
 
+    // ── PRIMERO: generar alertas de vencidos ANTES de desactivar ──
+    const { rows: vencidos } = await Conexion.query(
+        `SELECT ce.pk_contrato, ce.fk_empleado, ce.fecha_fin,
+                ce.numero_contrato,
+                CONCAT(e.nombre,' ',e.apellido_paterno) AS nombre_empleado,
+                e.numero_empleado, tc.nombre AS tipo_contrato
+         FROM contrato_empleado ce
+         INNER JOIN empleado e ON e.pk_empleado = ce.fk_empleado
+         INNER JOIN tipo_contrato tc ON tc.pk_tipo_contrato = ce.fk_tipo_contrato
+         WHERE ce.activo = true
+           AND ce.fecha_fin IS NOT NULL
+           AND ce.fecha_fin < CURRENT_DATE
+           AND e.estado = 'activo'`
+    );
+
+    for (const r of vencidos) {
+        const fechaTexto  = new Date(r.fecha_fin).toLocaleDateString('es-MX');
+        const numContrato = r.numero_contrato ? ` (${r.numero_contrato})` : '';
+        await alertaModel.insertar({
+            tipo_alerta:   'contrato_vencido',
+            categoria:     'critica',
+            prioridad:     1,
+            tipo_activo:   'empleado',
+            fk_maquinaria: null,
+            fk_vehiculo:   null,
+            fk_empleado:   r.fk_empleado,
+            referencia_id: r.pk_contrato,
+            fecha_evento:  r.fecha_fin,
+            mensaje:       `Contrato VENCIDO de ${r.nombre_empleado.trim()} [${r.numero_empleado}]${numContrato}. Venció el ${fechaTexto}. Tipo: ${r.tipo_contrato}.`
+        });
+    }
+
+    // ── DESPUÉS: desactivar los vencidos ──
+    await Conexion.query(
+        `UPDATE contrato_empleado
+        SET activo = false, estado_contrato = 'vencido'
+        WHERE activo = true
+        AND fecha_fin IS NOT NULL
+        AND fecha_fin < CURRENT_DATE`
+    );
+    
     const query = `
         SELECT
             ce.pk_contrato,
@@ -196,16 +247,16 @@ const evaluarContratosEmpleado = async () => {
     if (pkContratosActivos.length > 0) {
         await Conexion.query(
             `DELETE FROM alerta
-             WHERE tipo_activo = 'empleado'
-               AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30','contrato_vencido')
-               AND referencia_id NOT IN (${pkContratosActivos.map((_, i) => `$${i + 1}`).join(',')})`,
+            WHERE tipo_activo = 'empleado'
+            AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30')
+            AND referencia_id NOT IN (${pkContratosActivos.map((_, i) => `$${i + 1}`).join(',')})`,
             pkContratosActivos
         );
     } else {
         await Conexion.query(
             `DELETE FROM alerta
-             WHERE tipo_activo = 'empleado'
-               AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30','contrato_vencido')`
+            WHERE tipo_activo = 'empleado'
+            AND tipo_alerta IN ('contrato_por_vencer_60','contrato_por_vencer_30')`
         );
     }
 

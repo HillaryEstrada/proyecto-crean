@@ -10,7 +10,7 @@ const { verificarToken, verificarModulo } = require('../../middleware/auth.middl
 router.use(verificarToken);
 
 // ── LECTURA — cualquier usuario autenticado ──
-router.get('/inhabilitadas', controller.listarInhabilitadas);
+router.get('/mantenimiento', controller.listarMantenimiento);
 router.get('/',              controller.listar);
 router.get('/:id',           controller.obtenerPorId);
 

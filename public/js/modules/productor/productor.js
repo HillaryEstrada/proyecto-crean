@@ -181,7 +181,6 @@
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -235,7 +234,6 @@
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarProductor(${p.pk_productor}, '${(p.nombre || '').replace(/'/g, "\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('');

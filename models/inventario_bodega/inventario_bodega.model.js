@@ -20,7 +20,7 @@ module.exports = {
             p.tipo_grano,
             p.variedad,
             b.nombre        AS bodega,
-            b.capacidad_kg,
+            b.capacidad_ton,
             i.stock_kg,
 
             -- Humedad promedio del último detalle de este producto en esta bodega

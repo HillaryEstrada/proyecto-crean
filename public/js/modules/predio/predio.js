@@ -130,7 +130,6 @@
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarPredio(${p.pk_predio}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('')
@@ -208,7 +207,6 @@
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarPredio(${p.pk_predio}, '${(p.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');

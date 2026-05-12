@@ -53,7 +53,11 @@
                     </span>
                 </td>
                 <td class="px-3 text-muted" style="font-size:13px;">${a.descripcion || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${a.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${a.registrado_por_usuario || '—'} • ${a.fecha_registro
+                        ? new Date(a.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarArea(${a.pk_area})">
@@ -99,12 +103,15 @@
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${a.nombre || '—'}</span></td>
                 <td class="px-3 text-muted" style="font-size:13px;">${a.descripcion || '—'}</td>
-                <td class="px-3 text-muted" style="font-size:13px;">${a.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${a.registrado_por_usuario || '—'} • ${a.fecha_registro
+                        ? new Date(a.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarArea(${a.pk_area}, '${(a.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('')
@@ -173,12 +180,15 @@
                         </span>
                     </td>
                     <td class="px-3 text-muted" style="font-size:13px;">${a.descripcion || '—'}</td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${a.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${a.registrado_por_usuario || '—'} • ${a.fecha_registro
+                            ? new Date(a.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarArea(${a.pk_area}, '${(a.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -238,41 +248,54 @@
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
     window.guardarArea = async function () {
-        const id          = document.getElementById('f_pk_area').value;
-        const nombre      = document.getElementById('f_nombre').value.trim();
-        const descripcion = document.getElementById('f_descripcion').value.trim();
+    const id          = document.getElementById('f_pk_area').value;
+    const nombre      = document.getElementById('f_nombre').value.trim();
+    const descripcion = document.getElementById('f_descripcion').value.trim();
 
-        if (!nombre) {
+    let valido = true;
+
+    if (!nombre) {
+        document.getElementById('err_nombre').classList.remove('d-none');
+        document.getElementById('err_nombre').textContent = 'Campo requerido';
+        valido = false;
+    } else {
+        const errs = validarFormato(nombre);
+        if (errs.length) {
             document.getElementById('err_nombre').classList.remove('d-none');
-            document.getElementById('f_nombre').focus();
-            return;
+            document.getElementById('err_nombre').textContent = errs[0];
+            valido = false;
+        } else {
+            document.getElementById('err_nombre').classList.add('d-none');
         }
-        document.getElementById('err_nombre').classList.add('d-none');
+    }
 
-        try {
-            const payload = {
-                nombre,
-                descripcion: descripcion || null
-            };
+    if (!valido) return;
 
-            if (id) {
-                await fetchWithAuth(`/area/${id}`, 'PUT', payload);
-                Swal.fire({ icon: 'success', title: 'Actualizada',
-                    text: 'Área actualizada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            } else {
-                await fetchWithAuth('/area', 'POST', payload);
-                Swal.fire({ icon: 'success', title: 'Registrada',
-                    text: 'Área creada exitosamente',
-                    timer: 2000, showConfirmButton: false });
-            }
-
-            cancelarFormulario();
-            listar();
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+    try {
+        const payload = { nombre, descripcion: descripcion || null };
+        if (id) {
+            await fetchWithAuth(`/area/${id}`, 'PUT', payload);
+            Swal.fire({ icon: 'success', title: 'Actualizada',
+                text: 'Área actualizada exitosamente',
+                timer: 2000, showConfirmButton: false });
+        } else {
+            await fetchWithAuth('/area', 'POST', payload);
+            Swal.fire({ icon: 'success', title: 'Registrada',
+                text: 'Área creada exitosamente',
+                timer: 2000, showConfirmButton: false });
         }
-    };
+        cancelarFormulario();
+        listar();
+    } catch (error) {
+        const msg = error.error || error.message || '';
+        if (msg.includes('nombre')) {
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = msg;
+        } else {
+            Swal.fire({ icon: 'error', title: 'Error', text: msg });
+        }
+    }
+};
 
     // ============================================
     // ABRIR MODAL DESACTIVAR
