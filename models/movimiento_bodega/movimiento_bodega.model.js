@@ -266,7 +266,15 @@ module.exports = {
             STRING_AGG(
                 DISTINCT CONCAT(bp.nombre, CASE WHEN bp.variedad IS NOT NULL THEN ' — ' || bp.variedad ELSE '' END),
                 ', '
-            ) AS productos_resumen
+            ) AS productos_resumen,
+            CASE
+                WHEN mb.tipo_movimiento = 'entrada' THEN
+                    CONCAT('ENT-', EXTRACT(YEAR FROM mb.fecha)::TEXT, '-',
+                           LPAD(mb.pk_movimiento_bodega::TEXT, 4, '0'))
+                ELSE
+                    CONCAT('SAL-', EXTRACT(YEAR FROM mb.fecha)::TEXT, '-',
+                           LPAD(mb.pk_movimiento_bodega::TEXT, 4, '0'))
+            END AS folio
         FROM movimiento_bodega mb
         LEFT JOIN bodega b        ON mb.fk_bodega       = b.pk_bodega
         LEFT JOIN users usr       ON mb.registrado_por  = usr.pk_user

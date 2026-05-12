@@ -27,6 +27,11 @@ module.exports = {
             ult.humedad,
             ult.analisis_calidad,
 
+             -- Último muestreo
+            mue.fecha_muestreo  AS ultimo_muestreo_fecha,
+            mue.humedad         AS ultimo_muestreo_humedad,
+            mue.calidad         AS ultimo_muestreo_calidad,
+
             -- Último movimiento
             ult.fecha_mov,
             ult.tipo_movimiento AS ultimo_tipo
@@ -49,6 +54,19 @@ module.exports = {
              ORDER BY mb.fecha DESC
              LIMIT 1
          ) ult ON true
+         
+        -- Último muestreo por producto+bodega
+         LEFT JOIN LATERAL (
+             SELECT
+                 m.fecha_muestreo,
+                 m.humedad,
+                 m.calidad
+             FROM muestreo_bodega m
+             WHERE m.fk_producto = i.fk_producto
+               AND m.fk_bodega   = i.fk_bodega
+             ORDER BY m.fecha_muestreo DESC, m.pk_muestreo DESC
+             LIMIT 1
+         ) mue ON true
 
          ORDER BY b.nombre ASC, p.nombre ASC`
     )

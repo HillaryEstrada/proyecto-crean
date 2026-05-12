@@ -12,18 +12,20 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO muestreo_bodega
-        (fk_bodega, fk_producto, fecha_muestreo, humedad, temperatura, calidad, observaciones, registrado_por)
-        VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+        (fk_bodega, fk_producto, fecha_muestreo, humedad, temperatura, calidad, observaciones, registrado_por, dias_revision, proximo_muestreo)
+        VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *`,
         [
             data.fk_bodega,
             data.fk_producto,
             data.fecha_muestreo,
-            data.humedad      || null,
-            data.temperatura  || null,
-            data.calidad      || null,
-            data.observaciones|| null,
-            data.registrado_por
+            data.humedad        || null,
+            data.temperatura    || null,
+            data.calidad        || null,
+            data.observaciones  || null,
+            data.registrado_por,
+            data.dias_revision  || 30,
+            data.proximo_muestreo || null
         ]
     ),
 
@@ -112,19 +114,23 @@ module.exports = {
     actualizar: (id, data) => Conexion.query(
         `UPDATE muestreo_bodega
          SET
-             fecha_muestreo = COALESCE($1, fecha_muestreo),
-             humedad        = $2,
-             temperatura    = $3,
-             calidad        = $4,
-             observaciones  = $5
-         WHERE pk_muestreo = $6
+             fecha_muestreo  = COALESCE($1, fecha_muestreo),
+             humedad         = $2,
+             temperatura     = $3,
+             calidad         = $4,
+             observaciones   = $5,
+             dias_revision   = COALESCE($6, dias_revision),
+             proximo_muestreo = COALESCE($7, proximo_muestreo)
+         WHERE pk_muestreo = $8
          RETURNING *`,
         [
-            data.fecha_muestreo || null,
-            data.humedad        ?? null,
-            data.temperatura    ?? null,
-            data.calidad        || null,
-            data.observaciones  || null,
+            data.fecha_muestreo   || null,
+            data.humedad          ?? null,
+            data.temperatura      ?? null,
+            data.calidad          || null,
+            data.observaciones    || null,
+            data.dias_revision    || null,
+            data.proximo_muestreo || null,
             id
         ]
     ),

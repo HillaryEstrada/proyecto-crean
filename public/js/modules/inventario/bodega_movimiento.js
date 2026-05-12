@@ -12,6 +12,15 @@
     let _muestreos     = [];
     let _muestreosFull = []; 
 
+     // ─────────────────────────────────────────
+    // UTILIDAD: formatear fecha sin Invalid Date
+    // ─────────────────────────────────────────
+    function formatFecha(fecha) {
+        if (!fecha) return '—';
+        const d = new Date(fecha.includes('T') ? fecha : fecha + 'T12:00:00');
+        return isNaN(d) ? '—' : d.toLocaleDateString('es-MX');
+    }
+
     esperarElemento('movBody', async () => {
         await cargarCatalogos();
         listar();
@@ -72,7 +81,7 @@
     // ─────────────────────────────────────────
     function generarFolioVisual(tipo) {
         const year   = new Date().getFullYear();
-        const num    = String((_movimientos.length || 0) + 1).padStart(3, '0');
+        const num    = String((_movimientos.length || 0) + 1).padStart(4, '0');
         const prefijo = tipo === 'entrada' ? 'ENT' : 'SAL';
         const folio   = `${prefijo}-${year}-${num}`;
         const el = document.getElementById('folioDisplay');
@@ -213,7 +222,9 @@
         tabla.innerHTML = data.map((m, i) => {
             const year   = m.fecha ? new Date(m.fecha).getFullYear() : new Date().getFullYear();
             const num    = String(m.pk_movimiento_bodega).padStart(3, '0');
-            const folio  = m.tipo_movimiento === 'entrada' ? `ENT-${year}-${num}` : `SAL-${year}-${num}`;
+            const folio  = m.folio || (m.tipo_movimiento === 'entrada'
+                ? `ENT-${new Date(m.fecha).getFullYear()}-${String(m.pk_movimiento_bodega).padStart(4,'0')}`
+                : `SAL-${new Date(m.fecha).getFullYear()}-${String(m.pk_movimiento_bodega).padStart(4,'0')}`);
             const kgColor = m.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
             const kgSign  = m.tipo_movimiento === 'entrada' ? '+' : '-';
             return `
@@ -379,10 +390,6 @@
                 setVal(`d_tipo_recepcion_${rowId}`, d.tipo_recepcion);
                 setVal(`d_humedad_${rowId}`,    d.humedad);
                 setVal(`d_productor_${rowId}`,  d.fk_productor);
-
-                const analisis = document.getElementById(`d_analisis_${rowId}`);
-                if (analisis) analisis.checked = d.analisis_calidad || false;
-
                 // Aplicar lógica visual ANTES de asignar kg
                 aplicarLogicaTipoRecepcion(rowId);
 
@@ -475,11 +482,6 @@ window.agregarFilaDetalle = function () {
         <td class="px-1 py-1">
             <input type="number" class="form-control form-control-sm text-end"
                 id="d_humedad_${id}" placeholder="0.0" min="0" max="100" step="0.1">
-        </td>
-        <td class="px-1 py-1 text-center">
-            <div class="form-check d-flex justify-content-center m-0">
-                <input type="checkbox" class="form-check-input" id="d_analisis_${id}">
-            </div>
         </td>
         <td class="px-1 py-1">
             <select class="form-select form-select-sm" id="d_productor_${id}">
@@ -674,7 +676,6 @@ function recolectarDetalles() {
         const peso_por_bulto = document.getElementById(`d_peso_bulto_${rowId}`)?.value;
         const tipo_recepcion = document.getElementById(`d_tipo_recepcion_${rowId}`)?.value;
         const humedad        = document.getElementById(`d_humedad_${rowId}`)?.value;
-        const analisis       = document.getElementById(`d_analisis_${rowId}`)?.checked;
         const fk_productor   = document.getElementById(`d_productor_${rowId}`)?.value;
         const fk_ejido       = document.getElementById(`d_ejido_${rowId}`)?.value;
         const fk_predio      = document.getElementById(`d_predio_${rowId}`)?.value;
@@ -698,7 +699,6 @@ function recolectarDetalles() {
             peso_por_bulto:   peso_por_bulto  ? parseFloat(peso_por_bulto) : null,
             tipo_recepcion:   tipo_recepcion  || null,
             humedad:          humedad         ? parseFloat(humedad)         : null,
-            analisis_calidad: analisis || false,
             fk_productor:     fk_productor    ? parseInt(fk_productor)      : null,
             fk_ejido:         fk_ejido        ? parseInt(fk_ejido)          : null,
             fk_predio:        fk_predio       ? parseInt(fk_predio)         : null
@@ -790,7 +790,9 @@ function recolectarDetalles() {
 
             const year    = m.fecha ? new Date(m.fecha).getFullYear() : new Date().getFullYear();
             const numM    = String(m.pk_movimiento_bodega).padStart(3, '0');
-            const folioM  = m.tipo_movimiento === 'entrada' ? `ENT-${year}-${numM}` : `SAL-${year}-${numM}`;
+            const folioM  = m.folio || (m.tipo_movimiento === 'entrada'
+                ? `ENT-${new Date(m.fecha).getFullYear()}-${String(m.pk_movimiento_bodega).padStart(4,'0')}`
+                : `SAL-${new Date(m.fecha).getFullYear()}-${String(m.pk_movimiento_bodega).padStart(4,'0')}`);
             const colorM  = m.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
             const iconM   = m.tipo_movimiento === 'entrada' ? 'fa-arrow-down' : 'fa-arrow-up';
 
@@ -841,7 +843,6 @@ function recolectarDetalles() {
                                 <th class="px-3 py-2 text-center">KG/BULTO</th>
                                 <th class="px-3 py-2 text-center">RECEPCIÓN</th>
                                 <th class="px-3 py-2 text-center">HUMEDAD</th>
-                                <th class="px-3 py-2 text-center">ANÁLISIS</th>
                                 <th class="px-3 py-2">PRODUCTOR</th>
                                 <th class="px-3 py-2">EJIDO</th>
                                 <th class="px-3 py-2">PREDIO</th>
@@ -859,11 +860,6 @@ function recolectarDetalles() {
                                 <td class="px-3 text-center">${d.peso_por_bulto ?? '—'}</td>
                                 <td class="px-3 text-center">${d.tipo_recepcion || '—'}</td>
                                 <td class="px-3 text-center">${d.humedad != null ? d.humedad + '%' : '—'}</td>
-                                <td class="px-3 text-center">
-                                    ${d.analisis_calidad
-                                        ? '<i class="fa-solid fa-check text-success"></i>'
-                                        : '<i class="fa-solid fa-xmark text-muted"></i>'}
-                                </td>
                                 <td class="px-3">${d.productor_nombre || '—'}</td>
                                 <td class="px-3">${d.ejido_nombre || '—'}</td>
                                 <td class="px-3">${d.predio_nombre || '—'}</td>
@@ -934,6 +930,7 @@ function recolectarDetalles() {
             vMue.classList.remove('d-none');
             tMue.classList.add('active');
             if (btnNuevo) btnNuevo.classList.add('d-none');
+            cargarAlertasBodega();
             cargarMuestreosTab();
         }
     };
@@ -1003,7 +1000,7 @@ function recolectarDetalles() {
         if (!cont) return;
 
         const total    = data.length;
-        const riesgos  = data.filter(m => m.calidad === 'Riesgo' || m.calidad === 'Mala').length;
+        const riesgos = data.filter(m => m.calidad === 'Riesgo' || m.calidad === 'Crítico').length;
         const ultimo   = data.length ? data[0] : null;
 
         // Bodega con más revisiones
@@ -1027,7 +1024,7 @@ function recolectarDetalles() {
                         <div class="text-muted mb-1" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Último Muestreo</div>
                         <div class="fw-bold" style="font-size:18px;color:#1a3c5e;">
                             ${ultimo
-                                ? new Date(ultimo.fecha_muestreo).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                                ? formatFecha(ultimo.fecha_muestreo)
                                 : '—'}
                         </div>
                         <div class="text-muted" style="font-size:11px;">${ultimo ? (ultimo.bodega || '—') : '—'}</div>
@@ -1142,24 +1139,33 @@ function recolectarDetalles() {
                     <span style="font-size:11px;color:${pctColor};font-weight:600;min-width:30px;">${pct}%</span>
                 </div>` : '<span class="text-muted" style="font-size:11px;">Sin cap.</span>';
 
-            // Humedad
-            const hum = i.humedad != null ? parseFloat(i.humedad) : null;
-            const humColor = hum === null ? '#6c757d' : hum > 13 ? '#c0392b' : '#2d7a4f';
-            const humIcon  = hum !== null && hum > 13 ? ' <i class="fa-solid fa-triangle-exclamation" style="color:#e6a817;font-size:10px;"></i>' : '';
+            // Prioridad: último muestreo → fallback al movimiento
+            const humRaw   = i.ultimo_muestreo_humedad ?? i.humedad;
+            const hum      = humRaw != null ? parseFloat(humRaw) : null;
+            const humColor = hum === null ? '#6c757d' : hum > 18 ? '#c0392b' : hum > 14 ? '#e67e22' : hum >= 12 ? '#e6a817' : '#1a3c5e';
+            const humIcon  = hum !== null && hum > 14 ? ' <i class="fa-solid fa-triangle-exclamation" style="color:#e6a817;font-size:10px;"></i>' : '';
+            const humFuente = i.ultimo_muestreo_humedad != null ? 'Muestreo' : (i.humedad != null ? 'Entrada' : null);
             const humHtml  = hum !== null
                 ? `<div style="color:${humColor};font-weight:600;font-size:13px;">${hum.toFixed(1)}%${humIcon}</div>
                    <div style="height:4px;background:#e9ecef;border-radius:4px;margin-top:2px;overflow:hidden;">
                        <div style="width:${Math.min(100, hum * 5)}%;height:100%;background:${humColor};border-radius:4px;"></div>
-                   </div>`
+                   </div>
+                   <div style="font-size:10px;color:#9ca3af;margin-top:2px;">${humFuente}</div>`
                 : '<span class="text-muted" style="font-size:11px;">—</span>';
 
-            // Calidad
-            const calidad = i.analisis_calidad === true
-                ? `<span class="badge" style="background:#e8f5ee;color:#2d7a4f;border:1px solid #2d7a4f40;font-size:11px;">★ Buena</span>`
-                : i.analisis_calidad === false && i.humedad !== null
-                ? `<span class="badge" style="background:#fff8e1;color:#e6a817;border:1px solid #e6a81740;font-size:11px;">★ Regular</span>`
+            // Calidad del último muestreo
+            const calidadVal = i.ultimo_muestreo_calidad;
+            const calidadMap = {
+                'Seco':    ['#e8f0fe', '#1a3c5e'],
+                'Óptimo':  ['#e8f5ee', '#2d7a4f'],
+                'Riesgo':  ['#fff3e0', '#e67e22'],
+                'Crítico': ['#fdecea', '#c0392b']
+            };
+            const [cBg, cCol] = calidadMap[calidadVal] || ['#f0f0f0','#6c757d'];
+            const calidad = calidadVal
+                ? `<div><span class="badge" style="background:${cBg};color:${cCol};border:1px solid ${cCol}40;font-size:11px;">${calidadVal}</span></div>
+                   <div style="font-size:10px;color:#9ca3af;margin-top:2px;">${formatFecha(i.ultimo_muestreo_fecha)}</div>`
                 : '<span class="text-muted" style="font-size:11px;">—</span>';
-
             // Último movimiento
             const ultFecha = i.fecha_mov
                 ? new Date(i.fecha_mov).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
@@ -1353,15 +1359,15 @@ function recolectarDetalles() {
                     <select id="bmue-filtro-calidad" class="form-select form-select-sm" style="width:130px;"
                         onchange="filtrarDetMuestreosBodega()">
                         <option value="">Todas</option>
-                        <option value="Buena">Buena</option>
-                        <option value="Regular">Regular</option>
+                        <option value="Seco">Seco</option>
+                        <option value="Óptimo">Óptimo</option>
                         <option value="Riesgo">Riesgo</option>
-                        <option value="Mala">Mala</option>
+                        <option value="Crítico">Crítico</option>
                     </select>
                 </div>
                 <div class="d-flex gap-2 mb-3 flex-wrap">
                     <span class="badge" style="background:#1a3c5e;font-size:11px;">Total: <span id="bmue-total">${muestreos.length}</span></span>
-                    ${['Buena','Regular','Riesgo','Mala'].map(cal => {
+                    ${['Seco','Óptimo','Riesgo','Crítico'].map(cal => {
                         const cnt = muestreos.filter(m => m.calidad === cal).length;
                         return cnt > 0 ? `<span class="badge bg-secondary" style="font-size:11px;">${cal}: ${cnt}</span>` : '';
                     }).join('')}
@@ -1375,6 +1381,8 @@ function recolectarDetalles() {
                                 <th class="px-3 py-2 text-center">Temp.</th>
                                 <th class="px-3 py-2 text-center">Calidad</th>
                                 <th class="px-3 py-2">Observaciones</th>
+                                <th class="px-3 py-2 text-center">Próximo</th>
+                                <th class="px-3 py-2 text-center">Estado</th>
                                 <th class="px-3 py-2 text-center">Registrado por</th>
                             </tr>
                         </thead>
@@ -1474,13 +1482,34 @@ function recolectarDetalles() {
 
         renderTablaInv(filtrados);
     };
+    function badgeEstadoMuestreo(proximo_muestreo, calidad) {
+        if (!proximo_muestreo) return '<span class="text-muted" style="font-size:11px;">—</span>';
+        const hoy    = new Date();
+        hoy.setHours(0, 0, 0, 0);
+        const proximo = new Date(proximo_muestreo + 'T12:00:00');
+        const diff   = Math.floor((proximo - hoy) / (1000 * 60 * 60 * 24));
+
+        if (diff < 0 || calidad === 'Riesgo' || calidad === 'Crítico') {
+            return `<span class="badge" style="background:#fdecea;color:#c0392b;border:1px solid #c0392b40;font-size:11px;">
+                        <i class="fa-solid fa-circle-xmark me-1"></i>${diff < 0 ? 'Vencido' : calidad}
+                    </span>`;
+        } else if (diff <= 5) {
+            return `<span class="badge" style="background:#fff8e1;color:#e6a817;border:1px solid #e6a81740;font-size:11px;">
+                        <i class="fa-solid fa-clock me-1"></i>Próximo
+                    </span>`;
+        } else {
+            return `<span class="badge" style="background:#e8f5ee;color:#2d7a4f;border:1px solid #2d7a4f40;font-size:11px;">
+                        <i class="fa-solid fa-circle-check me-1"></i>OK
+                    </span>`;
+        }
+    }
 
     function badgeCalidad(calidad) {
         const map = {
-            'Buena':   ['#e8f5ee', '#2d7a4f'],
-            'Regular': ['#fff8e1', '#e6a817'],
+            'Seco':    ['#e8f0fe', '#1a3c5e'],
+            'Óptimo':  ['#e8f5ee', '#2d7a4f'],
             'Riesgo':  ['#fff3e0', '#e67e22'],
-            'Mala':    ['#fdecea', '#c0392b']
+            'Crítico': ['#fdecea', '#c0392b']
         };
         const [bg, color] = map[calidad] || ['#f0f0f0', '#6c757d'];
         return calidad
@@ -1518,9 +1547,7 @@ function recolectarDetalles() {
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;">
-                    ${m.fecha_muestreo
-                        ? new Date(m.fecha_muestreo + 'T12:00:00').toLocaleDateString('es-MX')
-                        : '—'}
+                    ${formatFecha(m.fecha_muestreo)}
                 </td>
                 <td class="px-3 fw-semibold" style="color:#1a3c5e;font-size:13px;">${m.bodega || '—'}</td>
                 <td class="px-3" style="font-size:13px;">
@@ -1539,7 +1566,12 @@ function recolectarDetalles() {
                             : m.observaciones}</span>`
                         : '—'}
                 </td>
-                <td class="px-3 text-center text-muted" style="font-size:12px;">${m.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center" style="font-size:11px;">
+                    ${m.proximo_muestreo ? formatFecha(m.proximo_muestreo) : '—'}
+                </td>
+                <td class="px-3 text-center">
+                    ${badgeEstadoMuestreo(m.proximo_muestreo, m.calidad)}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarMuestreo(${m.pk_muestreo})">
@@ -1791,7 +1823,7 @@ window.renderBdetPagina = function () {
             const color = h.tipo_movimiento === 'entrada' ? '#2d7a4f' : '#c0392b';
             const signo = h.tipo_movimiento === 'entrada' ? '+' : '-';
             return `<tr>
-                <td class="px-3">${new Date(h.fecha).toLocaleDateString('es-MX')}</td>
+                <td class="px-3">${formatFecha(h.fecha)}</td>
                 <td class="px-3"><span style="font-family:monospace;font-size:11px;">${h.folio}</span></td>
                 <td class="px-3 text-center">${h.tipo_movimiento === 'entrada'
                     ? '<span class="badge bg-success" style="font-size:10px;">↓ Entrada</span>'
@@ -1843,12 +1875,12 @@ window.renderBdetPagina = function () {
         const tbody = document.getElementById('bmue-body');
         if (!tbody) return;
 
-        const calidadMap = {
-            'Buena':   ['#e8f5ee','#2d7a4f'],
-            'Regular': ['#fff8e1','#e6a817'],
-            'Riesgo':  ['#fff3e0','#e67e22'],
-            'Mala':    ['#fdecea','#c0392b']
-        };
+       const calidadMap = {
+                'Seco':    ['#e8f0fe', '#1a3c5e'],
+                'Óptimo':  ['#e8f5ee', '#2d7a4f'],
+                'Riesgo':  ['#fff3e0', '#e67e22'],
+                'Crítico': ['#fdecea', '#c0392b']
+            };
 
         tbody.innerHTML = slice.length ? slice.map(m => {
             const hum = m.humedad != null ? parseFloat(m.humedad) : null;
@@ -1856,9 +1888,7 @@ window.renderBdetPagina = function () {
             const [bg, col] = calidadMap[m.calidad] || ['#f0f0f0','#6c757d'];
             return `<tr>
                 <td class="px-3">
-                    ${m.fecha_muestreo
-                        ? new Date(m.fecha_muestreo + 'T12:00:00').toLocaleDateString('es-MX')
-                        : '—'}
+                    ${formatFecha(m.fecha_muestreo)}
                 </td>
                 <td class="px-3 text-center fw-semibold" style="color:${humColor};">
                     ${hum !== null ? hum.toFixed(1) + '%' : '—'}
@@ -1881,9 +1911,15 @@ window.renderBdetPagina = function () {
                             : m.observaciones}</span>`
                         : '—'}
                 </td>
+                <td class="px-3 text-center" style="font-size:11px;">
+                    ${m.proximo_muestreo ? formatFecha(m.proximo_muestreo) : '—'}
+                </td>
+                <td class="px-3 text-center">
+                    ${badgeEstadoMuestreo(m.proximo_muestreo, m.calidad)}
+                </td>
                 <td class="px-3 text-center text-muted">${m.registrado_por_usuario || '—'}</td>
             </tr>`;
-        }).join('') : `<tr><td colspan="6" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
+        }).join('') : `<tr><td colspan="8" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
 
         const info = document.getElementById('bmue-info');
         if (info) info.textContent = `Mostrando ${inicio + 1}–${Math.min(inicio + porPag, total)} de ${total}`;
@@ -1909,6 +1945,63 @@ window.renderBdetPagina = function () {
         });
         window._bmuePagina = 1;
         window.renderBmuePagina();
+    };
+    // ─────────────────────────────────────────
+    // ALERTAS DE BODEGA
+    // ─────────────────────────────────────────
+    async function cargarAlertasBodega() {
+        try {
+            const data = await fetchWithAuth('/alertas/pendientes');
+            const alertas = data.filter(a =>
+                a.tipo_activo === 'bodega' &&
+                ['humedad_riesgo', 'muestreo_pendiente'].includes(a.tipo_alerta)
+            );
+
+            const contenedor = document.getElementById('alertasBodega');
+            const lista      = document.getElementById('listaAlertasBodega');
+            const badge      = document.getElementById('badgeAlertasBodega');
+
+            if (!alertas.length) {
+                contenedor.classList.add('d-none');
+                return;
+            }
+
+            badge.textContent = alertas.length;
+            contenedor.classList.remove('d-none');
+
+            lista.innerHTML = alertas.map(a => {
+                const color = a.tipo_alerta === 'humedad_riesgo' && a.categoria === 'critica'
+                    ? { bg: '#fbe9e7', border: '#b2382d', text: '#b2382d', icon: 'fa-droplet' }
+                    : a.tipo_alerta === 'humedad_riesgo'
+                    ? { bg: '#fff3e0', border: '#e65100', text: '#e65100', icon: 'fa-droplet' }
+                    : a.categoria === 'critica'
+                    ? { bg: '#fbe9e7', border: '#b2382d', text: '#b2382d', icon: 'fa-flask' }
+                    : { bg: '#fff8e1', border: '#f9a825', text: '#e65100', icon: 'fa-flask' };
+
+                return `
+                    <div class="d-flex align-items-start justify-content-between gap-2 p-2 rounded-2"
+                         style="background:${color.bg};border:1px solid ${color.border}20;">
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="fa-solid ${color.icon} mt-1"
+                               style="color:${color.text};font-size:13px;flex-shrink:0;"></i>
+                            <span style="font-size:12px;color:#333;">${a.mensaje}</span>
+                        </div>
+                        <button class="btn btn-sm py-0 px-2 flex-shrink-0"
+                                style="font-size:11px;border:1px solid ${color.border};color:${color.text};"
+                                onclick="marcarAlertaBodegaLeida(${a.pk_alerta})">
+                            <i class="fa-solid fa-check me-1"></i>Leída
+                        </button>
+                    </div>`;
+            }).join('');
+
+        } catch(e) { console.error('Error alertas bodega:', e); }
+    }
+
+    window.marcarAlertaBodegaLeida = async function(id) {
+        try {
+            await fetchWithAuth(`/alertas/${id}/leida`, 'PATCH');
+            await cargarAlertasBodega();
+        } catch(e) { console.error('Error marcar leída:', e); }
     };
 
 })();
