@@ -335,6 +335,175 @@ const evaluarContratosEmpleado = async () => {
 };
 
 // ============================================
+// 4. ALERTAS DE HUMEDAD EN BODEGA
+// Se dispara cuando el último muestreo tiene humedad > 14%
+// tipo_activo = 'bodega', referencia_id = pk_muestreo
+// ============================================
+const evaluarHumedadBodega = async () => {
+    console.log('[alertas] Evaluando humedad de bodega...');
+    try {
+        // Obtener el último muestreo por producto+bodega con humedad > 14
+        const { rows: riesgos } = await Conexion.query(
+            `SELECT DISTINCT ON (m.fk_bodega, m.fk_producto)
+                m.pk_muestreo,
+                m.fk_bodega,
+                m.fk_producto,
+                m.humedad,
+                m.calidad,
+                m.fecha_muestreo,
+                b.nombre AS bodega,
+                p.nombre AS producto
+             FROM muestreo_bodega m
+             JOIN bodega          b ON m.fk_bodega   = b.pk_bodega
+             JOIN bodega_producto p ON m.fk_producto = p.pk_producto
+             ORDER BY m.fk_bodega, m.fk_producto, m.fecha_muestreo DESC, m.pk_muestreo DESC`
+        );
+
+        // PKs de muestreos actuales con riesgo real
+        const pksConRiesgo = riesgos
+            .filter(r => parseFloat(r.humedad) > 14)
+            .map(r => r.pk_muestreo);
+
+        // Limpiar alertas de muestreos que ya no tienen riesgo
+        if (pksConRiesgo.length > 0) {
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_alerta = 'humedad_riesgo'
+                   AND tipo_activo = 'bodega'
+                   AND referencia_id NOT IN (${pksConRiesgo.map((_, i) => `$${i + 1}`).join(',')})`,
+                pksConRiesgo
+            );
+        } else {
+            await Conexion.query(
+                `DELETE FROM alerta WHERE tipo_alerta = 'humedad_riesgo' AND tipo_activo = 'bodega'`
+            );
+        }
+
+        // Insertar/actualizar alertas de riesgo
+        for (const r of riesgos) {
+            const hum = parseFloat(r.humedad);
+            if (isNaN(hum) || hum <= 14) continue;
+
+            const fechaTexto = r.fecha_muestreo
+                ? new Date(r.fecha_muestreo + 'T12:00:00').toLocaleDateString('es-MX')
+                : '—';
+
+            // Borrar alerta anterior para re-insertarla actualizada
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_alerta = 'humedad_riesgo'
+                   AND tipo_activo = 'bodega'
+                   AND referencia_id = $1`,
+                [r.pk_muestreo]
+            );
+
+            await alertaModel.insertar({
+                tipo_alerta:   'humedad_riesgo',
+                categoria:     hum > 18 ? 'critica' : 'preventiva',
+                prioridad:     hum > 18 ? 1 : 2,
+                tipo_activo:   'bodega',
+                fk_maquinaria: null,
+                fk_vehiculo:   null,
+                referencia_id: r.pk_muestreo,
+                mensaje:       hum > 18
+                    ? `🔴 Crítico: "${r.producto}" en ${r.bodega}. Humedad: ${hum.toFixed(1)}% — riesgo de fermentación/moho.`
+                    : `⚠️ Riesgo: "${r.producto}" en ${r.bodega}. Humedad: ${hum.toFixed(1)}% — revisar pronto (muestreo ${fechaTexto}).`,
+                fecha_evento:  null
+            });
+        }
+
+        console.log(`[alertas] Humedad bodega evaluada: ${riesgos.length} productos revisados.`);
+    } catch (error) {
+        console.error('[alertas] ERROR en evaluarHumedadBodega:', error);
+    }
+};
+// ============================================
+// 5. ALERTAS DE MUESTREOS PENDIENTES
+// Se dispara cuando proximo_muestreo <= CURRENT_DATE
+// tipo_activo = 'bodega', referencia_id = pk_muestreo
+// ============================================
+const evaluarMuestreosPendientes = async () => {
+    console.log('[alertas] Evaluando muestreos pendientes...');
+    try {
+        // Obtener el último muestreo por producto+bodega que tenga proximo_muestreo vencido
+        const { rows: pendientes } = await Conexion.query(
+            `SELECT DISTINCT ON (m.fk_bodega, m.fk_producto)
+                m.pk_muestreo,
+                m.fk_bodega,
+                m.fk_producto,
+                m.fecha_muestreo,
+                m.proximo_muestreo,
+                m.calidad,
+                (CURRENT_DATE - m.proximo_muestreo) AS dias_vencido,
+                b.nombre AS bodega,
+                p.nombre AS producto
+             FROM muestreo_bodega m
+             JOIN bodega          b ON m.fk_bodega   = b.pk_bodega
+             JOIN bodega_producto p ON m.fk_producto = p.pk_producto
+             WHERE m.proximo_muestreo IS NOT NULL
+             ORDER BY m.fk_bodega, m.fk_producto, m.fecha_muestreo DESC, m.pk_muestreo DESC`
+        );
+
+        // PKs de muestreos que SÍ están pendientes hoy
+        const pksPendientes = pendientes
+            .filter(r => parseInt(r.dias_vencido) >= 0)
+            .map(r => r.pk_muestreo);
+
+        // Limpiar alertas de los que ya se muestrearon (ya no aplican)
+        if (pksPendientes.length > 0) {
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_alerta = 'muestreo_pendiente'
+                   AND tipo_activo = 'bodega'
+                   AND referencia_id NOT IN (${pksPendientes.map((_, i) => `$${i + 1}`).join(',')})`,
+                pksPendientes
+            );
+        } else {
+            await Conexion.query(
+                `DELETE FROM alerta WHERE tipo_alerta = 'muestreo_pendiente' AND tipo_activo = 'bodega'`
+            );
+        }
+
+        // Insertar alertas de muestreos vencidos
+        for (const r of pendientes) {
+            const dias = parseInt(r.dias_vencido);
+            if (dias < 0) continue; // aún no vence
+
+           const proxStr = r.proximo_muestreo 
+                ? new Date(r.proximo_muestreo).toISOString().slice(0, 10)
+                : null;
+            const proximaTexto = proxStr 
+                ? new Date(proxStr + 'T12:00:00').toLocaleDateString('es-MX') 
+                : '—';
+            const diasTexto    = dias === 0 ? 'hoy' : `hace ${dias} día${dias !== 1 ? 's' : ''}`;
+
+            await Conexion.query(
+                `DELETE FROM alerta
+                 WHERE tipo_alerta = 'muestreo_pendiente'
+                   AND tipo_activo = 'bodega'
+                   AND referencia_id = $1`,
+                [r.pk_muestreo]
+            );
+
+            await alertaModel.insertar({
+                tipo_alerta:   'muestreo_pendiente',
+                categoria:     dias >= 7 ? 'critica' : 'preventiva',
+                prioridad:     dias >= 7 ? 1 : 2,
+                tipo_activo:   'bodega',
+                fk_maquinaria: null,
+                fk_vehiculo:   null,
+                referencia_id: r.pk_muestreo,
+                mensaje:       `Muestreo pendiente: "${r.producto}" en ${r.bodega}. Programado para ${proximaTexto} (${diasTexto}).`,
+                fecha_evento:  null
+            });
+        }
+
+        console.log(`[alertas] Muestreos pendientes evaluados: ${pendientes.length} productos revisados.`);
+    } catch (error) {
+        console.error('[alertas] ERROR en evaluarMuestreosPendientes:', error);
+    }
+};
+// ============================================
 // EJECUTAR TODAS LAS EVALUACIONES
 // ============================================
 const ejecutarTodasLasAlertas = async () => {
@@ -346,6 +515,8 @@ const ejecutarTodasLasAlertas = async () => {
         await evaluarGarantias();
         await evaluarBajoStock();
         await evaluarContratosEmpleado();
+        await evaluarHumedadBodega();
+        await evaluarMuestreosPendientes();
         console.log('[alertas] Evaluación completada exitosamente.');
     } catch (error) {
         console.error('[alertas] Error durante la evaluación:', error.message);
@@ -357,5 +528,7 @@ module.exports = {
     ejecutarTodasLasAlertas,
     evaluarGarantias,
     evaluarBajoStock,
-    evaluarContratosEmpleado
+    evaluarContratosEmpleado,
+    evaluarHumedadBodega,
+    evaluarMuestreosPendientes
 };

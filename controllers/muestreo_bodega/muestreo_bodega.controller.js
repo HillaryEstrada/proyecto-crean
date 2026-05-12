@@ -15,6 +15,21 @@ exports.crear = async (req, res) => {
         if (!fk_bodega || !fk_producto || !fecha_muestreo) {
             return res.status(400).json({ error: 'Bodega, producto y fecha son requeridos' });
         }
+        // Calidad automática por humedad si no viene del frontend
+       if (!req.body.calidad && req.body.humedad != null) {
+            const h = parseFloat(req.body.humedad);
+            if      (h > 18)  req.body.calidad = 'Crítico';
+            else if (h > 14)  req.body.calidad = 'Riesgo';
+            else if (h >= 12) req.body.calidad = 'Óptimo';
+            else              req.body.calidad = 'Seco';
+        }
+         // Calcular próximo muestreo según calidad
+        const diasMap = { 'Óptimo': 30, 'Seco': 20, 'Riesgo': 7, 'Crítico': 3 };
+        const dias = diasMap[req.body.calidad] || 15;
+        req.body.dias_revision = dias;
+        const fechaBase = new Date(req.body.fecha_muestreo + 'T12:00:00');
+        fechaBase.setDate(fechaBase.getDate() + dias);
+        req.body.proximo_muestreo = fechaBase.toISOString().split('T')[0];
 
         const resultado = await Muestreo.crear({
             ...req.body,
@@ -91,6 +106,15 @@ exports.obtenerPorId = async (req, res) => {
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
+        // Recalcular próximo muestreo al editar
+        if (req.body.calidad || req.body.fecha_muestreo) {
+            const diasMap = { 'Óptimo': 30, 'Seco': 20, 'Riesgo': 7, 'Crítico': 3 };
+            const dias = diasMap[req.body.calidad] || 15;
+            req.body.dias_revision = dias;
+            const fechaBase = new Date((req.body.fecha_muestreo + 'T12:00:00'));
+            fechaBase.setDate(fechaBase.getDate() + dias);
+            req.body.proximo_muestreo = fechaBase.toISOString().split('T')[0];
+        }
         const resultado = await Muestreo.actualizar(req.params.id, req.body);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Muestreo no encontrado' });

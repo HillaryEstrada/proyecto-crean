@@ -37,7 +37,6 @@
         </button>
     </li>
 </ul>
-
 <!-- ══════════════════════════════════════
      TAB: MOVIMIENTOS
 ══════════════════════════════════════ -->
@@ -194,7 +193,6 @@
                             <th class="px-2 py-2 text-center" style="width:80px;">BULTOS</th>
                             <th class="px-2 py-2 text-center" style="width:90px;">KG/BULTO</th>
                             <th class="px-2 py-2 text-center" style="width:80px;">HUMEDAD %</th>
-                            <th class="px-2 py-2 text-center" style="width:70px;">ANÁLISIS</th>
                             <th class="px-2 py-2" style="width:140px;">PRODUCTOR</th>
                             <th class="px-2 py-2" style="width:130px;">EJIDO</th>
                             <th class="px-2 py-2" style="width:130px;">PREDIO</th>
@@ -324,6 +322,19 @@
 ══════════════════════════════════════ -->
 <div id="vistaMuestreosTab" class="d-none">
 
+    <!-- ── ALERTAS DE BODEGA ── -->
+<div id="alertasBodega" class="mb-4 d-none">
+    <div class="p-3 rounded-3" style="background:#fff8e1;border:1px solid #f9a825;">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="fa-solid fa-triangle-exclamation" style="color:#f9a825;"></i>
+            <span class="fw-semibold" style="font-size:13px;color:#5d4037;">Alertas de bodega</span>
+            <span id="badgeAlertasBodega" class="badge ms-1"
+                style="background:#f9a825;color:#fff;font-size:11px;"></span>
+        </div>
+        <div id="listaAlertasBodega" class="d-flex flex-column gap-2"></div>
+    </div>
+</div>
+
     <!-- Cards resumen -->
     <div class="row g-3 mb-4" id="muestreoTarjetas"></div>
 
@@ -341,10 +352,10 @@
         </select>
         <select class="form-select" style="width:auto;" id="muestreoFiltroCalidad" onchange="filtrarMuestreos()">
             <option value="">Todas las calidades</option>
-            <option value="Buena">Buena</option>
-            <option value="Regular">Regular</option>
+            <option value="Seco">Seco</option>
+            <option value="Óptimo">Óptimo</option>
             <option value="Riesgo">Riesgo</option>
-            <option value="Mala">Mala</option>
+            <option value="Crítico">Crítico</option>
         </select>
         <button class="btn btn-outline-secondary btn-sm" onclick="cargarMuestreosTab()">
             <i class="fa-solid fa-rotate-right me-1"></i>Actualizar
@@ -369,13 +380,14 @@
                         <th class="py-3 px-3 text-center" style="width:90px;">TEMP.</th>
                         <th class="py-3 px-3 text-center" style="width:100px;">CALIDAD</th>
                         <th class="py-3 px-3" style="width:220px;">OBSERVACIONES</th>
-                        <th class="py-3 px-3 text-center" style="width:120px;">REGISTRADO POR</th>
+                        <th class="py-3 px-3 text-center" style="width:120px;">PRÓXIMO</th>
+                        <th class="py-3 px-3 text-center" style="width:80px;">ESTADO</th>
                         <th class="py-3 px-3 text-center" style="width:90px;">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody id="muestreoBody" class="bg-white">
                     <tr>
-                        <td colspan="10" class="text-center py-4 text-muted">
+                        <td colspan="11" class="text-center py-4 text-muted">
                             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
                         </td>
                     </tr>
@@ -453,10 +465,10 @@
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Calidad</label>
                         <select id="m_calidad" class="form-select">
                             <option value="">— Sin evaluar —</option>
-                            <option value="Buena">Buena</option>
-                            <option value="Regular">Regular</option>
+                            <option value="Seco">Seco</option>
+                            <option value="Óptimo">Óptimo</option>
                             <option value="Riesgo">Riesgo</option>
-                            <option value="Mala">Mala</option>
+                            <option value="Crítico">Crítico</option>
                         </select>
                     </div>
                     <div class="col-12">
