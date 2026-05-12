@@ -141,4 +141,5 @@ module.exports = {
      WHERE e.estado != 'activo'
      ORDER BY e.nombre ASC`
     ),
+
 };

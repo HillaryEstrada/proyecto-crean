@@ -12,20 +12,20 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO bodega
-        (nombre, descripcion, capacidad_kg, estado, registrado_por)
+        (nombre, descripcion, capacidad_ton, estado, registrado_por)
         VALUES($1, $2, $3, $4, $5)
         RETURNING *`,
         [
             data.nombre,
             data.descripcion    || null,
-            data.capacidad_kg   || null,
+            data.capacidad_ton   || null,
             data.estado         || 'Operativo',
             data.registrado_por
         ]
     ),
 
     // ============================================
-    // Listar bodegas activas (NO inhabilitadas)
+    // Listar bodegas activas (NO manteniemiento)
     // ============================================
     listar: () => Conexion.query(
         `SELECT
@@ -33,20 +33,20 @@ module.exports = {
             usr.username AS registrado_por_usuario
         FROM bodega b
         LEFT JOIN users usr ON b.registrado_por = usr.pk_user
-        WHERE b.estado != 'Inhabilitada'
+        WHERE b.estado = 'Operativo'
         ORDER BY b.pk_bodega ASC`
     ),
 
     // ============================================
-    // Listar bodegas inhabilitadas
+    // Listar bodegas manteniemiento
     // ============================================
-    listarInhabilitadas: () => Conexion.query(
+    listarMantenimiento: () => Conexion.query(
         `SELECT
             b.*,
             usr.username AS registrado_por_usuario
         FROM bodega b
         LEFT JOIN users usr ON b.registrado_por = usr.pk_user
-        WHERE b.estado = 'Inhabilitada'
+        WHERE b.estado = 'En mantenimiento'
         ORDER BY b.pk_bodega ASC`
     ),
 
@@ -69,27 +69,25 @@ module.exports = {
     actualizar: (id, data) => Conexion.query(
         `UPDATE bodega
         SET
-            nombre       = COALESCE($1, nombre),
-            descripcion  = COALESCE($2, descripcion),
-            capacidad_kg = COALESCE($3, capacidad_kg),
-            estado       = COALESCE($4, estado)
-        WHERE pk_bodega = $5
+            nombre        = COALESCE($1, nombre),
+            descripcion   = COALESCE($2, descripcion),
+            capacidad_ton = COALESCE($3, capacidad_ton)
+        WHERE pk_bodega = $4
         RETURNING *`,
         [
             data.nombre,
-            data.descripcion  || null,
-            data.capacidad_kg || null,
-            data.estado       || null,
+            data.descripcion   || null,
+            data.capacidad_ton || null,
             id
         ]
     ),
 
     // ============================================
-    // Desactivar — cambia estado a 'Inhabilitada'
+    // Desactivar — cambia estado a 'En mantenimiento'
     // ============================================
     desactivar: (id) => Conexion.query(
         `UPDATE bodega
-         SET estado = 'Inhabilitada'
+         SET estado = 'En mantenimiento'
          WHERE pk_bodega = $1
          RETURNING *`,
         [id]
@@ -111,6 +109,13 @@ module.exports = {
      WHERE LOWER(TRIM(nombre)) = LOWER(TRIM($1))
      ${idActual ? 'AND pk_bodega != $2' : ''}`,
     idActual ? [nombre, idActual] : [nombre]
-    )
+    ),
+    
+    tieneInventario: (id) => Conexion.query(
+        `SELECT COALESCE(SUM(stock_kg), 0) AS total_stock
+        FROM inventario_bodega
+        WHERE fk_bodega = $1`,
+        [id]
+    ),
 
 };

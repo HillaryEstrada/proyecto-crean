@@ -57,7 +57,11 @@
                         ${p.nombre || '—'}
                     </span>
                 </td>
-                <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
                         onclick="editarPartida('${p.clave}')">
@@ -107,12 +111,15 @@
                     </span>
                 </td>
                 <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${p.nombre || '—'}</span></td>
-                <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        : '—'}
+                </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarPartida('${p.clave}', '${(p.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('')
@@ -185,12 +192,15 @@
                             ${p.nombre || '—'}
                         </span>
                     </td>
-                    <td class="px-3 text-muted" style="font-size:13px;">${p.registrado_por_usuario || '—'}</td>
+                    <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
+                        ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
+                            ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                            : '—'}
+                    </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarPartida('${p.clave}', '${(p.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -261,37 +271,64 @@
         const nombre = document.getElementById('f_nombre').value.trim();
 
         let valido = true;
-        if (!clave) {
-            document.getElementById('err_clave').classList.remove('d-none'); valido = false;
-        } else document.getElementById('err_clave').classList.add('d-none');
 
+        // Validar clave
+        if (!clave) {
+            document.getElementById('err_clave').classList.remove('d-none');
+            document.getElementById('err_clave').textContent = 'Campo requerido';
+            valido = false;
+        } else if (!/^\d+$/.test(clave)) {
+            document.getElementById('err_clave').classList.remove('d-none');
+            document.getElementById('err_clave').textContent = 'La clave solo debe contener números';
+            valido = false;
+        } else {
+            document.getElementById('err_clave').classList.add('d-none');
+        }
+
+        // Validar nombre con validarFormato global
         if (!nombre) {
-            document.getElementById('err_nombre').classList.remove('d-none'); valido = false;
-        } else document.getElementById('err_nombre').classList.add('d-none');
+            document.getElementById('err_nombre').classList.remove('d-none');
+            document.getElementById('err_nombre').textContent = 'Campo requerido';
+            valido = false;
+        } else {
+            const errs = validarFormato(nombre);
+            if (errs.length) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = errs[0];
+                valido = false;
+            } else {
+                document.getElementById('err_nombre').classList.add('d-none');
+            }
+        }
 
         if (!valido) return;
 
         try {
             const payload = { clave, nombre };
-
             if (claveOriginal) {
-                // ACTUALIZAR — se manda la clave original como :id
                 await fetchWithAuth(`/partida-presupuestal/${claveOriginal}`, 'PUT', payload);
                 Swal.fire({ icon: 'success', title: 'Actualizada',
                     text: 'Partida actualizada exitosamente',
                     timer: 2000, showConfirmButton: false });
             } else {
-                // CREAR
                 await fetchWithAuth('/partida-presupuestal', 'POST', payload);
                 Swal.fire({ icon: 'success', title: 'Registrada',
                     text: 'Partida creada exitosamente',
                     timer: 2000, showConfirmButton: false });
             }
-
             cancelarFormulario();
             listar();
         } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
+            const msg = error.error || error.message || '';
+            if (msg.includes('clave')) {
+                document.getElementById('err_clave').classList.remove('d-none');
+                document.getElementById('err_clave').textContent = msg;
+            } else if (msg.includes('nombre')) {
+                document.getElementById('err_nombre').classList.remove('d-none');
+                document.getElementById('err_nombre').textContent = msg;
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: msg });
+            }
         }
     };
 

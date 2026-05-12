@@ -10,7 +10,10 @@ const Conexion = require('../../config/database');
 exports.subirArchivo = async (req, res) => {
     try {
         const file = req.file;
-
+        // Al inicio de subirArchivo y subirTemporal
+        if (req.fileValidationError) {
+            return res.status(400).json({ error: req.fileValidationError });
+        }
         if (!file) {
             return res.status(400).json({ error: 'No se envió archivo' });
         }
@@ -58,7 +61,10 @@ exports.subirArchivo = async (req, res) => {
 exports.subirTemporal = async (req, res) => {
     try {
         const file = req.file;
-
+        // Al inicio de subirArchivo y subirTemporal
+        if (req.fileValidationError) {
+            return res.status(400).json({ error: req.fileValidationError });
+        }
         if (!file) {
             return res.status(400).json({ error: 'No se envió archivo' });
         }

@@ -36,14 +36,14 @@ exports.listar = async (req, res) => {
 };
 
 // ============================================
-// LISTAR BODEGAS INHABILITADAS
+// LISTAR BODEGAS Mantenimiento
 // ============================================
-exports.listarInhabilitadas = async (req, res) => {
+exports.listarMantenimiento = async (req, res) => {
     try {
-        const data = await Bodega.listarInhabilitadas();
+        const data = await Bodega.listarMantenimiento();
         res.json(data.rows);
     } catch (error) {
-        console.error('Error en listarInhabilitadas:', error);
+        console.error('Error en listarMantenimiento:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -85,20 +85,20 @@ exports.actualizar = async (req, res) => {
 
 // ============================================
 // DESACTIVAR — BAJA LÓGICA
-// Cambia estado a 'Inhabilitada'
+// Cambia estado a 'Mantenimiento'
 // ============================================
 exports.desactivar = async (req, res) => {
     try {
-        const resultado = await Bodega.desactivar(req.params.id);
-        if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Bodega no encontrada' });
+        const inv = await Bodega.tieneInventario(req.params.id);
+        if (parseFloat(inv.rows[0].total_stock) > 0) {
+            return res.status(400).json({
+                error: `No se puede enviar a mantenimiento porque la bodega aún tiene ${parseFloat(inv.rows[0].total_stock).toLocaleString('es-MX')} kg en inventario.`
+            });
         }
-        res.json({
-            mensaje: 'Bodega inhabilitada exitosamente',
-            data: resultado.rows[0]
-        });
+        const resultado = await Bodega.desactivar(req.params.id);
+        if (!resultado.rows.length) return res.status(404).json({ error: 'Bodega no encontrada' });
+        res.json({ mensaje: 'Bodega enviada a mantenimiento exitosamente', data: resultado.rows[0] });
     } catch (error) {
-        console.error('Error al desactivar bodega:', error);
         res.status(500).json({ error: error.message });
     }
 };

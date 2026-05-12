@@ -109,6 +109,10 @@ module.exports = {
         `SELECT pk_unidad FROM unidad_medida
          WHERE LOWER(nombre) = LOWER($1) ${idActual ? `AND pk_unidad != $2` : ''}`,
         idActual ? [nombre, idActual] : [nombre]
+    ),
+    estaEnUso: (id) => Conexion.query(
+        `SELECT COUNT(*) AS total FROM inventario_articulo WHERE fk_unidad = $1`,
+        [id]
     )
 
 };

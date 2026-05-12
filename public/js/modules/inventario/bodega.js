@@ -57,11 +57,10 @@
                     </span>
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${b.capacidad_kg != null
-                        ? parseFloat(b.capacidad_kg).toLocaleString('es-MX') + ' kg'
+                    ${b.capacidad_ton != null
+                        ? parseFloat(b.capacidad_ton).toLocaleString('es-MX') + ' ton'
                         : '—'}
                 </td>
-                <td class="px-3 text-center">${badgeEstado(b.estado)}</td>
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                     ${b.descripcion || '—'}
                 </td>
@@ -76,27 +75,14 @@
                         onclick="editarBodega(${b.pk_bodega})">
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-danger" title="Inhabilitar"
-                        onclick="abrirInhabilitar(${b.pk_bodega}, '${(b.nombre || '').replace(/'/g, "\\'")}')">
-                        <i class="fa-solid fa-ban" style="font-size:11px;"></i>
+                    <button class="btn btn-sm btn-outline-warning me-1" title="Mantenimiento"
+                        onclick="abrirMantenimiento(${b.pk_bodega}, '${(b.nombre || '').replace(/'/g, "\\'")}')">
+                        <i class="fa-solid fa-wrench" style="font-size:11px;"></i>
                     </button>
                 </td>
             </tr>`).join('');
 
         initPaginacion({ tbodyId: 'bodBody', filasPorPagina: 10, sufijo: 'bod' });
-    }
-
-    // ─────────────────────────────────────────
-    // BADGE ESTADO
-    // ─────────────────────────────────────────
-    function badgeEstado(estado) {
-        const map = {
-            'Operativo':        ['bg-success',           'Operativo'],
-            'En mantenimiento': ['bg-warning text-dark',  'En mantenimiento'],
-            'Inhabilitada':     ['bg-danger',             'Inhabilitada']
-        };
-        const [cls, lbl] = map[estado] || ['bg-secondary', estado || '—'];
-        return `<span class="badge ${cls}" style="font-size:11px;">${lbl}</span>`;
     }
 
     // ─────────────────────────────────────────
@@ -114,32 +100,54 @@
     // ─────────────────────────────────────────
     // TABS
     // ─────────────────────────────────────────
+   // Cambiar switchTab
     window.switchTab = function (tab) {
         const va = document.getElementById('vistaActivos');
-        const vi = document.getElementById('vistaInhabilitadas');
+        const vm = document.getElementById('vistaMantenimiento');
         const ta = document.getElementById('tabActivos');
-        const ti = document.getElementById('tabInhabilitadas');
+        const tm = document.getElementById('tabMantenimiento');
         if (tab === 'activos') {
-            va.classList.remove('d-none'); vi.classList.add('d-none');
-            ta.classList.add('active');    ti.classList.remove('active');
+            va.classList.remove('d-none'); vm.classList.add('d-none');
+            ta.classList.add('active');    tm.classList.remove('active');
         } else {
-            va.classList.add('d-none');    vi.classList.remove('d-none');
-            ta.classList.remove('active'); ti.classList.add('active');
-            listarInhabilitadas();
+            va.classList.add('d-none');    vm.classList.remove('d-none');
+            ta.classList.remove('active'); tm.classList.add('active');
+            listarMantenimiento();
+        }
+    };
+
+    // Renombrar abrirInhabilitar → abrirMantenimiento
+    window.abrirMantenimiento = function (id, nombre) {
+        _idParaInhabilitar = id;
+        document.getElementById('mantenimientoNombre').textContent = nombre;
+        new bootstrap.Modal(document.getElementById('modalMantenimiento')).show();
+    };
+
+    window.confirmarMantenimiento = async function () {
+        try {
+            await fetchWithAuth(`/bodega/${_idParaInhabilitar}/desactivar`, 'PATCH');
+            bootstrap.Modal.getInstance(document.getElementById('modalMantenimiento')).hide();
+            Swal.fire({ icon: 'success', title: 'En Mantenimiento',
+                text: 'La bodega fue enviada a mantenimiento',
+                timer: 2000, showConfirmButton: false });
+            _idParaInhabilitar = null;
+            listar();
+        } catch (error) {
+            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
         }
     };
 
     // ─────────────────────────────────────────
     // LISTAR INHABILITADAS
     // ─────────────────────────────────────────
-    async function listarInhabilitadas() {
+    async function listarMantenimiento() {
         const cuerpo = document.getElementById('inhabBody');
         const info   = document.getElementById('info-registros-inhab');
         if (!cuerpo) return;
         cuerpo.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-muted">
             <div class="spinner-border spinner-border-sm me-2"></div>Cargando…</td></tr>`;
         try {
-            const data               = await fetchWithAuth('/bodega/inhabilitadas');
+            const data = await fetchWithAuth('/bodega/mantenimiento');
             _registrosInhabilitados  = Array.isArray(data) ? data : [];
 
             if (!_registrosInhabilitados.length) {
@@ -162,9 +170,9 @@
                         <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${b.nombre || '—'}</span>
                     </td>
                     <td class="px-3 text-center text-muted" style="font-size:13px;">
-                        ${b.capacidad_kg != null
-                            ? parseFloat(b.capacidad_kg).toLocaleString('es-MX') + ' kg'
-                            : '—'}
+                        ${b.capacidad_ton != null
+                        ? parseFloat(b.capacidad_ton).toLocaleString('es-MX') + ' ton'
+                        : '—'}
                     </td>
                     <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
                         ${b.descripcion || '—'}
@@ -179,7 +187,6 @@
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
                             onclick="reactivarBodega(${b.pk_bodega}, '${(b.nombre || '').replace(/'/g, "\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                            Reactivar
                         </button>
                     </td>
                 </tr>`).join('');
@@ -208,8 +215,8 @@
                     <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${b.nombre || '—'}</span>
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:13px;">
-                    ${b.capacidad_kg != null
-                        ? parseFloat(b.capacidad_kg).toLocaleString('es-MX') + ' kg'
+                   ${b.capacidad_ton != null
+                        ? parseFloat(b.capacidad_ton).toLocaleString('es-MX') + ' ton'
                         : '—'}
                 </td>
                 <td class="px-3 text-muted" style="font-size:12px;max-width:220px;">
@@ -225,7 +232,6 @@
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
                         onclick="reactivarBodega(${b.pk_bodega}, '${(b.nombre || '').replace(/'/g, "\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
-                        Reactivar
                     </button>
                 </td>
             </tr>`).join('');
@@ -238,8 +244,7 @@
     window.abrirFormulario = function () {
         document.getElementById('f_pk_bodega').value       = '';
         document.getElementById('f_nombre').value          = '';
-        document.getElementById('f_capacidad_kg').value    = '';
-        document.getElementById('f_estado').value          = 'Operativo';
+        document.getElementById('f_capacidad_ton').value = '';
         document.getElementById('f_descripcion').value     = '';
         document.getElementById('formTitulo').textContent  = 'Registrar Bodega';
         document.getElementById('btnGuardarLabel').textContent = 'Guardar bodega';
@@ -261,8 +266,7 @@
 
         document.getElementById('f_pk_bodega').value       = b.pk_bodega;
         document.getElementById('f_nombre').value          = b.nombre || '';
-        document.getElementById('f_capacidad_kg').value    = b.capacidad_kg != null ? b.capacidad_kg : '';
-        document.getElementById('f_estado').value          = b.estado || 'Operativo';
+        document.getElementById('f_capacidad_ton').value = b.capacidad_ton != null ? b.capacidad_ton : '';
         document.getElementById('f_descripcion').value     = b.descripcion || '';
         document.getElementById('formTitulo').textContent  = `Editando: ${b.nombre}`;
         document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
@@ -283,8 +287,7 @@
         document.getElementById('vistaTabla').classList.remove('d-none');
         document.getElementById('f_pk_bodega').value    = '';
         document.getElementById('f_nombre').value       = '';
-        document.getElementById('f_capacidad_kg').value = '';
-        document.getElementById('f_estado').value       = 'Operativo';
+        document.getElementById('f_capacidad_ton').value = '';
         document.getElementById('f_descripcion').value  = '';
         document.getElementById('err_nombre').classList.add('d-none');
         document.getElementById('err_capacidad').classList.add('d-none');
@@ -297,8 +300,8 @@
     window.guardarBodega = async function () {
     const id          = document.getElementById('f_pk_bodega').value;
     const nombre      = document.getElementById('f_nombre').value.trim();
-    const capacidad   = parseFloat(document.getElementById('f_capacidad_kg').value);
-    const estado      = document.getElementById('f_estado').value;
+    const capacidad   = parseFloat(document.getElementById('f_capacidad_ton').value);
+    const estado = 'Operativo';
     const descripcion = document.getElementById('f_descripcion').value.trim();
 
     let valido = true;
@@ -327,7 +330,7 @@
 
     if (!valido) return;
 
-    const payload = { nombre, capacidad_kg: capacidad, estado, descripcion: descripcion || null };
+    const payload = { nombre, capacidad_ton: capacidad, estado, descripcion: descripcion || null };
 
     try {
         if (id) {
@@ -350,29 +353,6 @@
 };
 
     // ─────────────────────────────────────────
-    // INHABILITAR
-    // ─────────────────────────────────────────
-    window.abrirInhabilitar = function (id, nombre) {
-        _idParaInhabilitar = id;
-        document.getElementById('inhabilitarNombre').textContent = nombre;
-        new bootstrap.Modal(document.getElementById('modalInhabilitar')).show();
-    };
-
-    window.confirmarInhabilitar = async function () {
-        try {
-            await fetchWithAuth(`/bodega/${_idParaInhabilitar}/desactivar`, 'PATCH');
-            bootstrap.Modal.getInstance(document.getElementById('modalInhabilitar')).hide();
-            Swal.fire({ icon: 'success', title: 'Inhabilitada',
-                text: 'La bodega fue inhabilitada exitosamente',
-                timer: 2000, showConfirmButton: false });
-            _idParaInhabilitar = null;
-            listar();
-        } catch (error) {
-            Swal.fire({ icon: 'error', title: 'Error', text: error.message });
-        }
-    };
-
-    // ─────────────────────────────────────────
     // REACTIVAR — igual que tipo_equipo
     // ─────────────────────────────────────────
     window.reactivarBodega = async function (id, nombre) {
@@ -392,7 +372,7 @@
                 text: 'Bodega reactivada exitosamente',
                 timer: 2000, showConfirmButton: false });
             await listar();
-            await listarInhabilitadas();
+            await listarMantenimiento();
             switchTab('activos');
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Error', text: error.message });

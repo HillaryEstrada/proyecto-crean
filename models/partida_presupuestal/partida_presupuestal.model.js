@@ -121,6 +121,10 @@ module.exports = {
         `SELECT clave FROM partida_presupuestal
          WHERE LOWER(nombre) = LOWER($1) ${claveActual ? `AND clave != $2` : ''}`,
         claveActual ? [nombre, claveActual] : [nombre]
-    )
+    ),
+    estaEnUso: (clave) => Conexion.query(
+        `SELECT COUNT(*) AS total FROM inventario_articulo WHERE fk_partida = $1`,
+        [clave]
+    ),
 
 };

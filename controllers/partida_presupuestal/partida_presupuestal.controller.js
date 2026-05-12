@@ -116,6 +116,13 @@ exports.actualizar = async (req, res) => {
 // ============================================
 exports.desactivar = async (req, res) => {
     try {
+        const enUso = await partida.estaEnUso(req.params.id);
+        if (enUso.rows[0].total > 0) {
+            return res.status(400).json({
+                error: `No se puede desactivar esta partida porque tiene ${enUso.rows[0].total} artículo(s) de inventario asociados.`
+            });
+        }
+
         const resultado = await partida.desactivar(req.params.id);
         if (!resultado.rows.length) {
             return res.status(404).json({ error: 'Partida presupuestal no encontrada' });

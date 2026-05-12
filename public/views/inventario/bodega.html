@@ -23,14 +23,14 @@
         <button class="nav-link active d-flex align-items-center gap-2"
             id="tabActivos" onclick="switchTab('activos')">
             <i class="fa-solid fa-circle-check"></i>
-            Activas
+            Operativas
         </button>
     </li>
     <li class="nav-item">
         <button class="nav-link d-flex align-items-center gap-2"
-            id="tabInhabilitadas" onclick="switchTab('inhabilitadas')">
-            <i class="fa-solid fa-ban"></i>
-            Inhabilitadas
+            id="tabMantenimiento" onclick="switchTab('mantenimiento')">
+            <i class="fa-solid fa-wrench"></i>
+            En Mantenimiento
         </button>
     </li>
 </ul>
@@ -48,12 +48,6 @@
                 <input type="text" class="form-control ps-4" id="searchInput"
                     placeholder="Buscar por nombre, descripción…" oninput="filtrarTabla()">
             </div>
-            <select class="form-select" style="width:auto;" id="filtroEstado"
-                onchange="filtrarTabla()">
-                <option value="">Todos los estados</option>
-                <option value="Operativo">Operativo</option>
-                <option value="En mantenimiento">En mantenimiento</option>
-            </select>
         </div>
 
         <div class="card border-0 shadow-sm" style="border-radius:12px;overflow:hidden;">
@@ -63,8 +57,7 @@
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:40px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
-                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
-                            <th class="py-3 px-3 text-center" style="width:150px;">ESTADO</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (Toneladas)</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
                             <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:110px;">ACCIONES</th>
@@ -97,11 +90,11 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div><!-- cierra .card -->
+    </div><!-- cierra #vistaActivos -->
 
-    <!-- ── TABLA INHABILITADAS ── -->
-    <div id="vistaInhabilitadas" class="d-none">
+    <!-- ── TABLA MANTENIMIENTO ── -->
+    <div id="vistaMantenimiento" class="d-none">
         <div class="d-flex gap-2 mb-3 flex-wrap">
             <div class="flex-grow-1 position-relative" style="min-width:200px;">
                 <i class="fa-solid fa-magnifying-glass text-muted"
@@ -119,7 +112,7 @@
                         <tr style="font-size:12px;font-weight:600;">
                             <th class="py-3 px-3" style="width:40px;">#</th>
                             <th class="py-3 px-3">NOMBRE</th>
-                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (KG)</th>
+                            <th class="py-3 px-3 text-center" style="width:130px;">CAPACIDAD (TONELADAS)</th>
                             <th class="py-3 px-3">DESCRIPCIÓN</th>
                             <th class="py-3 px-3 text-center" style="width:130px;">CREADO</th>
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
@@ -151,10 +144,11 @@
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
+        </div><!-- cierra .card -->
+    </div><!-- cierra #vistaMantenimiento -->
 
-</div>
+</div><!-- cierra #vistaTabla -->
+
 
 <!-- ── VISTA FORMULARIO (oculta por defecto) — igual que tipo_equipo ── -->
 <div id="vistaFormulario" class="d-none">
@@ -180,25 +174,14 @@
                         placeholder="Ej: Bodega Norte">
                     <div class="text-danger d-none small mt-1" id="err_nombre">Campo requerido</div>
                 </div>
-
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Estado <span class="text-danger">*</span>
-                    </label>
-                    <select id="f_estado" class="form-select">
-                        <option value="Operativo">Operativo</option>
-                        <option value="En mantenimiento">En mantenimiento</option>
-                    </select>
-                </div>
-
                 <div class="col-12">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                        Capacidad (kg) <span class="text-danger">*</span>
+                        Capacidad (toneladas) <span class="text-danger">*</span>
                     </label>
                     <div class="input-group">
-                        <input type="number" id="f_capacidad_kg" class="form-control"
+                        <input type="number" id="f_capacidad_ton" class="form-control"
                             placeholder="0.00" min="0.01" step="0.01">
-                        <span class="input-group-text text-muted" style="font-size:12px;">kg</span>
+                        <span class="input-group-text text-muted" style="font-size:12px;">ton</span>
                     </div>
                     <div class="text-danger d-none small mt-1" id="err_capacidad">La capacidad es obligatoria y debe ser mayor a 0</div>
                 </div>
@@ -228,36 +211,37 @@
     </div>
 </div>
 
-<!-- ── MODAL: INHABILITAR ── -->
-<div class="modal fade" id="modalInhabilitar" tabindex="-1" data-bs-backdrop="static">
+<!-- ── MODAL: MANTENIMIENTO ── -->
+<div class="modal fade" id="modalMantenimiento" tabindex="-1" data-bs-backdrop="static">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
-            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#e67e22;">
                 <h5 class="modal-title">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Inhabilitar Bodega
+                    <i class="fa-solid fa-wrench me-2"></i>Enviar a Mantenimiento
                 </h5>
-                <button type="button" class="btn-close btn-close-white"
-                    data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
-                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
-                    <i class="fa-solid fa-house-chimney fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    style="background:#fef3c7;border:1px solid rgba(230,126,34,.25);">
+                    <i class="fa-solid fa-house-chimney fa-2x" style="color:#e67e22;flex-shrink:0;"></i>
                     <div>
-                        <div class="fw-bold" id="inhabilitarNombre">—</div>
-                        <div class="small text-muted">Esta bodega quedará inhabilitada</div>
+                        <div class="fw-bold" id="mantenimientoNombre">—</div>
+                        <div class="small text-muted">Esta bodega pasará a estado En mantenimiento</div>
                     </div>
                 </div>
                 <p class="text-muted small mb-0">
-                    Podrás reactivarla desde la pestaña <strong>Inhabilitadas</strong> en cualquier momento.
+                    No se podrán registrar nuevos movimientos mientras esté en mantenimiento.
+                    Podrás regresarla a Operativo desde la pestaña <strong>En Mantenimiento</strong>.
                 </p>
             </div>
             <div class="modal-footer bg-light border-top">
                 <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
                     <i class="fa-solid fa-xmark me-1"></i>Cancelar
                 </button>
-                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarInhabilitar()">
-                    <i class="fa-solid fa-ban me-1"></i>Inhabilitar
+                <button class="btn rounded-pill px-4 text-white fw-semibold" 
+                    style="background:#e67e22;" onclick="confirmarMantenimiento()">
+                    <i class="fa-solid fa-wrench me-1"></i>Enviar a Mantenimiento
                 </button>
             </div>
         </div>
