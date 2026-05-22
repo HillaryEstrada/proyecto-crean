@@ -48,13 +48,7 @@
     background-color: #1a3c5e !important;
     color: #fff !important;
 }
-.select2-container--open { z-index: 9999 !important; } 
-#modalWizard .modal-body {
-    overflow: visible !important;
-}
-#modalWizard .modal-content {
-    overflow: visible !important;
-}
+.select2-container--open { z-index: 9999 !important; }
 </style>
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
@@ -254,7 +248,7 @@
 
 <!-- ══ MODAL WIZARD ══ -->
 <div class="modal fade" id="modalWizard" tabindex="-1" data-bs-backdrop="static">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
 
             <div class="modal-header py-3 px-4 text-white" style="background:#1a3c5e;">
@@ -298,7 +292,7 @@
                 </div>
             </div>
 
-            <div class="modal-body px-4 pb-2" style="max-height:60vh;overflow-y:auto;">
+            <div class="modal-body px-4 pb-2" style="max-height:calc(100vh - 220px);overflow-y:auto;">
                 <input type="hidden" id="w_pk_maquinaria">
 
                 <!-- PASO 1 -->
@@ -495,23 +489,23 @@
                     </div>
             </div>
 
-            <div class="modal-footer bg-light border-top justify-content-between px-4">
-                <button type="button" class="btn btn-secondary px-4" onclick="cerrarWizard()">
+            <div class="modal-footer bg-light border-top justify-content-between px-4 flex-nowrap gap-2">
+                <button type="button" class="btn btn-secondary px-3" onclick="cerrarWizard()">
                     <i class="fa-solid fa-xmark me-1"></i>Cancelar
                 </button>
-                <div class="d-flex gap-2 align-items-center">
-                    <span id="wPasoLabel" class="text-muted small">Paso 1 de 4</span>
-                    <button type="button" class="btn btn-outline-secondary px-4"
+                <div class="d-flex gap-2 align-items-center flex-nowrap">
+                    <span id="wPasoLabel" class="text-muted small" style="white-space:nowrap;">Paso 1 de 4</span>
+                    <button type="button" class="btn btn-outline-secondary px-3"
                         id="wBtnAtras" style="display:none;" onclick="wAtras()">
                         <i class="fa-solid fa-arrow-left me-1"></i>Atrás
                     </button>
-                    <button type="button" class="btn px-4 text-white fw-semibold"
+                    <button type="button" class="btn px-3 text-white fw-semibold"
                         style="background:#1a3c5e;" id="wBtnSiguiente" onclick="wSiguiente()">
                         Siguiente <i class="fa-solid fa-arrow-right ms-1"></i>
                     </button>
-                    <button type="button" class="btn btn-success px-4 d-none"
+                    <button type="button" class="btn btn-success px-3 d-none"
                         id="wBtnGuardar" onclick="wGuardar()">
-                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar equipo
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Guardar
                     </button>
                 </div>
             </div>

@@ -6,7 +6,7 @@
 
 // Mapa de vistas → archivos JS a cargar
 const modulosJS = {
-    'admin/inicio':                   null,
+    'admin/inicio':                   'modules/admin/inicio',
 
     // ====== OPERACIÓN ======
     'maquinaria/maquinaria':          'modules/maquinaria/maquinaria',

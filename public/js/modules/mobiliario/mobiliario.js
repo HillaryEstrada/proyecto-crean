@@ -11,6 +11,8 @@
     let _disponibles  = [];
     let _ubicaciones  = [];
     let _empleados    = [];
+    let _movMuebleId = null;
+    let _accionMuebleData = null;
 
     esperarElemento('muebleBody', async () => {
         await cargarCatalogos();
@@ -121,6 +123,10 @@
                         <i class="fa-solid fa-clock-rotate-left" style="font-size:11px;"></i>
                     </button>
                     ${m.estado_operativo === 'disponible' ? `
+                    <button class="btn btn-sm btn-outline-secondary me-1" title="Movimiento"
+                        onclick="abrirModalMovimiento(${m.pk_mobiliario}, '${(m.nombre||'').replace(/'/g,"\\'")}')">
+                        <i class="fa-solid fa-arrows-rotate" style="font-size:11px;"></i>
+                    </button>
                     <button class="btn btn-sm btn-outline-warning me-1" title="Enviar a mantenimiento"
                         onclick="accionMueble(${m.pk_mobiliario}, 'mantenimiento', '${(m.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-screwdriver-wrench" style="font-size:11px;"></i>
@@ -155,6 +161,84 @@
         }));
     };
 
+
+
+window.abrirModalMovimiento = async function (id, nombre) {
+    const m = await fetchWithAuth(`/mobiliario/${id}`);
+    _movMuebleId = id;
+
+    // Llenar tarjeta
+    document.getElementById('movNombre').textContent  = nombre;
+    document.getElementById('movDetalle').textContent =
+        `${m.numero_economico || ''}${m.marca ? ' · ' + m.marca : ''}${m.modelo ? ' ' + m.modelo : ''}`;
+
+    // Reset campos
+    document.getElementById('movTipoInput').value       = '';
+    document.getElementById('movResponsableInput').value = '';
+    document.getElementById('movUbicacionInput').value   = '';
+    document.getElementById('movMotivoInput').value      = '';
+    document.getElementById('movCampoResponsable').classList.add('d-none');
+    document.getElementById('movCampoUbicacion').classList.add('d-none');
+    document.getElementById('err_mov_tipo').classList.add('d-none');
+
+    // Llenar selects
+    const selResp = document.getElementById('movResponsableInput');
+    selResp.innerHTML = '<option value="">— Sin cambio —</option>' +
+        _empleados.map(e =>
+            `<option value="${e.pk_empleado}" ${e.pk_empleado == m.fk_responsable ? 'selected' : ''}>
+                ${e.nombre} ${e.apellido_paterno}
+            </option>`).join('');
+
+    const selUbic = document.getElementById('movUbicacionInput');
+    selUbic.innerHTML = '<option value="">— Sin cambio —</option>' +
+        _ubicaciones.map(u =>
+            `<option value="${u.pk_ubicacion}" ${u.pk_ubicacion == m.fk_ubicacion ? 'selected' : ''}>
+                ${u.nombre}
+            </option>`).join('');
+
+    new bootstrap.Modal(document.getElementById('modalMovimiento')).show();
+};
+
+window.actualizarCamposMovimiento = function () {
+    const tipo = document.getElementById('movTipoInput').value;
+    const necesitaResponsable = ['asignacion', 'reasignacion'].includes(tipo);
+    const necesitaUbicacion   = ['asignacion', 'traslado'].includes(tipo);
+
+    document.getElementById('movCampoResponsable').classList.toggle('d-none', !necesitaResponsable);
+    document.getElementById('movCampoUbicacion').classList.toggle('d-none', !necesitaUbicacion);
+
+    if (tipo === 'reasignacion') {
+        document.getElementById('movLabelResponsable').textContent = 'Nuevo Responsable';
+    } else {
+        document.getElementById('movLabelResponsable').textContent = 'Responsable';
+    }
+};
+
+window.confirmarMovimiento = async function () {
+    const tipo = document.getElementById('movTipoInput').value;
+    if (!tipo) {
+        document.getElementById('err_mov_tipo').classList.remove('d-none');
+        return;
+    }
+    document.getElementById('err_mov_tipo').classList.add('d-none');
+
+    const payload = {
+        fk_mobiliario:        _movMuebleId,
+        tipo_movimiento:      tipo,
+        fk_responsable_nuevo: parseInt(document.getElementById('movResponsableInput').value) || null,
+        fk_ubicacion_nueva:   parseInt(document.getElementById('movUbicacionInput').value)   || null,
+        motivo:               document.getElementById('movMotivoInput').value.trim() || null
+    };
+
+    try {
+        await fetchWithAuth('/movimientos-mobiliario/registrar', 'POST', payload);
+        bootstrap.Modal.getInstance(document.getElementById('modalMovimiento')).hide();
+        Swal.fire({ icon: 'success', title: 'Listo', text: 'Movimiento registrado', timer: 2000, showConfirmButton: false });
+        await listarMuebles();
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+    }
+};
     // ════════════════════════════════════════
     // FORMULARIO MUEBLE
     // ════════════════════════════════════════
@@ -250,28 +334,95 @@
 
     // ════════════════════════════════════════
     // ACCIONES RÁPIDAS (baja / mantenimiento / disponible)
-    // ════════════════════════════════════════
-    window.accionMueble = async function (id, accion, nombre) {
-        const configs = {
-            baja:          { text: `¿Dar de baja "${nombre}"? Esta acción no se puede deshacer.`, url: `/mobiliario/${id}/baja`,          method: 'PATCH', msg: 'Dado de baja exitosamente' },
-            mantenimiento: { text: `¿Enviar "${nombre}" a mantenimiento?`,                        url: `/mobiliario/${id}/mantenimiento`, method: 'PATCH', msg: 'Enviado a mantenimiento' },
-            disponible:    { text: `¿Marcar "${nombre}" como disponible nuevamente?`,              url: `/mobiliario/${id}/disponible`,    method: 'PATCH', msg: 'Mueble disponible nuevamente' }
-        };
-        const c = configs[accion];
-        const confirm = await Swal.fire({
-            icon: 'question', title: '¿Confirmar acción?', text: c.text,
-            showCancelButton: true, confirmButtonText: 'Sí, confirmar',
-            cancelButtonText: 'Cancelar', confirmButtonColor: '#1a3c5e'
-        });
-        if (!confirm.isConfirmed) return;
-        try {
-            await fetchWithAuth(c.url, c.method);
-            Swal.fire({ icon: 'success', title: 'Listo', text: c.msg, timer: 2000, showConfirmButton: false });
-            await listarMuebles();
-        } catch (e) {
-            Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+    // ═══════════════════════════════════════
+window.accionMueble = function (id, accion, nombre) {
+    const configs = {
+        baja: {
+            titulo:    '<i class="fa-solid fa-ban me-2"></i>Dar de Baja',
+            subtitulo: 'Este mueble quedará dado de baja',
+            texto:     'Esta acción no se puede deshacer.',
+            color:     '#b2382d',
+            cardBg:    '#fbe9e7',
+            cardBorder:'rgba(178,56,45,.25)',
+            icon:      'fa-ban',
+            iconColor: '#b2382d',
+            btnColor:  '#b2382d',
+            btnLabel:  '<i class="fa-solid fa-ban me-1"></i>Confirmar Baja',
+            url:       `/mobiliario/${id}/baja`,
+            method:    'PATCH',
+            msg:       'Dado de baja exitosamente'
+        },
+        mantenimiento: {
+            titulo:    '<i class="fa-solid fa-screwdriver-wrench me-2"></i>Enviar a Mantenimiento',
+            subtitulo: 'Este mueble pasará a estado de mantenimiento',
+            texto:     'Podrás regresarlo a disponible una vez concluido el mantenimiento.',
+            color:     '#e6a817',
+            cardBg:    '#fff8e1',
+            cardBorder:'rgba(230,168,23,.25)',
+            icon:      'fa-screwdriver-wrench',
+            iconColor: '#e6a817',
+            btnColor:  '#e6a817',
+            btnLabel:  '<i class="fa-solid fa-screwdriver-wrench me-1"></i>Confirmar',
+            url:       `/mobiliario/${id}/mantenimiento`,
+            method:    'PATCH',
+            msg:       'Enviado a mantenimiento'
+        },
+        disponible: {
+            titulo:    '<i class="fa-solid fa-check me-2"></i>Marcar Disponible',
+            subtitulo: 'Este mueble volverá a estar disponible',
+            texto:     'El mueble quedará listo para asignación o préstamo.',
+            color:     '#2d7a4f',
+            cardBg:    '#e8f5ee',
+            cardBorder:'rgba(45,122,79,.25)',
+            icon:      'fa-check-circle',
+            iconColor: '#2d7a4f',
+            btnColor:  '#2d7a4f',
+            btnLabel:  '<i class="fa-solid fa-check me-1"></i>Confirmar',
+            url:       `/mobiliario/${id}/disponible`,
+            method:    'PATCH',
+            msg:       'Mueble disponible nuevamente'
         }
     };
+
+    const c = configs[accion];
+    _accionMuebleData = { url: c.url, method: c.method, msg: c.msg };
+
+    // Header
+    const header = document.getElementById('accionMuebleHeader');
+    header.style.background = c.color;
+    document.getElementById('accionMuebleTitulo').innerHTML = c.titulo;
+
+    // Tarjeta
+    const card = document.getElementById('accionMuebleCard');
+    card.style.background   = c.cardBg;
+    card.style.border       = `1px solid ${c.cardBorder}`;
+    const icon = document.getElementById('accionMuebleIcon');
+    icon.className = `fa-solid ${c.icon} fa-2x`;
+    icon.style.color = c.iconColor;
+
+    document.getElementById('accionMuebleNombre').textContent    = nombre;
+    document.getElementById('accionMuebleSubtitulo').textContent = c.subtitulo;
+    document.getElementById('accionMuebleTexto').innerHTML       = c.texto;
+
+    // Botón
+    const btn = document.getElementById('accionMuebleBtn');
+    btn.style.background = c.color;
+    btn.innerHTML        = c.btnLabel;
+
+    new bootstrap.Modal(document.getElementById('modalAccionMueble')).show();
+};
+
+window.confirmarAccionMueble = async function () {
+    bootstrap.Modal.getInstance(document.getElementById('modalAccionMueble')).hide();
+    try {
+        await fetchWithAuth(_accionMuebleData.url, _accionMuebleData.method);
+        Swal.fire({ icon: 'success', title: 'Listo', text: _accionMuebleData.msg,
+            timer: 2000, showConfirmButton: false });
+        await listarMuebles();
+    } catch (e) {
+        Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
+    }
+};
 
     // ════════════════════════════════════════
     // PRÉSTAMOS

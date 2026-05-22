@@ -78,3 +78,25 @@ exports.historialGeneral = async ({ tipo, fecha_inicio, fecha_fin } = {}) => {
         params
     );
 };
+
+exports.registrar = async (client, data) => {
+    return client.query(
+        `INSERT INTO mobiliario_movimiento (
+            fk_mobiliario, tipo_movimiento,
+            fk_responsable_anterior, fk_responsable_nuevo,
+            fk_ubicacion_anterior,   fk_ubicacion_nueva,
+            motivo, registrado_por
+         ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+         RETURNING *`,
+        [
+            data.fk_mobiliario,
+            data.tipo_movimiento,
+            data.fk_responsable_anterior || null,
+            data.fk_responsable_nuevo    || null,
+            data.fk_ubicacion_anterior   || null,
+            data.fk_ubicacion_nueva      || null,
+            data.motivo                  || null,
+            data.registrado_por
+        ]
+    );
+};

@@ -73,7 +73,7 @@ app.use('/motivo_baja',   require('./routes/auth/motivo_baja.routes'));
 
 // --- MÓDULO ALERTAS ---
 app.use('/alertas', require('./routes/alerta/alerta.routes'));
-
+app.use('/dashboard', require('./routes/dashboard/dashboard.routes'));
 // Rutas generales
 app.use('/', require('./routes/index.routes'));
 

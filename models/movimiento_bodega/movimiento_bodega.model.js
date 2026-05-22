@@ -335,7 +335,7 @@ module.exports = {
             d.humedad,
             d.analisis_calidad,
             b.nombre   AS bodega,
-            usr.username AS registrado_por,
+            usr.username AS registrado_por_usuario,
             CASE
                 WHEN mb.tipo_movimiento = 'entrada' THEN
                     CONCAT('ENT-', EXTRACT(YEAR FROM mb.fecha)::TEXT, '-',
