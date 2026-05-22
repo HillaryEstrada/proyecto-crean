@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema JS</title>
+    <title>CREAN</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
@@ -199,39 +199,66 @@
             flex-direction: column;
         }
 
-        /* Header móvil */
-        .mobile-header {
-            background-color: #fff;
-            padding: 1rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        /* ====== TOPBAR MÓVIL ====== */
+        /* Solo visible en pantallas pequeñas */
+        .mobile-topbar {
             display: none;
-        }
-        .mobile-header-inner {
-            display: flex;
-            justify-content: space-between;
+            background-color: #1f2937;
+            padding: 0.75rem 1rem;
             align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .mobile-header h1 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 0; }
+        .mobile-topbar-brand {
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            color: #fff;
+        }
         #mobile-menu-btn {
             background: transparent;
             border: none;
             cursor: pointer;
             padding: 6px;
             border-radius: 6px;
-            color: #4b5563;
+            color: #d1d5db;
+            display: flex;
+            align-items: center;
         }
-        #mobile-menu-btn:hover { background-color: #f3f4f6; }
+        #mobile-menu-btn:hover { background-color: #374151; }
+
+        /* Overlay */
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        #sidebar-overlay.active { display: block; }
 
         @media (max-width: 768px) {
-            .mobile-header { display: block; }
+            /* Mostrar topbar móvil */
+            .mobile-topbar { display: flex; }
+
+            /* Sidebar: fijo, fuera de pantalla por defecto */
             #sidebar {
                 position: fixed;
                 top: 0; left: 0;
                 height: 100vh;
                 z-index: 1000;
+                transform: translateX(-100%);
                 transition: transform 0.3s ease;
+                /* Ancho completo, no colapsado en móvil */
+                width: 260px !important;
+                min-width: 260px !important;
             }
-            #sidebar.mobile-hidden { transform: translateX(-100%); }
+            /* Cuando está abierto */
+            #sidebar.mobile-open {
+                transform: translateX(0);
+            }
         }
 
         /* Clase usada por construirMenu() para ocultar items sin permiso */
@@ -250,12 +277,14 @@
     </style>
 </head>
 <body>
+
+<!-- Overlay para cerrar el menú al tocar fuera (móvil) -->
+<div id="sidebar-overlay"></div>
+
 <div class="layout-wrapper">
 
     <!-- ===== SIDEBAR ===== -->
     <aside id="sidebar">
-        <div id="sidebar-overlay" onclick="document.getElementById('sidebar').classList.add('mobile-hidden'); this.classList.add('d-none');" 
-    style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:999;"></div>
         <!-- Header -->
         <div class="sidebar-header">
             <span class="sidebar-brand sidebar-text">CREAN</span>
@@ -270,14 +299,12 @@
         <nav class="sidebar-nav">
 
             <!-- Inicio -->
-            <a href="#" data-clave="admin/inicio" onclick="cargarVista('admin/inicio')" class="nav-inicio">
+            <a href="#" data-clave="admin/inicio" onclick="navegarA('admin/inicio')" class="nav-inicio">
                 <i class="fa-solid fa-house"></i>
                 <span class="sidebar-text">Inicio</span>
             </a>
 
-            <!-- ============================== -->
-            <!-- GRUPO: INVENTARIO DE ACTIVOS   -->
-            <!-- ============================== -->
+            <!-- GRUPO: INVENTARIO DE ACTIVOS -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
@@ -289,19 +316,18 @@
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseInventarioActivos">
-                    <a href="#" data-clave="maquinaria/maquinaria" onclick="cargarVista('maquinaria/maquinaria')">
+                    <a href="#" data-clave="maquinaria/maquinaria" onclick="navegarA('maquinaria/maquinaria')">
                         <i class="fa-solid fa-tractor"></i>
                         <span class="sidebar-text">Maquinaria</span>
                     </a>
-                    <a href="#" data-clave="vehiculo/vehiculo" onclick="cargarVista('vehiculo/vehiculo')">
+                    <a href="#" data-clave="vehiculo/vehiculo" onclick="navegarA('vehiculo/vehiculo')">
                         <i class="fa-solid fa-truck"></i>
                         <span class="sidebar-text">Vehículos</span>
                     </a>
                 </div>
             </div>
-                <!-- ============================== -->
-            <!-- GRUPO: CATÁLOGOS              -->
-            <!-- ============================== -->
+
+            <!-- GRUPO: CATÁLOGOS -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
@@ -313,27 +339,26 @@
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseCatalogos">
-                    <a href="#" data-clave="factura/factura" onclick="cargarVista('factura/factura')">
+                    <a href="#" data-clave="factura/factura" onclick="navegarA('factura/factura')">
                         <i class="fa-solid fa-file-invoice"></i>
                         <span class="sidebar-text">Factura</span>
                     </a>
-                    <a href="#" data-clave="ubicacion/ubicacion" onclick="cargarVista('ubicacion/ubicacion')">
+                    <a href="#" data-clave="ubicacion/ubicacion" onclick="navegarA('ubicacion/ubicacion')">
                         <i class="fa-solid fa-map-marker-alt"></i>
                         <span class="sidebar-text">Ubicación</span>
                     </a>
-                    <a href="#" data-clave="proveedor/proveedor" onclick="cargarVista('proveedor/proveedor')">
+                    <a href="#" data-clave="proveedor/proveedor" onclick="navegarA('proveedor/proveedor')">
                         <i class="fa-solid fa-truck-loading"></i>
                         <span class="sidebar-text">Proveedor</span>
                     </a>
-                    <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="cargarVista('tipo_equipo/tipo_equipo')">
+                    <a href="#" data-clave="tipo_equipo/tipo_equipo" onclick="navegarA('tipo_equipo/tipo_equipo')">
                         <i class="fa-solid fa-cogs"></i>
                         <span class="sidebar-text">Tipo Equipo</span>
                     </a>
                 </div>
             </div>
-            <!-- ============================== -->
-            <!-- GRUPO: BODEGA                  -->
-            <!-- ============================== -->
+
+            <!-- GRUPO: BODEGA -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
@@ -344,43 +369,35 @@
                     <span class="sidebar-text">Bodega de Granos</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
-                
                 <div class="collapse sidebar-submenu-children" id="collapseBodega">
-                    <!-- MOVIMIENTOS -->
-                    <a href="#" data-clave="inventario/bodega_movimiento" onclick="cargarVista('inventario/bodega_movimiento')">
+                    <a href="#" data-clave="inventario/bodega_movimiento" onclick="navegarA('inventario/bodega_movimiento')">
                         <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        <span class="sidebar-text">Entradas/ Salidas</span>
+                        <span class="sidebar-text">Entradas / Salidas</span>
                     </a>
-                    <!-- GRANOS -->
-                    <a href="#" data-clave="inventario/bodega_producto" onclick="cargarVista('inventario/bodega_producto')">
+                    <a href="#" data-clave="inventario/bodega_producto" onclick="navegarA('inventario/bodega_producto')">
                         <i class="fa-solid fa-seedling"></i>
                         <span class="sidebar-text">Granos</span>
                     </a>
-                    <a href="#" data-clave="inventario/bodega" onclick="cargarVista('inventario/bodega')">
+                    <a href="#" data-clave="inventario/bodega" onclick="navegarA('inventario/bodega')">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span class="sidebar-text">Bodegas</span>
                     </a>
-                    <a href="#" data-clave="productor/productor" onclick="cargarVista('productor/productor')">
+                    <a href="#" data-clave="productor/productor" onclick="navegarA('productor/productor')">
                         <i class="fa-solid fa-user-tie"></i>
                         <span class="sidebar-text">Productores</span>
                     </a>
-                    <!-- Predio -->
-                     <a href="#" data-clave="predio/predio" onclick="cargarVista('predio/predio')">
+                    <a href="#" data-clave="predio/predio" onclick="navegarA('predio/predio')">
                         <i class="fa-solid fa-compass"></i>
                         <span class="sidebar-text">Predios</span>
                     </a>
-                    <!-- Ejido -->
-                    <a href="#" data-clave="ejido/ejido" onclick="cargarVista('ejido/ejido')">
-                        <i class="fa-solid fa-map-location-dot"></i> 
+                    <a href="#" data-clave="ejido/ejido" onclick="navegarA('ejido/ejido')">
+                        <i class="fa-solid fa-map-location-dot"></i>
                         <span class="sidebar-text">Ejidos</span>
                     </a>
                 </div>
             </div>
 
-
-             <!-- ============================== -->
-            <!-- GRUPO: CONSUMIBLES             -->
-            <!-- ============================== -->
+            <!-- GRUPO: CONSUMIBLES -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
@@ -390,59 +407,51 @@
                     <i class="fa-solid fa-flask menu-icon"></i>
                     <span class="sidebar-text">Consumibles</span>
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
-
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseConsumibles">
-                    <a href="#" data-clave="consumible/consumible" onclick="cargarVista('consumible/consumible')">
+                    <a href="#" data-clave="consumible/consumible" onclick="navegarA('consumible/consumible')">
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span class="sidebar-text">Inventario</span>
                     </a>
-                    <a href="#" data-clave="partida_presupuestal/partida_presupuestal" onclick="cargarVista('partida_presupuestal/partida_presupuestal')">
-                        <i class="fa-solid fa-file-contract"></i> 
+                    <a href="#" data-clave="partida_presupuestal/partida_presupuestal" onclick="navegarA('partida_presupuestal/partida_presupuestal')">
+                        <i class="fa-solid fa-file-contract"></i>
                         <span class="sidebar-text">Partidas Presupuestales</span>
                     </a>
-
-                    <a href="#" data-clave="unidad_medida/unidad_medida" onclick="cargarVista('unidad_medida/unidad_medida')">
+                    <a href="#" data-clave="unidad_medida/unidad_medida" onclick="navegarA('unidad_medida/unidad_medida')">
                         <i class="fa-solid fa-ruler"></i>
                         <span class="sidebar-text">Unidades de Medida</span>
                     </a>
-
-                    <a href="#" data-clave="almacen/almacen" onclick="cargarVista('almacen/almacen')">
+                    <a href="#" data-clave="almacen/almacen" onclick="navegarA('almacen/almacen')">
                         <i class="fa-solid fa-warehouse"></i>
                         <span class="sidebar-text">Almacenes</span>
                     </a>
-
-                    <a href="#" data-clave="area/area" onclick="cargarVista('area/area')">
+                    <a href="#" data-clave="area/area" onclick="navegarA('area/area')">
                         <i class="fa-solid fa-map"></i>
                         <span class="sidebar-text">Áreas</span>
                     </a>
                 </div>
             </div>
-                <!-- ============================== -->
-                <!-- GRUPO: MOBILIARIO              -->
-                <!-- ============================== -->
-                <div class="dropdown-section">
-                    <button class="sidebar-submenu-btn"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapseMobiliario"
-                            aria-expanded="false"
-                            aria-controls="collapseMobiliario">
-                        <i class="fa-solid fa-chair menu-icon"></i>
-                        <span class="sidebar-text">Mobiliario</span>
-                        <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
-                    </button>
-                    <div class="collapse sidebar-submenu-children" id="collapseMobiliario">
-                        <a href="#" data-clave="mobiliario/mobiliario" onclick="cargarVista('mobiliario/mobiliario')">
-                            <i class="fa-solid fa-chair"></i>
-                            <span class="sidebar-text">Mobiliario</span>
-                        </a>
-                    </div>
-                </div>
-            
 
-            <!-- ============================== -->
-            <!-- GRUPO: ADMINISTRACIÓN          -->
-            <!-- ============================== -->
+            <!-- GRUPO: MOBILIARIO -->
+            <div class="dropdown-section">
+                <button class="sidebar-submenu-btn"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#collapseMobiliario"
+                        aria-expanded="false"
+                        aria-controls="collapseMobiliario">
+                    <i class="fa-solid fa-chair menu-icon"></i>
+                    <span class="sidebar-text">Mobiliario</span>
+                    <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                </button>
+                <div class="collapse sidebar-submenu-children" id="collapseMobiliario">
+                    <a href="#" data-clave="mobiliario/mobiliario" onclick="navegarA('mobiliario/mobiliario')">
+                        <i class="fa-solid fa-chair"></i>
+                        <span class="sidebar-text">Mobiliario</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- GRUPO: ADMINISTRACIÓN -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
                         data-bs-toggle="collapse"
@@ -454,23 +463,23 @@
                     <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
                 </button>
                 <div class="collapse sidebar-submenu-children" id="collapseAdmin">
-                    <a href="#" data-clave="admin/empleados" onclick="cargarVista('admin/empleados')">
+                    <a href="#" data-clave="admin/empleados" onclick="navegarA('admin/empleados')">
                         <i class="fa-solid fa-user"></i>
                         <span class="sidebar-text">Empleados</span>
                     </a>
-                    <a href="#" data-clave="admin/tipo_contrato" onclick="cargarVista('admin/tipo_contrato')">
-                            <i class="fa-solid fa-file-contract"></i>
-                            <span class="sidebar-text">Tipos de Contrato</span>
-                        </a>
-                        <a href="#" data-clave="admin/motivo_baja" onclick="cargarVista('admin/motivo_baja')">
-                            <i class="fa-solid fa-user-slash"></i>
-                            <span class="sidebar-text">Motivos de Baja</span>
-                        </a>
-                        <a href="#" data-clave="admin/users" onclick="cargarVista('admin/users')">
+                    <a href="#" data-clave="admin/tipo_contrato" onclick="navegarA('admin/tipo_contrato')">
+                        <i class="fa-solid fa-file-contract"></i>
+                        <span class="sidebar-text">Tipos de Contrato</span>
+                    </a>
+                    <a href="#" data-clave="admin/motivo_baja" onclick="navegarA('admin/motivo_baja')">
+                        <i class="fa-solid fa-user-slash"></i>
+                        <span class="sidebar-text">Motivos de Baja</span>
+                    </a>
+                    <a href="#" data-clave="admin/users" onclick="navegarA('admin/users')">
                         <i class="fa-solid fa-users"></i>
                         <span class="sidebar-text">Usuarios</span>
                     </a>
-                    <a href="#" data-clave="admin/modulos" onclick="cargarVista('admin/modulos')">
+                    <a href="#" data-clave="admin/modulos" onclick="navegarA('admin/modulos')">
                         <i class="fa-solid fa-th"></i>
                         <span class="sidebar-text">Módulos</span>
                     </a>
@@ -499,16 +508,13 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
 
-        <!-- Header móvil -->
-        <div class="mobile-header">
-            <div class="mobile-header-inner">
-                <h1></h1>
-                <button id="mobile-menu-btn">
-                    <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-            </div>
+        <!-- Topbar móvil: hamburguesa a la IZQUIERDA, solo visible en pantallas chicas -->
+        <div class="mobile-topbar">
+            <button id="mobile-menu-btn" title="Abrir menú">
+                <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
         </div>
 
         <!-- Contenido dinámico -->
@@ -532,16 +538,40 @@
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-
 <script>
-    // ====== SIDEBAR COLLAPSE ======
-    const sidebar     = document.getElementById('sidebar');
+    const sidebar    = document.getElementById('sidebar');
     const collapseBtn = document.getElementById('collapse-btn');
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const overlay    = document.getElementById('sidebar-overlay');
 
+    // ====== DESKTOP: colapsar/expandir (botón << dentro del sidebar) ======
     collapseBtn.addEventListener('click', () => {
         sidebar.classList.toggle('collapsed');
         collapseBtn.classList.toggle('rotated');
     });
+
+    // ====== MÓVIL: abrir/cerrar sidebar ======
+    function abrirSidebar() {
+        sidebar.classList.add('mobile-open');
+        overlay.classList.add('active');
+    }
+    function cerrarSidebar() {
+        sidebar.classList.remove('mobile-open');
+        overlay.classList.remove('active');
+    }
+
+    mobileMenuBtn.addEventListener('click', () => {
+        sidebar.classList.contains('mobile-open') ? cerrarSidebar() : abrirSidebar();
+    });
+
+    // Cerrar al tocar el overlay
+    overlay.addEventListener('click', cerrarSidebar);
+
+    // ====== navegarA: cargar vista Y cerrar menú en móvil ======
+    window.navegarA = function(vista) {
+        cargarVista(vista);
+        if (window.innerWidth <= 768) cerrarSidebar();
+    };
 
     // ====== INFO DEL USUARIO ======
     (function () {
@@ -573,16 +603,6 @@
     document.querySelectorAll('a[href="#"]').forEach(link => {
         link.addEventListener('click', e => e.preventDefault());
     });
-
-    // ====== MENÚ MÓVIL ======
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', () => {
-            const abierto = sidebar.classList.toggle('mobile-hidden');
-            if (overlay) overlay.style.display = abierto ? 'none' : 'block';
-        });
-    }
 </script>
 </body>
 </html>

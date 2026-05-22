@@ -438,3 +438,116 @@
         </div>
     </div>
 </div><!-- /vistaBajasTab -->
+
+<!-- ── MODAL: MOVIMIENTO MOBILIARIO ── -->
+<div class="modal fade" id="modalMovimiento" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#1a3c5e;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-arrows-rotate me-2"></i>Movimiento – Mobiliario
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                <!-- Tarjeta del mueble -->
+                <div class="d-flex align-items-center gap-3 p-3 mb-4 rounded-3"
+                    style="background:#e8eef5;border:1px solid rgba(26,60,94,.2);">
+                    <i class="fa-solid fa-couch fa-2x" style="color:#1a3c5e;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="movNombre">—</div>
+                        <div class="small text-muted" id="movDetalle">—</div>
+                    </div>
+                </div>
+
+                <!-- Tipo de movimiento -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Tipo de Movimiento <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select" id="movTipoInput" onchange="actualizarCamposMovimiento()">
+                        <option value="">Seleccionar…</option>
+                        <option value="asignacion">Asignación</option>
+                        <option value="reasignacion">Reasignación</option>
+                        <option value="traslado">Traslado</option>
+                    </select>
+                    <div class="text-danger d-none small mt-1" id="err_mov_tipo">Campo requerido</div>
+                </div>
+
+                <!-- Responsable (asignacion / reasignacion) -->
+                <div class="mb-3 d-none" id="movCampoResponsable">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;" id="movLabelResponsable">
+                        Nuevo Responsable
+                    </label>
+                    <select class="form-select" id="movResponsableInput">
+                        <option value="">— Sin cambio —</option>
+                    </select>
+                </div>
+
+                <!-- Ubicación (asignacion / traslado) -->
+                <div class="mb-3 d-none" id="movCampoUbicacion">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Nueva Ubicación
+                    </label>
+                    <select class="form-select" id="movUbicacionInput">
+                        <option value="">— Sin cambio —</option>
+                    </select>
+                </div>
+
+                <!-- Motivo -->
+                <div class="mb-1">
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
+                        Motivo
+                    </label>
+                    <textarea class="form-control" id="movMotivoInput" rows="3"
+                        placeholder="Opcional…"></textarea>
+                </div>
+
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn rounded-pill px-4 text-white fw-semibold" 
+                    style="background:#1a3c5e;" onclick="confirmarMovimiento()">
+                    <i class="fa-solid fa-arrows-rotate me-1"></i>Registrar Movimiento
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: ACCIÓN MUEBLE (baja / mantenimiento / disponible) ── -->
+<div class="modal fade" id="modalAccionMueble" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" id="accionMuebleHeader" style="background:#1a3c5e;">
+                <h5 class="modal-title" id="accionMuebleTitulo">
+                    <i class="fa-solid fa-question me-2"></i>Confirmar acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    id="accionMuebleCard" style="background:#e8eef5;border:1px solid rgba(26,60,94,.2);">
+                    <i id="accionMuebleIcon" class="fa-solid fa-chair fa-2x" style="color:#1a3c5e;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="accionMuebleNombre">—</div>
+                        <div class="small text-muted" id="accionMuebleSubtitulo">—</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0" id="accionMuebleTexto">—</p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn rounded-pill px-4 text-white" id="accionMuebleBtn"
+                    onclick="confirmarAccionMueble()">
+                    <i class="fa-solid fa-check me-1"></i>Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

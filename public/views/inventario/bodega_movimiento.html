@@ -511,3 +511,73 @@
         </div>
     </div>
 </div>
+
+<!-- ── MODAL: ELIMINAR MOVIMIENTO (BODEGA) ── -->
+<div class="modal fade" id="modalEliminarMovimiento" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Eliminar Movimiento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-arrow-right-arrow-left fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="elimMovFolio">—</div>
+                        <div class="small text-muted">Este movimiento será eliminado permanentemente</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Esta acción <strong>revertirá el stock</strong> asociado a este movimiento y no se puede deshacer.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarEliminarMovimiento()">
+                    <i class="fa-solid fa-trash me-1"></i>Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ── MODAL: ELIMINAR MUESTREO ── -->
+<div class="modal fade" id="modalEliminarMuestreo" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
+            <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Eliminar Muestreo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
+                    style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
+                    <i class="fa-solid fa-flask fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <div>
+                        <div class="fw-bold" id="elimMuestreoDesc">—</div>
+                        <div class="small text-muted">Este muestreo será eliminado permanentemente</div>
+                    </div>
+                </div>
+                <p class="text-muted small mb-0">
+                    Esta acción no se puede deshacer.
+                </p>
+            </div>
+            <div class="modal-footer bg-light border-top">
+                <button class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    <i class="fa-solid fa-xmark me-1"></i>Cancelar
+                </button>
+                <button class="btn btn-danger rounded-pill px-4" onclick="confirmarEliminarMuestreo()">
+                    <i class="fa-solid fa-trash me-1"></i>Sí, eliminar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

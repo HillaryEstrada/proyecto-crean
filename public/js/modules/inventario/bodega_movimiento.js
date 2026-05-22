@@ -11,6 +11,8 @@
     let _inventario   = [];   
     let _muestreos     = [];
     let _muestreosFull = []; 
+    let _elimMovId     = null;
+    let _elimMuestreoId    = null;
 
      // ─────────────────────────────────────────
     // UTILIDAD: formatear fecha sin Invalid Date
@@ -823,7 +825,7 @@ function recolectarDetalles() {
                         <div>${m.fecha ? new Date(m.fecha).toLocaleString('es-MX', { timeZone: 'America/Mazatlan' }) : '—'}</div>
                     </div>
                     <div class="col-md-3 col-6">
-                        <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Registrado por</div>
+                        <div class="text-muted" style="font-size:10px;text-transform:uppercase;letter-spacing:.05em;">Creado</div>
                         <div>${m.registrado_por_usuario || '—'}</div>
                     </div>
                     ${m.motivo ? `
@@ -1212,22 +1214,25 @@ function recolectarDetalles() {
     // ════════════════════════════════════════
     // ELIMINAR MOVIMIENTO
     // ════════════════════════════════════════
-    window.eliminarMovimiento = async function (id) {
-        const confirm = await Swal.fire({
-            icon: 'warning',
-            title: '¿Eliminar movimiento?',
-            html: '<p class="mb-1">Esta acción <strong>revertirá el stock</strong> asociado a este movimiento.</p><p class="text-muted small">No se puede deshacer.</p>',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#c0392b',
-            cancelButtonColor: '#6c757d'
-        });
-        if (!confirm.isConfirmed) return;
+    window.eliminarMovimiento = function (id) {
+        const m = _movimientos.find(m => m.pk_movimiento_bodega === id);
+        const folio = m?.folio ||
+            (m?.tipo_movimiento === 'entrada'
+                ? `ENT-${new Date(m.fecha).getFullYear()}-${String(id).padStart(4,'0')}`
+                : `SAL-${new Date(m.fecha).getFullYear()}-${String(id).padStart(4,'0')}`);
 
+        _elimMovId = id;
+        document.getElementById('elimMovFolio').textContent = folio || `Movimiento #${id}`;
+        new bootstrap.Modal(document.getElementById('modalEliminarMovimiento')).show();
+    };
+
+    window.confirmarEliminarMovimiento = async function () {
+        bootstrap.Modal.getInstance(document.getElementById('modalEliminarMovimiento')).hide();
         try {
-            await fetchWithAuth(`/movimiento_bodega/${id}`, 'DELETE');
-            Swal.fire({ icon: 'success', title: 'Eliminado', text: 'Movimiento eliminado y stock revertido exitosamente', timer: 2000, showConfirmButton: false });
+            await fetchWithAuth(`/movimiento_bodega/${_elimMovId}`, 'DELETE');
+            Swal.fire({ icon: 'success', title: 'Eliminado',
+                text: 'Movimiento eliminado y stock revertido exitosamente',
+                timer: 2000, showConfirmButton: false });
             listar();
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Error', text: e.error || e.message });
@@ -1325,6 +1330,8 @@ function recolectarDetalles() {
                                 <th class="px-3 py-2 text-center">Cantidad</th>
                                 <th class="px-3 py-2 text-center">Humedad</th>
                                 <th class="px-3 py-2">Motivo</th>
+                                <th class="px-3 py-2">Creado</th>
+
                             </tr>
                         </thead>
                         <tbody id="bdet-body"></tbody>
@@ -1383,7 +1390,7 @@ function recolectarDetalles() {
                                 <th class="px-3 py-2">Observaciones</th>
                                 <th class="px-3 py-2 text-center">Próximo</th>
                                 <th class="px-3 py-2 text-center">Estado</th>
-                                <th class="px-3 py-2 text-center">Registrado por</th>
+                                <th class="px-3 py-2 text-center">Creado</th>
                             </tr>
                         </thead>
                         <tbody id="bmue-body"></tbody>
@@ -1785,19 +1792,20 @@ window.guardarMuestreo = async function () {
 // ELIMINAR MUESTREO
 // ─────────────────────────────────────────
 window.eliminarMuestreo = async function (id) {
-    const confirm = await Swal.fire({
-        icon: 'warning',
-        title: '¿Eliminar muestreo?',
-        text: 'Esta acción no se puede deshacer.',
-        showCancelButton: true,
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#c0392b'
-    });
-    if (!confirm.isConfirmed) return;
+    const m = _muestreosFull.find(m => m.pk_muestreo === id);
+    const desc = m
+        ? `${m.bodega || '—'} · ${m.producto || '—'} · ${formatFecha(m.fecha_muestreo)}`
+        : `Muestreo #${id}`;
 
+    _elimMuestreoId = id;
+    document.getElementById('elimMuestreoDesc').textContent = desc;
+    new bootstrap.Modal(document.getElementById('modalEliminarMuestreo')).show();
+};
+
+window.confirmarEliminarMuestreo = async function () {
+    bootstrap.Modal.getInstance(document.getElementById('modalEliminarMuestreo')).hide();
     try {
-        await fetchWithAuth(`/muestreo_bodega/${id}`, 'DELETE');
+        await fetchWithAuth(`/muestreo_bodega/${_elimMuestreoId}`, 'DELETE');
         Swal.fire({ icon: 'success', title: 'Eliminado',
             timer: 2000, showConfirmButton: false });
         cargarMuestreosTab();
@@ -1833,6 +1841,17 @@ window.renderBdetPagina = function () {
                 </td>
                 <td class="px-3 text-center">${h.humedad != null ? h.humedad + '%' : '—'}</td>
                 <td class="px-3 text-muted">${h.motivo || '—'}</td>
+                <td class="px-3 text-muted" style="white-space:nowrap;">
+                    ${(h.registrado_por_usuario || h.usuario || h.creado_por)
+                        ? `<div style="font-size:12px;">${h.registrado_por_usuario || h.usuario || h.creado_por}</div>`
+                        : '<span class="text-muted" style="font-size:12px;">—</span>'}
+                    ${h.fecha
+                        ? `<div style="font-size:11px;color:#9ca3af;">
+                            ${new Date(h.fecha.includes('T') ? h.fecha : h.fecha + 'T12:00:00')
+                                .toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Mazatlan' })}
+                           </div>`
+                        : ''}
+                </td>
             </tr>`;
         }).join('') : `<tr><td colspan="6" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
 
@@ -1917,7 +1936,18 @@ window.renderBdetPagina = function () {
                 <td class="px-3 text-center">
                     ${badgeEstadoMuestreo(m.proximo_muestreo, m.calidad)}
                 </td>
-                <td class="px-3 text-center text-muted">${m.registrado_por_usuario || '—'}</td>
+                <td class="px-3 text-center text-muted">
+                    <div style="font-size:12px;">${m.registrado_por_usuario || '—'}</div>
+                            ${m.fecha_registro
+            ? `<div style="font-size:11px;color:#9ca3af;">
+                ${new Date(m.fecha_registro).toLocaleTimeString('es-MX', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    timeZone: 'America/Mazatlan'
+                })}
+            </div>`
+            : ''}
+                </td>
             </tr>`;
         }).join('') : `<tr><td colspan="8" class="text-center py-3 text-muted">Sin resultados</td></tr>`;
 
