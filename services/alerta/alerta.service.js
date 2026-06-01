@@ -73,6 +73,7 @@ const evaluarGarantias = async () => {
         if (r.dias_restantes <= 0) {
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_30', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_60', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
+            await alertaModel.eliminarPorTipoYReferencia('garantia_vencida', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await insertarSiNoExiste({
                 ...base,
                 tipo_alerta: 'garantia_vencida',
@@ -83,6 +84,7 @@ const evaluarGarantias = async () => {
 
         } else if (r.dias_restantes <= 30) {
             await alertaModel.eliminarPorTipoYReferencia('garantia_por_vencer_60', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
+            await alertaModel.eliminarPorTipoYReferencia('garantia_vencida', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await insertarSiNoExiste({
                 ...base,
                 tipo_alerta: 'garantia_por_vencer_30',
@@ -92,6 +94,7 @@ const evaluarGarantias = async () => {
             });
 
         } else if (r.dias_restantes <= 60) {
+            await alertaModel.eliminarPorTipoYReferencia('garantia_vencida', r.pk_maquinaria, r.pk_vehiculo, r.pk_factura);
             await insertarSiNoExiste({
                 ...base,
                 tipo_alerta: 'garantia_por_vencer_60',
