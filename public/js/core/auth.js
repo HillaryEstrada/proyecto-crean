@@ -59,7 +59,7 @@ async function logout() {
         sessionStorage.removeItem('token');
         localStorage.removeItem('user');
         localStorage.removeItem('vista');
-        window.top.location.href = '/views/auth/login.html';
+        window.top.location.href = '/auth/login';
     }
 }
 
@@ -68,7 +68,7 @@ async function fetchWithAuth(url, method = 'GET', data = null) {
     const token = getToken();
     
     if (!token) {
-        window.top.location.href = '/views/auth/login.html';
+        window.top.location.href = '/auth/login';
         throw new Error('No hay token de autenticación');
     }
 
@@ -116,6 +116,6 @@ async function fetchWithAuth(url, method = 'GET', data = null) {
 // Verificar autenticación al cargar la página
 function checkAuth() {
     if (!isAuthenticated()) {
-        window.top.location.href = '/views/auth/login.html';
+        window.top.location.href = '/auth/login';
     }
 }

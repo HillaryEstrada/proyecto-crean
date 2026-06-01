@@ -103,7 +103,7 @@ function construirMenu() {
 // ============================================
 window.onload = () => {
     if (!isAuthenticated()) {
-        window.top.location.href = '/views/auth/login.html';
+        window.top.location.href = '/auth/login';
         return;
     }
 
@@ -120,7 +120,7 @@ window.onload = () => {
 async function cargarVista(vista) {
 
     if (!isAuthenticated()) {
-        window.top.location.href = '/views/auth/login.html';
+        window.top.location.href = '/auth/login';
         return;
     }
 
