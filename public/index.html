@@ -16,7 +16,7 @@
             
             if (!token) {
                 // No hay token, redirigir al login
-                window.location.replace('/views/auth/login.html');
+                window.location.replace('/auth/login');
             } else {
                 // Verificar que el token sea válido
                 fetch('/auth/verificar', {
@@ -36,7 +36,7 @@
                     sessionStorage.removeItem('token');
                     localStorage.removeItem('user');
                     localStorage.removeItem('vista');
-                    window.location.replace('/views/auth/login.html');
+                    window.location.replace('/auth/login');
                 });
             }
         })();
