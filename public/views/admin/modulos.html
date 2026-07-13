@@ -47,9 +47,10 @@
                     <option value="todas">Todas las secciones</option>
                     <option value="operacion">Operación</option>
                      <option value="catalogos">Catálogos</option>
+                     <option value="comodatos">Comodatos</option>
                      <option value="bodega">Bodega</option>
-                    <option value="consumibles">Consumibles</option>
                     <option value="mobiliario">Mobiliario</option>
+                    <option value="consumibles">Consumibles</option>
                     <option value="administracion">Administración</option>
                 </select>
                 <span id="rol-seleccionado-label" class="badge text-white"
@@ -87,6 +88,18 @@
                         style="font-size:11px;transition:transform .2s;"></i>
                 </div>
                 <div id="modulos-catalogos"></div>
+            </div>
+            <!-- Sección Comodatos (colapsable) -->
+            <div id="seccion-comodatos" style="display:none;">
+                <div class="px-4 py-2 bg-light border-bottom d-flex justify-content-between align-items-center"
+                    style="cursor:pointer;" onclick="toggleSeccion('comodatos')">
+                    <small class="fw-semibold text-uppercase" style="letter-spacing:.06em;color:#1a3c5e;">
+                        <i class="fa-solid fa-handshake me-1"></i>Comodatos
+                    </small>
+                    <i class="fa-solid fa-chevron-down text-muted" id="chevron-comodatos"
+                        style="font-size:11px;transition:transform .2s;"></i>
+                </div>
+                <div id="modulos-comodatos"></div>
             </div>
             <!-- Sección Bodega (colapsable) -->
             <div id="seccion-bodega" style="display:none;">
@@ -136,7 +149,6 @@
                 </div>
                 <div id="modulos-administracion"></div>
             </div>
-
         </div>
 </div>
 

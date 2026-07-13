@@ -1,19 +1,19 @@
 <!-- ============================================
-     VISTA: partida_presupuestal.html
-     Descripción: Gestión de partidas presupuestales
+     VISTA: categoria.html
+     Descripción: Gestión de categorías
      ============================================ -->
 
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
     <div>
         <h4 class="fw-bold mb-1 fs-2" style="color:#1a3c5e;">
-            <i class="fa-solid fa-file-invoice-dollar me-2 fs-2"></i>Partidas Presupuestales
+            <i class="fa-solid fa-tags me-2 fs-2"></i>Categorías
         </h4>
-        <p class="text-muted mb-0 fs-5">Gestión de partidas presupuestales</p>
+        <p class="text-muted mb-0 fs-5">Gestión de categorías de consumibles</p>
     </div>
     <button class="btn text-white fw-semibold" style="background:#1a3c5e;"
         onclick="abrirFormulario()">
-        <i class="fa-solid fa-plus me-1"></i>Registrar partida
+        <i class="fa-solid fa-plus me-1"></i>Registrar categoría
     </button>
 </div>
 
@@ -60,7 +60,7 @@
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
-                    <tbody id="partidaBody" class="bg-white">
+                    <tbody id="categoriaBody" class="bg-white">
                         <tr>
                             <td colspan="5" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
@@ -71,14 +71,14 @@
             </div>
             <div class="px-3 pt-3 pb-3 bg-light border-top">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-1">
-                    <div id="info-registros-partida" class="small text-muted"></div>
+                    <div id="info-registros-categoria" class="small text-muted"></div>
                     <div class="d-flex align-items-center gap-2">
-                        <button id="btn-primero-partida" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
-                        <button id="btn-anterior-partida" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
-                        <span id="pagina-info-partida" class="small text-muted">Página 1 de 1</span>
-                        <input type="number" id="pagina-input-partida" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
-                        <button id="btn-siguiente-partida" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
-                        <button id="btn-ultimo-partida" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                        <button id="btn-primero-categoria" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-categoria" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-categoria" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-categoria" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-categoria" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-categoria" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@
                             <th class="py-3 px-3 text-center" style="width:120px;">ACCIONES</th>
                         </tr>
                     </thead>
-                    <tbody id="partidaBodyInactivos" class="bg-white">
+                    <tbody id="categoriaBodyInactivos" class="bg-white">
                         <tr>
                             <td colspan="5" class="text-center py-4 text-muted">
                                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
@@ -119,14 +119,14 @@
             </div>
             <div class="px-3 pt-3 pb-3 bg-light border-top">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                    <div id="info-registros-partida-inactivos" class="small text-muted"></div>
+                    <div id="info-registros-categoria-inactivos" class="small text-muted"></div>
                     <div class="d-flex align-items-center gap-2">
-                        <button id="btn-primero-partida-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
-                        <button id="btn-anterior-partida-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
-                        <span id="pagina-info-partida-inactivos" class="small text-muted">Página 1 de 1</span>
-                        <input type="number" id="pagina-input-partida-inactivos" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
-                        <button id="btn-siguiente-partida-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
-                        <button id="btn-ultimo-partida-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
+                        <button id="btn-primero-categoria-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">«</button>
+                        <button id="btn-anterior-categoria-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Anterior</button>
+                        <span id="pagina-info-categoria-inactivos" class="small text-muted">Página 1 de 1</span>
+                        <input type="number" id="pagina-input-categoria-inactivos" class="form-control form-control-sm text-center" style="width:60px;" min="1" value="1">
+                        <button id="btn-siguiente-categoria-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">Siguiente</button>
+                        <button id="btn-ultimo-categoria-inactivos" class="btn btn-sm text-white" style="background:#1a3c5e;">»</button>
                     </div>
                 </div>
             </div>
@@ -141,13 +141,13 @@
 
         <div class="px-4 py-3 text-white" style="background:#1a3c5e;">
             <h6 class="mb-0 fw-semibold">
-                <i class="fa-solid fa-file-invoice-dollar me-2"></i>
-                <span id="formTitulo">Registrar Partida Presupuestal</span>
+                <i class="fa-solid fa-tags me-2"></i>
+                <span id="formTitulo">Registrar Categoría</span>
             </h6>
         </div>
 
         <div class="p-4">
-            <input type="hidden" id="f_clave_original">
+            <input type="hidden" id="f_pk_original">
 
             <div class="row g-3">
 
@@ -177,9 +177,9 @@
                 <i class="fa-solid fa-xmark me-1"></i>Cancelar
             </button>
             <button type="button" class="btn text-white fw-semibold px-4"
-                style="background:#1a3c5e;" onclick="guardarPartida()">
+                style="background:#1a3c5e;" onclick="guardarCategoria()">
                 <i class="fa-solid fa-floppy-disk me-1"></i>
-                <span id="btnGuardarLabel">Guardar partida</span>
+                <span id="btnGuardarLabel">Guardar categoría</span>
             </button>
         </div>
 
@@ -192,17 +192,17 @@
         <div class="modal-content border-0 shadow-lg" style="border-radius:14px;overflow:hidden;">
             <div class="modal-header text-white fw-bold py-3 px-4" style="background:#b2382d;">
                 <h5 class="modal-title">
-                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Desactivar Partida
+                    <i class="fa-solid fa-triangle-exclamation me-2"></i>Desactivar Categoría
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body p-4">
                 <div class="d-flex align-items-center gap-3 p-3 mb-3 rounded-3"
                     style="background:#fbe9e7;border:1px solid rgba(178,56,45,.25);">
-                    <i class="fa-solid fa-file-invoice-dollar fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
+                    <i class="fa-solid fa-tags fa-2x" style="color:#b2382d;flex-shrink:0;"></i>
                     <div>
                         <div class="fw-bold" id="desactivarNombre">—</div>
-                        <div class="small text-muted">Esta partida quedará inactiva</div>
+                        <div class="small text-muted">Esta categoría quedará inactiva</div>
                     </div>
                 </div>
                 <p class="text-muted small mb-0">

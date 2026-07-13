@@ -11,7 +11,7 @@ function toggleSeccion(nombre) {
 // ── Filtrar por sección ───────────────────────
 function filtrarSeccion() {
     const filtro = document.getElementById('filtroSeccion')?.value || 'todas';
-    ['operacion', 'catalogos', 'bodega', 'consumibles', 'mobiliario','administracion'].forEach(sec => {
+    ['operacion', 'catalogos', 'bodega', 'consumibles', 'mobiliario', 'comodatos', 'administracion'].forEach(sec => {
         const seccionEl = document.getElementById(`seccion-${sec}`);
         if (!seccionEl) return;
         if (filtro === 'todas') {
@@ -142,9 +142,9 @@ function filtrarSeccion() {
             'BODEGA':         ['inventario', 'productor', 'ejido', 'predio'],
             'CATÁLOGOS':      ['factura', 'ubicacion', 'proveedor', 'tipo_equipo'],
             'ADMINISTRACIÓN': ['admin'],
-            'CONSUMIBLES': ['partida_presupuestal', 'unidad_medida', 'almacen', 'area', 'consumible'],
-            'MOBILIARIO': ['mobiliario']
-
+            'CONSUMIBLES': ['categoria', 'unidad_medida', 'almacen', 'area', 'consumible'],
+            'MOBILIARIO': ['mobiliario'],
+            'COMODATOS':   ['comodato']
 
         };
 

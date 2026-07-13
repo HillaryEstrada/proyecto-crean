@@ -1,40 +1,40 @@
 // ============================================
-// CONTROLADOR: partida_presupuestal.controller.js
-// Descripción: Lógica de negocio para partida presupuestal
+// CONTROLADOR: categoria.controller.js
+// Descripción: Lógica de negocio para categorías de consumibles
 // ============================================
 
-const partida = require('../../models/partida_presupuestal/partida_presupuestal.model');
+const categoria = require('../../models/categoria/categoria.model');
 
 // ============================================
-// Crear partida presupuestal
+// Crear categoría
 // ============================================
 exports.crear = async (req, res) => {
     try {
         // Verificar duplicado de clave
-        const existeClave = await partida.existeClave(req.body.clave);
+        const existeClave = await categoria.existeClave(req.body.clave);
         if (existeClave.rows.length) {
-            return res.status(400).json({ error: 'Ya existe una partida con esa clave' });
+            return res.status(400).json({ error: 'Ya existe una categoría con esa clave' });
         }
 
         // Verificar duplicado de nombre
-        const existeNombre = await partida.existeNombre(req.body.nombre);
+        const existeNombre = await categoria.existeNombre(req.body.nombre);
         if (existeNombre.rows.length) {
-            return res.status(400).json({ error: 'Ya existe una partida con ese nombre' });
+            return res.status(400).json({ error: 'Ya existe una categoría con ese nombre' });
         }
 
-        const resultado = await partida.crear({ ...req.body, registrado_por: req.user.id });
-        res.json({ mensaje: 'Partida presupuestal creada exitosamente', data: resultado.rows[0] });
+        const resultado = await categoria.crear({ ...req.body, registrado_por: req.user.id });
+        res.json({ mensaje: 'Categoría creada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// Listar partidas activas
+// Listar categorías activas
 // ============================================
 exports.listar = async (req, res) => {
     try {
-        const data = await partida.listar();
+        const data = await categoria.listar();
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -42,11 +42,11 @@ exports.listar = async (req, res) => {
 };
 
 // ============================================
-// Listar todas las partidas (activas e inactivas)
+// Listar todas las categorías (activas e inactivas)
 // ============================================
 exports.listarTodos = async (req, res) => {
     try {
-        const data = await partida.listarTodos();
+        const data = await categoria.listarTodos();
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -54,11 +54,11 @@ exports.listarTodos = async (req, res) => {
 };
 
 // ============================================
-// Listar partidas inactivas
+// Listar categorías inactivas
 // ============================================
 exports.listarInactivos = async (req, res) => {
     try {
-        const data = await partida.listarInactivos();
+        const data = await categoria.listarInactivos();
         res.json(data.rows);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -66,13 +66,13 @@ exports.listarInactivos = async (req, res) => {
 };
 
 // ============================================
-// Obtener partida por clave
+// Obtener categoría por clave
 // ============================================
 exports.obtenerPorId = async (req, res) => {
     try {
-        const data = await partida.obtenerPorId(req.params.id);
+        const data = await categoria.obtenerPorId(req.params.id);
         if (!data.rows.length) {
-            return res.status(404).json({ error: 'Partida presupuestal no encontrada' });
+            return res.status(404).json({ error: 'Categoría no encontrada' });
         }
         res.json(data.rows[0]);
     } catch (error) {
@@ -81,68 +81,68 @@ exports.obtenerPorId = async (req, res) => {
 };
 
 // ============================================
-// Actualizar partida presupuestal
+// Actualizar categoría
 // ============================================
 exports.actualizar = async (req, res) => {
     try {
-        // Verificar duplicado de clave (si cambió, que no exista ya)
-        if (req.body.clave && req.body.clave !== req.params.id) {
-            const existeClave = await partida.existeClave(req.body.clave);
+        // Verificar duplicado de clave (excluyendo la categoría actual)
+        if (req.body.clave) {
+            const existeClave = await categoria.existeClave(req.body.clave, req.params.id);
             if (existeClave.rows.length) {
-                return res.status(400).json({ error: 'Ya existe una partida con esa clave' });
+                return res.status(400).json({ error: 'Ya existe una categoría con esa clave' });
             }
         }
 
         // Verificar duplicado de nombre (excluyendo la actual)
         if (req.body.nombre) {
-            const existeNombre = await partida.existeNombre(req.body.nombre, req.params.id);
+            const existeNombre = await categoria.existeNombre(req.body.nombre, req.params.id);
             if (existeNombre.rows.length) {
-                return res.status(400).json({ error: 'Ya existe una partida con ese nombre' });
+                return res.status(400).json({ error: 'Ya existe una categoría con ese nombre' });
             }
         }
 
-        const resultado = await partida.actualizar(req.params.id, req.body);
+        const resultado = await categoria.actualizar(req.params.id, req.body);
         if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Partida presupuestal no encontrada' });
+            return res.status(404).json({ error: 'Categoría no encontrada' });
         }
-        res.json({ mensaje: 'Partida presupuestal actualizada exitosamente', data: resultado.rows[0] });
+        res.json({ mensaje: 'Categoría actualizada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// Desactivar partida (baja lógica)
+// Desactivar categoría (baja lógica)
 // ============================================
 exports.desactivar = async (req, res) => {
     try {
-        const enUso = await partida.estaEnUso(req.params.id);
+        const enUso = await categoria.estaEnUso(req.params.id);
         if (enUso.rows[0].total > 0) {
             return res.status(400).json({
-                error: `No se puede desactivar esta partida porque tiene ${enUso.rows[0].total} artículo(s) de inventario asociados.`
+                error: `No se puede desactivar esta categoría porque tiene ${enUso.rows[0].total} artículo(s) de inventario asociados.`
             });
         }
 
-        const resultado = await partida.desactivar(req.params.id);
+        const resultado = await categoria.desactivar(req.params.id);
         if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Partida presupuestal no encontrada' });
+            return res.status(404).json({ error: 'Categoría no encontrada' });
         }
-        res.json({ mensaje: 'Partida presupuestal desactivada exitosamente', data: resultado.rows[0] });
+        res.json({ mensaje: 'Categoría desactivada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
 // ============================================
-// Reactivar partida
+// Reactivar categoría
 // ============================================
 exports.reactivar = async (req, res) => {
     try {
-        const resultado = await partida.reactivar(req.params.id);
+        const resultado = await categoria.reactivar(req.params.id);
         if (!resultado.rows.length) {
-            return res.status(404).json({ error: 'Partida presupuestal no encontrada' });
+            return res.status(404).json({ error: 'Categoría no encontrada' });
         }
-        res.json({ mensaje: 'Partida presupuestal reactivada exitosamente', data: resultado.rows[0] });
+        res.json({ mensaje: 'Categoría reactivada exitosamente', data: resultado.rows[0] });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

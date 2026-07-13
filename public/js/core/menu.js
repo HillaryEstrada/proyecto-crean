@@ -12,7 +12,13 @@ const modulosJS = {
     'maquinaria/maquinaria':          'modules/maquinaria/maquinaria',
     'vehiculo/vehiculo':              'modules/vehiculo/vehiculo',
     'alertas/alertas':                'modules/alertas/alertas',
-
+    
+    // =========COMODATOS Y SOLICITUDES ======//
+    'comodato/comodato':   'modules/comodato/comodato',
+    'comodato/solicitud':  'modules/comodato/solicitud', 
+    'comodato/entrega':    'modules/comodato/entrega',
+    'comodato/devolucion': 'modules/comodato/devolucion',
+    'comodato/falla':      'modules/comodato/falla',
    // ====== INVENTARIOS ======
     'inventario/bodega':              'modules/inventario/bodega',
     'inventario/bodega_producto':     'modules/inventario/bodega_producto',
@@ -30,8 +36,8 @@ const modulosJS = {
     'tipo_equipo/tipo_equipo':        'modules/tipo_equipo/tipo_equipo',
     'ubicacion/ubicacion':            'modules/ubicacion/ubicacion',
 
-    //Modulo partida presupuestal
-    'partida_presupuestal/partida_presupuestal': 'modules/partida_presupuestal/partida_presupuestal',
+    //inventarios
+    'categoria/categoria': 'modules/categoria/categoria',
     'unidad_medida/unidad_medida': 'modules/unidad_medida/unidad_medida',
     'almacen/almacen': 'modules/almacen/almacen',
     'area/area': 'modules/area/area',

@@ -1,25 +1,25 @@
 (function () {
     let _registrosActivos   = [];
     let _registrosInactivos = [];
-    let _claveParaDesactivar = null;
+    let _pkParaDesactivar   = null;
 
-    esperarElemento('partidaBody', async () => {
+    esperarElemento('categoriaBody', async () => {
         listar();
-    }, 20, 'partida_presupuestal/partida_presupuestal');
+    }, 20, 'categoria/categoria');
 
     // ============================================
     // LISTAR ACTIVOS
     // ============================================
     async function listar() {
-        const tabla = document.getElementById('partidaBody');
+        const tabla = document.getElementById('categoriaBody');
         if (!tabla) return;
         try {
-            const data        = await fetchWithAuth('/partida-presupuestal');
+            const data        = await fetchWithAuth('/categorias');
             _registrosActivos = Array.isArray(data) ? data : [];
             renderTabla(_registrosActivos);
         } catch (e) {
-            console.error('Error listar partidas:', e);
-            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar las partidas presupuestales' });
+            console.error('Error listar categorias:', e);
+            Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar las categorías' });
         }
     }
 
@@ -27,54 +27,54 @@
     // RENDER TABLA ACTIVOS
     // ============================================
     function renderTabla(data) {
-        const tabla = document.getElementById('partidaBody');
+        const tabla = document.getElementById('categoriaBody');
         if (!tabla) return;
-        const info = document.getElementById('info-registros-partida');
+        const info = document.getElementById('info-registros-categoria');
 
         if (!data.length) {
             tabla.innerHTML = `
                 <tr><td colspan="5" class="text-center py-5 text-muted">
-                    <i class="fa-solid fa-file-invoice-dollar fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
-                    No hay partidas presupuestales registradas
+                    <i class="fa-solid fa-tags fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
+                    No hay categorías registradas
                 </td></tr>`;
             if (info) info.textContent = 'Sin registros';
-            initPaginacion({ tbodyId: 'partidaBody', filasPorPagina: 10, sufijo: 'partida' });
+            initPaginacion({ tbodyId: 'categoriaBody', filasPorPagina: 10, sufijo: 'categoria' });
             return;
         }
 
         if (info) info.textContent = `Mostrando ${data.length} de ${_registrosActivos.length} registros`;
 
-        tabla.innerHTML = data.map((p, i) => `
+        tabla.innerHTML = data.map((c, i) => `
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3 text-center">
                     <span class="badge fw-semibold px-3 py-2" style="background:#e8f0fb;color:#1a3c5e;font-size:12px;">
-                        ${p.clave || '—'}
+                        ${c.clave || '—'}
                     </span>
                 </td>
                 <td class="px-3">
                     <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                        ${p.nombre || '—'}
+                        ${c.nombre || '—'}
                     </span>
                 </td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
-                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                    ${c.registrado_por_usuario || '—'} • ${c.fecha_registro
+                        ? new Date(c.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
                 </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-primary me-1" title="Editar"
-                        onclick="editarPartida('${p.clave}')">
+                        onclick="editarCategoria(${c.pk_categoria})">
                         <i class="fa-solid fa-pen" style="font-size:11px;"></i>
                     </button>
                     <button class="btn btn-sm btn-outline-danger" title="Desactivar"
-                        onclick="abrirDesactivar('${p.clave}', '${(p.nombre||'').replace(/'/g,"\\'")}')">
+                        onclick="abrirDesactivar(${c.pk_categoria}, '${(c.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-ban" style="font-size:11px;"></i>
                     </button>
                 </td>
             </tr>`).join('');
 
-        initPaginacion({ tbodyId: 'partidaBody', filasPorPagina: 10, sufijo: 'partida' });
+        initPaginacion({ tbodyId: 'categoriaBody', filasPorPagina: 10, sufijo: 'categoria' });
     }
 
     // ============================================
@@ -82,8 +82,8 @@
     // ============================================
     window.filtrarTabla = function () {
         const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
-        renderTabla(_registrosActivos.filter(p => {
-            const txt = `${p.clave} ${p.nombre} ${p.registrado_por_usuario||''}`.toLowerCase();
+        renderTabla(_registrosActivos.filter(c => {
+            const txt = `${c.clave} ${c.nombre} ${c.registrado_por_usuario||''}`.toLowerCase();
             return !q || txt.includes(q);
         }));
     };
@@ -93,32 +93,32 @@
     // ============================================
     window.filtrarTablaInactivos = function () {
         const q      = (document.getElementById('searchInputInactivos')?.value || '').toLowerCase();
-        const cuerpo = document.getElementById('partidaBodyInactivos');
-        const info   = document.getElementById('info-registros-partida-inactivos');
-        const filtrados = _registrosInactivos.filter(p => {
-            const txt = `${p.clave} ${p.nombre} ${p.registrado_por_usuario||''}`.toLowerCase();
+        const cuerpo = document.getElementById('categoriaBodyInactivos');
+        const info   = document.getElementById('info-registros-categoria-inactivos');
+        const filtrados = _registrosInactivos.filter(c => {
+            const txt = `${c.clave} ${c.nombre} ${c.registrado_por_usuario||''}`.toLowerCase();
             return !q || txt.includes(q);
         });
 
         if (info) info.textContent = `Mostrando ${filtrados.length} de ${_registrosInactivos.length} registros`;
 
-        cuerpo.innerHTML = filtrados.length ? filtrados.map((p, i) => `
+        cuerpo.innerHTML = filtrados.length ? filtrados.map((c, i) => `
             <tr>
                 <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                 <td class="px-3 text-center">
                     <span class="badge fw-semibold px-3 py-2" style="background:#e8f0fb;color:#1a3c5e;font-size:12px;">
-                        ${p.clave || '—'}
+                        ${c.clave || '—'}
                     </span>
                 </td>
-                <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${p.nombre || '—'}</span></td>
+                <td class="px-3"><span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">${c.nombre || '—'}</span></td>
                 <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-                    ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
-                        ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                    ${c.registrado_por_usuario || '—'} • ${c.fecha_registro
+                        ? new Date(c.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                         : '—'}
                 </td>
                 <td class="px-3 text-center" style="white-space:nowrap;">
                     <button class="btn btn-sm btn-outline-success" title="Reactivar"
-                        onclick="reactivarPartida('${p.clave}', '${(p.nombre||'').replace(/'/g,"\\'")}')">
+                        onclick="reactivarCategoria(${c.pk_categoria}, '${(c.nombre||'').replace(/'/g,"\\'")}')">
                         <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
                     </button>
                 </td>
@@ -128,7 +128,7 @@
                 Sin resultados
             </td></tr>`;
 
-        initPaginacion({ tbodyId: 'partidaBodyInactivos', filasPorPagina: 10, sufijo: 'partida-inactivos' });
+        initPaginacion({ tbodyId: 'categoriaBodyInactivos', filasPorPagina: 10, sufijo: 'categoria-inactivos' });
     };
 
     // ============================================
@@ -155,70 +155,70 @@
     // LISTAR INACTIVOS
     // ============================================
     async function listarInactivos() {
-        const cuerpo = document.getElementById('partidaBodyInactivos');
-        const info   = document.getElementById('info-registros-partida-inactivos');
+        const cuerpo = document.getElementById('categoriaBodyInactivos');
+        const info   = document.getElementById('info-registros-categoria-inactivos');
         if (!cuerpo) return;
         cuerpo.innerHTML = `
             <tr><td colspan="5" class="text-center py-4 text-muted">
                 <div class="spinner-border spinner-border-sm me-2"></div>Cargando…
             </td></tr>`;
         try {
-            const data = await fetchWithAuth('/partida-presupuestal/inactivos');
+            const data = await fetchWithAuth('/categorias/inactivos');
             _registrosInactivos = Array.isArray(data) ? data : [];
 
             if (!_registrosInactivos.length) {
                 cuerpo.innerHTML = `
                     <tr><td colspan="5" class="text-center py-5 text-muted">
                         <i class="fa-solid fa-ban fa-2x d-block mb-2" style="color:#c8d5e3;"></i>
-                        No hay partidas inactivas
+                        No hay categorías inactivas
                     </td></tr>`;
                 if (info) info.textContent = 'Sin registros';
-                initPaginacion({ tbodyId: 'partidaBodyInactivos', filasPorPagina: 10, sufijo: 'partida-inactivos' });
+                initPaginacion({ tbodyId: 'categoriaBodyInactivos', filasPorPagina: 10, sufijo: 'categoria-inactivos' });
                 return;
             }
 
             if (info) info.textContent = `Mostrando ${_registrosInactivos.length} registros`;
 
-            cuerpo.innerHTML = _registrosInactivos.map((p, i) => `
+            cuerpo.innerHTML = _registrosInactivos.map((c, i) => `
                 <tr>
                     <td class="px-3 text-muted text-center" style="font-size:12px;">${i + 1}</td>
                     <td class="px-3 text-center">
                         <span class="badge fw-semibold px-3 py-2" style="background:#e8f0fb;color:#1a3c5e;font-size:12px;">
-                            ${p.clave || '—'}
+                            ${c.clave || '—'}
                         </span>
                     </td>
                     <td class="px-3">
                         <span class="fw-semibold" style="color:#1a3c5e;font-size:13px;">
-                            ${p.nombre || '—'}
+                            ${c.nombre || '—'}
                         </span>
                     </td>
                     <td class="px-3 text-center text-muted" style="font-size:12px;line-height:1.6;">
-                        ${p.registrado_por_usuario || '—'} • ${p.fecha_registro
-                            ? new Date(p.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
+                        ${c.registrado_por_usuario || '—'} • ${c.fecha_registro
+                            ? new Date(c.fecha_registro).toLocaleDateString('es-MX', { timeZone: 'America/Mazatlan' })
                             : '—'}
                     </td>
                     <td class="px-3 text-center" style="white-space:nowrap;">
                         <button class="btn btn-sm btn-outline-success" title="Reactivar"
-                            onclick="reactivarPartida('${p.clave}', '${(p.nombre||'').replace(/'/g,"\\'")}')">
+                            onclick="reactivarCategoria(${c.pk_categoria}, '${(c.nombre||'').replace(/'/g,"\\'")}')">
                             <i class="fa-solid fa-rotate-left" style="font-size:11px;"></i>
                         </button>
                     </td>
                 </tr>`).join('');
 
-            initPaginacion({ tbodyId: 'partidaBodyInactivos', filasPorPagina: 10, sufijo: 'partida-inactivos' });
-        } catch (e) { console.error('Error inactivos partida:', e); }
+            initPaginacion({ tbodyId: 'categoriaBodyInactivos', filasPorPagina: 10, sufijo: 'categoria-inactivos' });
+        } catch (e) { console.error('Error inactivos categoria:', e); }
     }
 
     // ============================================
     // ABRIR FORMULARIO (CREAR)
     // ============================================
     window.abrirFormulario = function () {
-        document.getElementById('f_clave_original').value      = '';
-        document.getElementById('f_clave').value               = '';
-        document.getElementById('f_nombre').value              = '';
-        document.getElementById('f_clave').disabled            = false;
-        document.getElementById('formTitulo').textContent      = 'Registrar Partida Presupuestal';
-        document.getElementById('btnGuardarLabel').textContent = 'Guardar partida';
+        document.getElementById('f_pk_original').value         = '';
+        document.getElementById('f_clave').value                = '';
+        document.getElementById('f_nombre').value               = '';
+        document.getElementById('f_clave').disabled             = false;
+        document.getElementById('formTitulo').textContent       = 'Registrar Categoría';
+        document.getElementById('btnGuardarLabel').textContent  = 'Guardar categoría';
         document.getElementById('err_clave').classList.add('d-none');
         document.getElementById('err_nombre').classList.add('d-none');
 
@@ -230,16 +230,16 @@
     // ============================================
     // EDITAR
     // ============================================
-    window.editarPartida = function (clave) {
-        const p = _registrosActivos.find(x => x.clave === clave);
-        if (!p) return;
+    window.editarCategoria = function (pk_categoria) {
+        const c = _registrosActivos.find(x => x.pk_categoria === pk_categoria);
+        if (!c) return;
 
-        document.getElementById('f_clave_original').value      = p.clave;
-        document.getElementById('f_clave').value               = p.clave;
-        document.getElementById('f_nombre').value              = p.nombre || '';
-        document.getElementById('f_clave').disabled            = false; // ← clave editable
-        document.getElementById('formTitulo').textContent      = `Editando: ${p.clave} — ${p.nombre}`;
-        document.getElementById('btnGuardarLabel').textContent = 'Guardar cambios';
+        document.getElementById('f_pk_original').value          = c.pk_categoria;
+        document.getElementById('f_clave').value                = c.clave;
+        document.getElementById('f_nombre').value                = c.nombre || '';
+        document.getElementById('f_clave').disabled              = false;
+        document.getElementById('formTitulo').textContent        = `Editando: ${c.clave} — ${c.nombre}`;
+        document.getElementById('btnGuardarLabel').textContent   = 'Guardar cambios';
         document.getElementById('err_clave').classList.add('d-none');
         document.getElementById('err_nombre').classList.add('d-none');
 
@@ -254,10 +254,10 @@
     window.cancelarFormulario = function () {
         document.getElementById('vistaFormulario').classList.add('d-none');
         document.getElementById('vistaTabla').classList.remove('d-none');
-        document.getElementById('f_clave_original').value = '';
-        document.getElementById('f_clave').value          = '';
-        document.getElementById('f_nombre').value         = '';
-        document.getElementById('f_clave').disabled       = false;
+        document.getElementById('f_pk_original').value = '';
+        document.getElementById('f_clave').value       = '';
+        document.getElementById('f_nombre').value      = '';
+        document.getElementById('f_clave').disabled    = false;
         document.getElementById('err_clave').classList.add('d-none');
         document.getElementById('err_nombre').classList.add('d-none');
     };
@@ -265,8 +265,8 @@
     // ============================================
     // GUARDAR (CREAR O ACTUALIZAR)
     // ============================================
-    window.guardarPartida = async function () {
-        const claveOriginal = document.getElementById('f_clave_original').value;
+    window.guardarCategoria = async function () {
+        const pkOriginal = document.getElementById('f_pk_original').value;
         const clave  = document.getElementById('f_clave').value.trim();
         const nombre = document.getElementById('f_nombre').value.trim();
 
@@ -305,15 +305,15 @@
 
         try {
             const payload = { clave, nombre };
-            if (claveOriginal) {
-                await fetchWithAuth(`/partida-presupuestal/${claveOriginal}`, 'PUT', payload);
+            if (pkOriginal) {
+                await fetchWithAuth(`/categorias/${pkOriginal}`, 'PUT', payload);
                 Swal.fire({ icon: 'success', title: 'Actualizada',
-                    text: 'Partida actualizada exitosamente',
+                    text: 'Categoría actualizada exitosamente',
                     timer: 2000, showConfirmButton: false });
             } else {
-                await fetchWithAuth('/partida-presupuestal', 'POST', payload);
+                await fetchWithAuth('/categorias', 'POST', payload);
                 Swal.fire({ icon: 'success', title: 'Registrada',
-                    text: 'Partida creada exitosamente',
+                    text: 'Categoría creada exitosamente',
                     timer: 2000, showConfirmButton: false });
             }
             cancelarFormulario();
@@ -335,9 +335,9 @@
     // ============================================
     // ABRIR MODAL DESACTIVAR
     // ============================================
-    window.abrirDesactivar = function (clave, nombre) {
-        _claveParaDesactivar = clave;
-        document.getElementById('desactivarNombre').textContent = `${clave} — ${nombre}`;
+    window.abrirDesactivar = function (pk_categoria, nombre) {
+        _pkParaDesactivar = pk_categoria;
+        document.getElementById('desactivarNombre').textContent = `${nombre}`;
         new bootstrap.Modal(document.getElementById('modalDesactivar')).show();
     };
 
@@ -346,12 +346,12 @@
     // ============================================
     window.confirmarDesactivar = async function () {
         try {
-            await fetchWithAuth(`/partida-presupuestal/${_claveParaDesactivar}/desactivar`, 'PATCH');
+            await fetchWithAuth(`/categorias/${_pkParaDesactivar}/desactivar`, 'PATCH');
             bootstrap.Modal.getInstance(document.getElementById('modalDesactivar')).hide();
             Swal.fire({ icon: 'success', title: 'Desactivada',
-                text: 'Partida desactivada exitosamente',
+                text: 'Categoría desactivada exitosamente',
                 timer: 2000, showConfirmButton: false });
-            _claveParaDesactivar = null;
+            _pkParaDesactivar = null;
             listar();
         } catch (error) {
             Swal.fire({ icon: 'error', title: 'Error', text: error.error || error.message });
@@ -361,11 +361,11 @@
     // ============================================
     // REACTIVAR
     // ============================================
-    window.reactivarPartida = async function (clave, nombre) {
+    window.reactivarCategoria = async function (pk_categoria, nombre) {
         const confirm = await Swal.fire({
             icon: 'question',
-            title: 'Reactivar partida',
-            text: `¿Deseas reactivar "${clave} — ${nombre}"?`,
+            title: 'Reactivar categoría',
+            text: `¿Deseas reactivar "${nombre}"?`,
             showCancelButton: true,
             confirmButtonText: 'Sí, reactivar',
             cancelButtonText: 'Cancelar',
@@ -373,9 +373,9 @@
         });
         if (!confirm.isConfirmed) return;
         try {
-            await fetchWithAuth(`/partida-presupuestal/${clave}/reactivar`, 'PATCH');
+            await fetchWithAuth(`/categorias/${pk_categoria}/reactivar`, 'PATCH');
             Swal.fire({ icon: 'success', title: 'Reactivada',
-                text: 'Partida reactivada exitosamente',
+                text: 'Categoría reactivada exitosamente',
                 timer: 2000, showConfirmButton: false });
             await listar();
             await listarInactivos();

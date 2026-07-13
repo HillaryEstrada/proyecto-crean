@@ -358,6 +358,41 @@
                 </div>
             </div>
 
+            <!-- GRUPO: COMODATOS -->
+                <div class="dropdown-section">
+                    <button class="sidebar-submenu-btn"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapseComodatos"
+                            aria-expanded="false"
+                            aria-controls="collapseComodatos">
+                        <i class="fa-solid fa-handshake menu-icon"></i>
+                        <span class="sidebar-text">Comodatos</span>
+                        <i class="fa-solid fa-chevron-down chevron sidebar-text"></i>
+                    </button>
+                    <div class="collapse sidebar-submenu-children" id="collapseComodatos">
+                        <a href="#" data-clave="comodato/solicitud" onclick="navegarA('comodato/solicitud')">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                            <span class="sidebar-text">Solicitudes</span>
+                        </a>
+                        <a href="#" data-clave="comodato/comodato" onclick="navegarA('comodato/comodato')">
+                            <i class="fa-solid fa-handshake"></i>
+                            <span class="sidebar-text">Comodatos</span>
+                        </a>
+                        <a href="#" data-clave="comodato/entrega" onclick="navegarA('comodato/entrega')">
+                            <i class="fa-solid fa-box-open"></i>
+                            <span class="sidebar-text">Entregas</span>
+                        </a>
+                        <a href="#" data-clave="comodato/devolucion" onclick="navegarA('comodato/devolucion')">
+                            <i class="fa-solid fa-undo"></i>
+                            <span class="sidebar-text">Devoluciones</span>
+                        </a>
+                        <a href="#" data-clave="comodato/falla" onclick="navegarA('comodato/falla')">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <span class="sidebar-text">Fallas</span>
+                        </a>
+                    </div>
+                </div>
+
             <!-- GRUPO: BODEGA -->
             <div class="dropdown-section">
                 <button class="sidebar-submenu-btn"
@@ -413,9 +448,9 @@
                         <i class="fa-solid fa-boxes-stacked"></i>
                         <span class="sidebar-text">Inventario</span>
                     </a>
-                    <a href="#" data-clave="partida_presupuestal/partida_presupuestal" onclick="navegarA('partida_presupuestal/partida_presupuestal')">
-                        <i class="fa-solid fa-file-contract"></i>
-                        <span class="sidebar-text">Partidas Presupuestales</span>
+                    <a href="#" data-clave="categoria/categoria" onclick="navegarA('categoria/categoria')">
+                        <i class="fa-solid fa-tags"></i>
+                        <span class="sidebar-text">Categorías</span>
                     </a>
                     <a href="#" data-clave="unidad_medida/unidad_medida" onclick="navegarA('unidad_medida/unidad_medida')">
                         <i class="fa-solid fa-ruler"></i>

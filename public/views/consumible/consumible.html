@@ -2,6 +2,54 @@
      VISTA: consumible.html
      Descripción: Gestión de consumibles (artículos y movimientos)
      ============================================ -->
+<style>
+   .select2-container--default .select2-selection--single {
+    height: 38px !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    background-color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 8px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #212529 !important;
+    line-height: normal !important;
+    padding: 0 !important;
+    font-size: 13px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px !important;
+    top: 1px !important;
+}
+.select2-dropdown {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12) !important;
+}
+.select2-container--default .select2-search--dropdown {
+    padding: 8px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+}
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #dee2e6 !important;
+    border-radius: 6px !important;
+    padding: 6px 10px !important;
+    font-size: 13px !important;
+    outline: none !important;
+}
+.select2-results__option {
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+    color: #374151 !important;
+}
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #1a3c5e !important;
+    color: #fff !important;
+}
+.select2-container--open { z-index: 9999 !important; }
+</style>
 
 <!-- ── CABECERA ── -->
 <div class="d-flex align-items-start justify-content-between mb-4 flex-wrap gap-3">
@@ -145,7 +193,7 @@
                 <!-- Escáner de código de barras -->
                 <div id="seccionBarcode" class="p-3 mb-3 rounded-3" style="background:#f0f9ff;border:1px solid #bae6fd;">
                     <label class="form-label fw-semibold mb-2" style="font-size:12px;color:#1a3c5e;">
-                        <i class="fa-solid fa-barcode me-1"></i>Escanear código de barras
+                        <i class="fa-solid fa-barcode me-1"></i>Escanear código de barras o el código del artículo
                         <small class="text-muted fw-normal">(escribe o escanea y presiona <kbd>Enter</kbd>)</small>
                     </label>
                     <div class="d-flex gap-2">
@@ -167,9 +215,9 @@
                         <div class="text-danger d-none small mt-1" id="err_articulo">Campo requerido</div>
                     </div>
 
-                    <!-- Cantidad -->
+                    <!-- Stock -->
                     <div class="col-md-3">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Cantidad <span class="text-danger">*</span></label>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Stock <span class="text-danger">*</span></label>
                         <input type="number" id="f_cantidad" class="form-control" value="1" min="1">
                         <div class="text-danger d-none small mt-1" id="err_cantidad">Debe ser mayor a 0</div>
                     </div>
@@ -177,14 +225,15 @@
                     <!-- Nº Factura — solo ENTRADA -->
                     <div class="col-md-4 d-none" id="campoEntrada">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                            Nº Factura <span class="text-danger">*</span>
+                            Nº Factura
+                            <small class="text-muted">(opcional)</small>
                         </label>
                         <input type="text" id="f_numero_factura" class="form-control" placeholder="Ej: FAC-2026-001">
                         <div class="text-danger d-none small mt-1" id="err_numero_factura">Campo requerido</div>
                     </div>
                     <div class="col-md-3 d-none" id="campoFechaFactura">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                            Fecha factura <span class="text-danger">*</span>
+                             Fecha factura <small class="text-muted">(opcional)</small>
                         </label>
                         <input type="date" id="f_fecha_factura" class="form-control">
                         <div class="text-danger d-none small mt-1" id="err_fecha_factura">Campo requerido</div>
@@ -291,7 +340,7 @@
                 <i class="fa-solid fa-magnifying-glass text-muted"
                     style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;pointer-events:none;"></i>
                 <input type="text" class="form-control ps-4" id="searchInput"
-                    placeholder="Buscar por nombre o código de barras…" oninput="filtrarTabla()">
+                    placeholder="Buscar por nombre o código…" oninput="filtrarTabla()">
             </div>
             <select class="form-select" style="width:auto;" id="filtroEstado" onchange="filtrarTabla()">
                 <option value="">Todos los estados</option>
@@ -299,8 +348,8 @@
                 <option value="bajo">Stock bajo</option>
                 <option value="sin_stock">Sin stock</option>
             </select>
-            <select class="form-select" style="width:auto;" id="filtroPartida" onchange="filtrarTabla()">
-                <option value="">Todas las partidas</option>
+            <select class="form-select" style="width:auto;" id="filtroCategoria" onchange="filtrarTabla()">
+                <option value="">Todas las categorías</option>
             </select>
         </div>
 
@@ -361,7 +410,7 @@
                     </div>
                     <div class="col-md-3">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
-                            <i class="fa-solid fa-barcode me-1"></i>Código de barras
+                            <i class="fa-solid fa-barcode me-1"></i>Código
                             <small class="text-muted fw-normal">(opcional)</small>
                         </label>
                         <input type="text" id="f_codigo_barras" class="form-control"
@@ -383,8 +432,8 @@
                         <input type="number" id="f_stock_minimo" class="form-control" min="0">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
-                        <select id="f_fk_partida" class="form-select"><option value="">Sin partida</option></select>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Categoría</label>
+                        <select id="f_fk_categoria" class="form-select"><option value="">Sin categoría</option></select>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">
@@ -468,7 +517,7 @@
                             <th class="py-3 px-3">FOLIO VALE</th>
                             <th class="py-3 px-3">FECHA Y HORA</th>
                             <th class="py-3 px-3">ARTÍCULO</th>
-                            <th class="py-3 px-3 text-center">CANTIDAD</th>
+                            <th class="py-3 px-3 text-center">STOCK</th>
                             <th class="py-3 px-3">ÁREA</th>
                             <th class="py-3 px-3">AUTORIZADO POR</th>
                             <th class="py-3 px-3">MOTIVO</th>
@@ -524,7 +573,7 @@
                 </div>
                 <div class="row g-3">
                     <div class="col-12">
-                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Código de barras</label>
+                        <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Código</label>
                         <input type="text" id="bc_codigo" class="form-control" readonly
                             style="font-family:monospace;background:#f8f9fa;">
                     </div>
@@ -573,8 +622,8 @@
                             </div>
                         </div>
                     <div class="col-md-5">
-                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Partida presupuestal</label>
-                    <select id="bc_fk_partida" class="form-select"><option value="">Sin partida</option></select>
+                    <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Categoría</label>
+                    <select id="bc_fk_categoria" class="form-select"><option value="">Sin categoría</option></select>
                 </div>
                 <div class="col-md-7">
                     <label class="form-label fw-semibold" style="font-size:12px;color:#1a3c5e;">Descripción</label>

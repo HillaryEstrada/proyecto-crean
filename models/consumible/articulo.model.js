@@ -12,13 +12,13 @@ module.exports = {
     // ============================================
     crear: (data) => Conexion.query(
         `INSERT INTO inventario_articulo
-            (nombre, descripcion, fk_partida, fk_unidad, fk_ubicacion_exterior, fk_ubicacion_interior, stock_minimo, stock, registrado_por, codigo_barras)
+            (nombre, descripcion, fk_categoria, fk_unidad, fk_ubicacion_exterior, fk_ubicacion_interior, stock_minimo, stock, registrado_por, codigo_barras)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *`,
         [
             data.nombre, 
             data.descripcion||null, 
-            data.fk_partida||null, 
+            data.fk_categoria||null, 
             data.fk_unidad||null,
             data.fk_ubicacion_exterior||null, 
             data.fk_ubicacion_interior||null,
@@ -49,13 +49,13 @@ module.exports = {
                 ia.stock_minimo,
                 ia.estado,
                 ia.fk_unidad,
-                ia.fk_partida,
+                ia.fk_categoria,
                 ia.fk_ubicacion_exterior,
                 ia.fk_ubicacion_interior,
                 ia.fecha_registro,
                 u.nombre   AS unidad,
-                pp.nombre  AS partida,
-                pp.clave   AS clave_partida,
+                c.nombre   AS categoria,
+                c.clave    AS clave_categoria,
                 ue.nombre  AS ubicacion_exterior,
                 ui.nombre  AS ubicacion_interior,
                 CASE
@@ -64,10 +64,10 @@ module.exports = {
                     ELSE 'ok'
                 END AS estado_stock
             FROM inventario_articulo ia
-            LEFT JOIN unidad_medida        u   ON u.pk_unidad        = ia.fk_unidad
-            LEFT JOIN partida_presupuestal pp  ON pp.clave           = ia.fk_partida
-            LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion    = ia.fk_ubicacion_exterior
-            LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion    = ia.fk_ubicacion_interior
+            LEFT JOIN unidad_medida u   ON u.pk_unidad     = ia.fk_unidad
+            LEFT JOIN categoria     c   ON c.pk_categoria  = ia.fk_categoria
+            LEFT JOIN ubicacion     ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
+            LEFT JOIN ubicacion     ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
             WHERE ${conditions.join(' AND ')}
             ORDER BY ia.nombre`,
             params
@@ -80,16 +80,16 @@ module.exports = {
         listarInactivos: () => Conexion.query(
         `SELECT
             ia.pk_articulo, ia.nombre, ia.descripcion, ia.stock, ia.stock_minimo,
-            ia.estado, ia.fk_unidad, ia.fk_partida, ia.fecha_registro,
+            ia.estado, ia.fk_unidad, ia.fk_categoria, ia.fecha_registro,
             u.nombre   AS unidad,
-            pp.nombre  AS partida,
+            c.nombre   AS categoria,
             ue.nombre  AS ubicacion_exterior,
             ui.nombre  AS ubicacion_interior
         FROM inventario_articulo ia
-        LEFT JOIN unidad_medida        u   ON u.pk_unidad     = ia.fk_unidad
-        LEFT JOIN partida_presupuestal pp  ON pp.clave        = ia.fk_partida
-        LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
-        LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
+        LEFT JOIN unidad_medida u   ON u.pk_unidad     = ia.fk_unidad
+        LEFT JOIN categoria     c   ON c.pk_categoria  = ia.fk_categoria
+        LEFT JOIN ubicacion     ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
+        LEFT JOIN ubicacion     ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
         WHERE ia.estado = 0
         ORDER BY ia.nombre ASC`
     ),
@@ -112,14 +112,14 @@ module.exports = {
         `SELECT
             ia.*,
             u.nombre   AS unidad,
-            pp.nombre  AS partida,
+            c.nombre   AS categoria,
             ue.nombre  AS ubicacion_exterior,
             ui.nombre  AS ubicacion_interior
         FROM inventario_articulo ia
-        LEFT JOIN unidad_medida        u   ON u.pk_unidad     = ia.fk_unidad
-        LEFT JOIN partida_presupuestal pp  ON pp.clave        = ia.fk_partida
-        LEFT JOIN ubicacion            ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
-        LEFT JOIN ubicacion            ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
+        LEFT JOIN unidad_medida u   ON u.pk_unidad     = ia.fk_unidad
+        LEFT JOIN categoria     c   ON c.pk_categoria  = ia.fk_categoria
+        LEFT JOIN ubicacion     ue  ON ue.pk_ubicacion = ia.fk_ubicacion_exterior
+        LEFT JOIN ubicacion     ui  ON ui.pk_ubicacion = ia.fk_ubicacion_interior
         WHERE ia.pk_articulo = $1`,
         [id]
     ),
@@ -144,7 +144,7 @@ module.exports = {
             `UPDATE inventario_articulo SET
                 nombre                = COALESCE($1, nombre),
                 descripcion           = $2,
-                fk_partida            = $3,
+                fk_categoria          = $3,
                 fk_unidad             = COALESCE($4, fk_unidad),
                 fk_ubicacion_exterior = $5,
                 fk_ubicacion_interior = $6,
@@ -154,7 +154,7 @@ module.exports = {
             [
                 data.nombre   || null,
                 data.descripcion || null,
-                data.fk_partida  || null,
+                data.fk_categoria || null,
                 data.fk_unidad   || null,
                 ubi_ext,          // si tiene valor, interior queda null en $6
                 ubi_ext ? null : ubi_int,  // si exterior tiene valor, forzar interior a null

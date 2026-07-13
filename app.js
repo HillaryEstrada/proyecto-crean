@@ -54,7 +54,7 @@ app.use('/predio', require('./routes/predio/predio.routes'));
 
 
 //--- MÓDULO CONSUMIBLES ---
-app.use('/partida-presupuestal', require('./routes/partida_presupuestal/partida_presupuestal.routes'));
+app.use('/categorias', require('./routes/categoria/categoria.routes'));
 app.use('/unidad-medida', require('./routes/unidad_medida/unidad_medida.routes'));
 app.use('/area', require('./routes/area/area.routes'));
 
@@ -76,6 +76,16 @@ app.use('/alertas', require('./routes/alerta/alerta.routes'));
 app.use('/dashboard', require('./routes/dashboard/dashboard.routes'));
 // Rutas generales
 app.use('/', require('./routes/index.routes'));
+
+// --- MÓDULO COMODATO ---
+app.use('/solicitudes',    require('./routes/solicitud/solicitud.routes'));
+app.use('/comodatos',      require('./routes/comodato/comodato.routes'));
+app.use('/entregas',       require('./routes/entrega/entrega.routes'));
+app.use('/devoluciones',   require('./routes/devolucion/devolucion.routes'));
+app.use('/fallas',         require('./routes/falla/falla.routes'));
+app.use('/mantenimientos', require('./routes/mantenimiento/mantenimiento.routes'));
+app.use('/traslados',      require('./routes/traslado/traslado.routes'));
+app.use('/documentos',     require('./routes/documento/documento.routes'));
 
 // ========== CRON DE ALERTAS ==========
 const { iniciarCronAlertas } = require('./cron/alertas.cron');

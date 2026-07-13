@@ -24,3 +24,6 @@ temp/
 
 # Carpeta de uploads si llegas a tener
 uploads/
+
+# Google Cloud credentials
+config/crean-501115-1e73fe04a68e.json

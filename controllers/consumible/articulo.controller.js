@@ -18,7 +18,7 @@ exports.crear = async (req, res) => {
         if (req.body.codigo_barras) {
             const existeCodigo = await articulo.existeCodigoBarras(req.body.codigo_barras);
             if (existeCodigo.rows.length) {
-                return res.status(400).json({ error: 'Ya existe un artículo con ese código de barras' });
+                return res.status(400).json({ error: 'Ya existe un artículo con ese código' });
             }
         }
 

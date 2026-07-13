@@ -9,7 +9,7 @@
     window._movCache = [];
     let _movimientos        = [];
     let _unidades           = [];
-    let _partidas           = [];
+    let _categorias           = [];
     let _ubicacionesExt     = [];
     let _ubicacionesInt     = [];
     let _areas              = [];
@@ -31,7 +31,7 @@
             catch (e) { console.error(`Error ${url}:`, e); return []; }
         };
         _unidades  = await cargar('/unidad-medida');
-        _partidas  = await cargar('/partida-presupuestal');
+        _categorias  = await cargar('/categorias');
         _areas     = await cargar('/area');
         _empleados = await cargar('/empleados');
         _ubicacionesExt = await cargar('/ubicacion?tipo=exterior');
@@ -39,18 +39,19 @@
         _articulos = await cargar('/articulos');
 
         llenarSelect('f_fk_unidad',      _unidades,  'pk_unidad',   'nombre');
-        llenarSelect('f_fk_partida',     _partidas,  'clave',       'nombre');
+        llenarSelect('f_fk_categoria',     _categorias,  'pk_categoria',       'nombre');
         llenarSelect('f_fk_area',        _areas,     'pk_area',     'nombre');
         llenarSelect('f_recibido_por',   _empleados, 'pk_empleado', e => `${e.nombre} ${e.apellido_paterno}`);
         llenarSelect('f_autorizado_por', _empleados, 'pk_empleado', e => `${e.nombre} ${e.apellido_paterno}`);
-        llenarSelect('bc_fk_partida',    _partidas,  'clave',       'nombre');
+        llenarSelect('bc_fk_categoria',    _categorias,  'pk_categoria',       'nombre');
         llenarSelect('f_fk_ubicacion_exterior',  _ubicacionesExt, 'pk_ubicacion', 'nombre');
         llenarSelect('f_fk_ubicacion_interior',  _ubicacionesInt, 'pk_ubicacion', 'nombre');
         llenarSelect('bc_fk_ubicacion_exterior', _ubicacionesExt, 'pk_ubicacion', 'nombre');
         llenarSelect('bc_fk_ubicacion_interior', _ubicacionesInt, 'pk_ubicacion', 'nombre');
         llenarSelect('sel_empleado_vales', _empleados, 'pk_empleado', e => `${e.nombre} ${e.apellido_paterno}`);
         llenarSelect('f_fk_articulo', _articulos, 'pk_articulo', 'nombre');
-        llenarSelect('filtroPartida', _partidas, 'clave', 'nombre');
+        initSelectArticulo();
+        llenarSelect('filtroCategoria', _categorias, 'pk_categoria', 'nombre');
     }
 
     // ============================================
@@ -255,6 +256,7 @@
             renderTarjetasArticulos(_articulos);
             renderTablaArticulos(_articulos);
             llenarSelect('f_fk_articulo', _articulos, 'pk_articulo', 'nombre');
+            initSelectArticulo();
         } catch (e) {
             Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los artículos' });
         }
@@ -362,13 +364,13 @@
         window.filtrarTabla = function () {
         const q       = (document.getElementById('searchInput')?.value || '').toLowerCase();
         const estado  = document.getElementById('filtroEstado')?.value || '';
-        const partida = document.getElementById('filtroPartida')?.value || '';
+        const categoria = document.getElementById('filtroCategoria')?.value || '';
 
         renderTablaArticulos(_articulos.filter(a => {
             const txt = `${a.nombre} ${a.codigo_barras || ''}`.toLowerCase();
             return (!q || txt.includes(q))
                 && (!estado  || a.estado_stock === estado)
-                && (!partida || a.fk_partida   === partida);
+                && (!categoria || a.fk_categoria === categoria);
         }));
     };
 
@@ -402,7 +404,7 @@
     // ============================================
     function resetFormularioArticulo() {
         ['f_pk_articulo','f_nombre','f_fk_unidad',
-        'f_fk_partida','f_descripcion','f_codigo_barras',
+        'f_fk_categoria','f_descripcion','f_codigo_barras',
         'f_fk_ubicacion_exterior','f_fk_ubicacion_interior']
             .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
         document.getElementById('f_stock_inicial').value    = '';
@@ -429,7 +431,7 @@
             document.getElementById('f_nombre').value           = a.nombre;
             document.getElementById('f_fk_unidad').value        = a.fk_unidad || '';
             document.getElementById('f_stock_minimo').value     = a.stock_minimo;
-            document.getElementById('f_fk_partida').value       = a.fk_partida || '';
+            document.getElementById('f_fk_categoria').value       = a.fk_categoria || '';
             document.getElementById('f_fk_ubicacion_exterior').value = a.fk_ubicacion_exterior || '';
             document.getElementById('f_fk_ubicacion_interior').value = a.fk_ubicacion_interior || '';
             document.getElementById('f_descripcion').value      = a.descripcion || '';
@@ -470,7 +472,7 @@
 
         const payload = {
             nombre, fk_unidad, codigo_barras,
-            fk_partida:            document.getElementById('f_fk_partida').value || null,
+            fk_categoria:            document.getElementById('f_fk_categoria').value || null,
             fk_ubicacion_exterior: fk_ubi_ext ? fk_ubi_ext : null,
             fk_ubicacion_interior: fk_ubi_int ? fk_ubi_int : null,
             stock_minimo:          parseInt(document.getElementById('f_stock_minimo').value) || 0,
@@ -519,8 +521,12 @@
     function resetFormularioMovimiento() {
         limpiarBarcode();
         document.getElementById('f_tipo_movimiento').value = '';
+
         const selArt = document.getElementById('f_fk_articulo');
-        if (selArt) { selArt.value = ''; selArt.disabled = false; }
+        if (selArt) {
+            selArt.disabled = false;
+            $(selArt).val('').trigger('change');
+        }
         document.getElementById('f_cantidad').value     = 1;
         document.getElementById('f_fk_area').value      = '';
         document.getElementById('f_recibido_por').value = '';
@@ -631,12 +637,6 @@
         if (!motivo)             { document.getElementById('err_motivo').classList.remove('d-none'); valido = false; }
         else                       document.getElementById('err_motivo').classList.add('d-none');
 
-        if (tipo === 'entrada') {
-            const factura = document.getElementById('f_numero_factura')?.value.trim();
-            if (!factura) { document.getElementById('err_numero_factura').classList.remove('d-none'); valido = false; }
-            else            document.getElementById('err_numero_factura').classList.add('d-none');
-        }
-
         if (tipo === 'salida') {
             if (!document.getElementById('f_fk_area').value) {
                 document.getElementById('err_area').classList.remove('d-none'); valido = false;
@@ -683,7 +683,8 @@
         };
 
         if (tipo === 'entrada') {
-            payload.numero_factura = document.getElementById('f_numero_factura').value.trim();
+            payload.numero_factura =
+                document.getElementById('f_numero_factura').value.trim() || null;
         }
 
         if (tipo === 'salida') {
@@ -712,7 +713,7 @@
         switchTabPrincipal('movimientos');
         document.getElementById('seccionBarcode')?.classList.remove('d-none');
         document.getElementById('f_fk_articulo').disabled = false;
-        if (articuloId) document.getElementById('f_fk_articulo').value = articuloId;
+        if (articuloId) $('#f_fk_articulo').val(articuloId).trigger('change');
         document.getElementById('vistaTablaMovimientos').classList.add('d-none');
         document.getElementById('vistaFormularioMovimiento').classList.remove('d-none');
         document.getElementById('camposMovimiento')?.classList.add('d-none');
@@ -920,7 +921,7 @@
                 const res = await fetchWithAuth(`/articulos/codigo/${encodeURIComponent(codigo)}`);
                 if (res.existe) {
                     const sel = document.getElementById('f_fk_articulo');
-                    if (sel) sel.value = res.data.pk_articulo;
+                    if (sel) $(sel).val(res.data.pk_articulo).trigger('change');
                     status.innerHTML = `<span style="color:#2d7a4f;">
                         <i class="fa-solid fa-circle-check me-1"></i>
                         Producto detectado: <strong>${res.data.nombre}</strong> — Stock: ${res.data.stock} ${res.data.unidad || ''}
@@ -938,7 +939,9 @@
                     document.getElementById('bc_fk_ubicacion_interior').value = '';
                     document.getElementById('bc_stock_inicial').value = '';
                     document.getElementById('bc_stock_minimo').value  = '';
-                    ['bc_err_nombre','bc_err_unidad']
+                    document.getElementById('bc_fk_categoria').value  = '';
+                    document.getElementById('bc_descripcion').value  = '';
+                    ['bc_err_nombre','bc_err_unidad','bc_err_ubicacion']
                         .forEach(id => document.getElementById(id)?.classList.add('d-none'));
                     llenarSelect('bc_fk_unidad',             _unidades,       'pk_unidad',   'nombre');
                     llenarSelect('bc_fk_ubicacion_exterior', _ubicacionesExt, 'pk_ubicacion','nombre');
@@ -990,7 +993,7 @@
                 codigo_barras:         codigo,
                 fk_ubicacion_exterior: fk_ubicacion_exterior || null,
                 fk_ubicacion_interior: document.getElementById('bc_fk_ubicacion_interior').value || null,
-                fk_partida:            document.getElementById('bc_fk_partida').value || null,
+                fk_categoria:            document.getElementById('bc_fk_categoria').value || null,
                 stock_minimo:          parseInt(document.getElementById('bc_stock_minimo').value) || 0,
                 stock_inicial:         0
             };
@@ -1000,7 +1003,7 @@
 
             await listarArticulos();
             const sel = document.getElementById('f_fk_articulo');
-            if (sel && nuevo.data) sel.value = nuevo.data.pk_articulo;
+            if (sel && nuevo.data) $(sel).val(nuevo.data.pk_articulo).trigger('change');
 
             const status = document.getElementById('barcodeStatus');
             if (status) {
@@ -1031,6 +1034,19 @@
                 const label = typeof labelKey === 'function' ? labelKey(d) : d[labelKey];
                 return `<option value="${d[valueKey]}">${label}</option>`;
             }).join('');
+    }
+
+    function initSelectArticulo() {
+        const $sel = $('#f_fk_articulo');
+        if ($sel.data('select2')) {
+            $sel.select2('destroy');
+        }
+        $sel.select2({
+            placeholder: 'Buscar artículo...',
+            allowClear: true,
+            width: '100%',
+            dropdownParent: $('#vistaFormularioMovimiento')
+        });
     }
 
 function llenarSelectValesEmpleado() {

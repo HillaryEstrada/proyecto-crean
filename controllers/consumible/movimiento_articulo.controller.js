@@ -28,9 +28,6 @@ exports.registrar = async (req, res) => {
         if (!tiposValidos.includes(tipo_movimiento))
             return res.status(400).json({ error: 'Tipo de movimiento inválido. Use: entrada, salida o baja' });
 
-        if (tipo_movimiento === 'entrada' && !numero_factura)
-            return res.status(400).json({ error: 'El número de factura es obligatorio para entradas' });
-
         if (tipo_movimiento === 'salida') {
             if (!fk_area)        return res.status(400).json({ error: 'El área es obligatoria para salidas' });
             if (!recibido_por)   return res.status(400).json({ error: 'El empleado que recibe es obligatorio para salidas' });
